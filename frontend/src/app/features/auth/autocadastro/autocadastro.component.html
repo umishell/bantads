@@ -1,0 +1,75 @@
+<div class="autocadastro-container">
+    <div class="card">
+      <header>
+        <h2>BANTADS</h2>
+        <p>Abra sua conta em poucos minutos</p>
+      </header>
+  
+      <div *ngIf="success" class="alert success fade-in">
+        <div class="icon">✓</div>
+        <p><strong>Cadastro enviado!</strong></p>
+        <p>Sua solicitação está em análise. Em breve você receberá um e-mail com o status da aprovação.</p>
+        <button class="btn-secondary" routerLink="/auth/login">Voltar para o Login</button>
+      </div>
+  
+      <form *ngIf="!success" [formGroup]="authForm" (ngSubmit)="onSubmit()" class="fade-in">
+        
+        <div class="form-section">
+          <h3><i class="icon-user"></i> Dados Pessoais</h3>
+          <div class="input-group">
+            <input type="text" formControlName="nome" placeholder="Nome Completo" 
+                   [class.invalid]="authForm.get('nome')?.invalid && authForm.get('nome')?.touched">
+            <span class="error-msg" *ngIf="authForm.get('nome')?.invalid && authForm.get('nome')?.touched">
+              Nome é obrigatório (mín. 3 letras).
+            </span>
+          </div>
+  
+          <div class="input-row">
+            <div class="input-group">
+              <input type="text" formControlName="cpf" placeholder="CPF (somente números)">
+            </div>
+            <div class="input-group">
+              <input type="email" formControlName="email" placeholder="E-mail">
+            </div>
+          </div>
+  
+          <div class="input-row">
+            <div class="input-group">
+              <input type="text" formControlName="telefone" placeholder="Telefone">
+            </div>
+            <div class="input-group">
+              <input type="number" formControlName="salario" placeholder="Salário Mensal">
+            </div>
+          </div>
+        </div>
+  
+        <div class="form-section" formGroupName="endereco">
+          <h3><i class="icon-map"></i> Endereço</h3>
+          <div class="input-row">
+            <input type="text" formControlName="cep" class="flex-2" placeholder="CEP">
+            <input type="text" formControlName="estado" class="flex-1" placeholder="UF">
+          </div>
+          
+          <input type="text" formControlName="rua" placeholder="Logradouro">
+          
+          <div class="input-row">
+            <input type="number" formControlName="numero" class="flex-1" placeholder="Nº">
+            <input type="text" formControlName="complemento" class="flex-2" placeholder="Complemento">
+          </div>
+          
+          <input type="text" formControlName="cidade" placeholder="Cidade">
+        </div>
+  
+        <div *ngIf="errorMessage" class="alert error">
+          {{ errorMessage }}
+        </div>
+  
+        <div class="actions">
+          <button type="submit" class="btn-primary" [disabled]="authForm.invalid || loading">
+            {{ loading ? 'Processando...' : 'Finalizar Cadastro' }}
+          </button>
+          <a routerLink="/auth/login" class="link-login">Já sou cliente</a>
+        </div>
+      </form>
+    </div>
+  </div>

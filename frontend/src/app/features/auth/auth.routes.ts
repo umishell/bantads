@@ -5,11 +5,6 @@ export const AUTH_ROUTES: Routes = [
     path: '',
     children: [
       {
-        path: '',
-        redirectTo: 'login',
-        pathMatch: 'full'
-      },
-      {
         path: 'login',
         title: 'BANTADS - Login',
         loadComponent: () => 
@@ -18,9 +13,14 @@ export const AUTH_ROUTES: Routes = [
       {
         path: 'autocadastro',
         title: 'BANTADS - Abra sua conta',
-        // Requisito R1: Página de autocadastro acessível sem login
+        // Requisito R1: Autocadastro acessível sem login
         loadComponent: () => 
           import('./autocadastro/autocadastro.component').then(c => c.AutocadastroComponent)
+      },
+      {
+        path: '',
+        redirectTo: 'login',
+        pathMatch: 'full'
       }
     ]
   }
