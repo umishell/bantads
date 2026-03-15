@@ -1,6 +1,17 @@
 import { Routes } from '@angular/router';
 import { authGuard } from './core/guards/auth.guard';
 import { roleGuard } from './core/guards/role.guard';
+import { DepositoComponent } from './pages/deposito/deposito.component';
+import { SaqueComponent } from './pages/saque/saque.component';
+
+const routes: Routes = [
+  { path: 'deposito', component: DepositoComponent }
+];
+
+const routes: Routes = [
+  { path: 'deposito', component: DepositoComponent },
+  { path: 'saque', component: SaqueComponent }
+];
 
 export const routes: Routes = [
 
