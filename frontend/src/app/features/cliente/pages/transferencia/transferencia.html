@@ -1,0 +1,42 @@
+<section class="transferencia-page">
+  <header class="page-header">
+    <h1>Transferência</h1>
+    <p>Informe a conta destino e o valor que deseja transferir.</p>
+    <p class="account-info">
+      Conta de origem:
+      <strong>{{ numeroConta || 'não identificada' }}</strong>
+    </p>
+  </header>
+
+  <form class="transferencia-card" [formGroup]="transferenciaForm" (ngSubmit)="submit()">
+    <div class="form-group">
+      <label for="destino">Conta destino</label>
+      <input id="destino" type="text" maxlength="4" formControlName="destino" placeholder="Ex.: 0950" />
+      @if (isInvalid('destino')) {
+        <small class="error">Informe uma conta destino com 4 dígitos.</small>
+      }
+    </div>
+
+    <div class="form-group">
+      <label for="valor">Valor</label>
+      <input id="valor" type="number" min="0.01" step="0.01" formControlName="valor" placeholder="Ex.: 100.00" />
+      @if (isInvalid('valor')) {
+        <small class="error">Informe um valor maior que zero.</small>
+      }
+    </div>
+
+    @if (errorMessage) {
+      <div class="feedback feedback-error">{{ errorMessage }}</div>
+    }
+
+    @if (successMessage) {
+      <div class="feedback feedback-success">{{ successMessage }}</div>
+    }
+
+    <div class="actions">
+      <button type="submit" [disabled]="loading">
+        {{ loading ? 'Transferindo...' : 'Confirmar transferência' }}
+      </button>
+    </div>
+  </form>
+</section>

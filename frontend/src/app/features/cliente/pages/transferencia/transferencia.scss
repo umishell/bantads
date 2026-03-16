@@ -1,0 +1,95 @@
+:host {
+  display: block;
+}
+
+.transferencia-page {
+  max-width: 720px;
+  margin: 0 auto;
+  padding: 2rem 1rem;
+}
+
+.page-header {
+  margin-bottom: 1.5rem;
+
+  h1 {
+    margin: 0 0 0.5rem;
+  }
+
+  p {
+    margin: 0.25rem 0;
+    color: #4b5563;
+  }
+}
+
+.account-info {
+  color: #111827;
+}
+
+.transferencia-card {
+  background: #ffffff;
+  border: 1px solid #e5e7eb;
+  border-radius: 16px;
+  padding: 1.5rem;
+  box-shadow: 0 10px 30px rgba(15, 23, 42, 0.06);
+}
+
+.form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  margin-bottom: 1rem;
+
+  label {
+    font-weight: 600;
+  }
+
+  input {
+    border: 1px solid #d1d5db;
+    border-radius: 12px;
+    padding: 0.875rem 1rem;
+    font-size: 1rem;
+  }
+}
+
+.actions {
+  display: flex;
+  justify-content: flex-end;
+}
+
+button {
+  border: 0;
+  border-radius: 12px;
+  padding: 0.875rem 1.25rem;
+  font-weight: 700;
+  cursor: pointer;
+  background: #1d4ed8;
+  color: #fff;
+}
+
+button:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+}
+
+.feedback {
+  border-radius: 12px;
+  padding: 0.875rem 1rem;
+  margin: 1rem 0;
+  font-weight: 500;
+}
+
+.feedback-error {
+  background: #fef2f2;
+  color: #b91c1c;
+  border: 1px solid #fecaca;
+}
+
+.feedback-success {
+  background: #eff6ff;
+  color: #1d4ed8;
+  border: 1px solid #bfdbfe;
+}
+
+.error {
+  color: #b91c1c;
+}

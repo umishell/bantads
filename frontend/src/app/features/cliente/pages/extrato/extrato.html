@@ -1,0 +1,107 @@
+<section class="extrato-page">
+  <header class="page-header">
+    <h1>Consulta de extrato</h1>
+    <p>Informe a data inicial e a data final para consultar as movimentações da sua conta.</p>
+    <p class="account-info">
+      Conta consultada:
+      <strong>{{ numeroConta || 'não identificada' }}</strong>
+    </p>
+  </header>
+
+  <form class="filtro-card" [formGroup]="filtroForm" (ngSubmit)="consultar()">
+    <div class="filtro-grid">
+      <div class="form-group">
+        <label for="dataInicio">Data inicial</label>
+        <input id="dataInicio" type="date" formControlName="dataInicio" />
+        @if (isInvalid('dataInicio')) {
+          <small class="error">Informe a data inicial.</small>
+        }
+      </div>
+
+      <div class="form-group">
+        <label for="dataFim">Data final</label>
+        <input id="dataFim" type="date" formControlName="dataFim" />
+        @if (isInvalid('dataFim')) {
+          <small class="error">Informe a data final.</small>
+        }
+      </div>
+    </div>
+
+    @if (errorMessage) {
+      <div class="feedback feedback-error">{{ errorMessage }}</div>
+    }
+
+    <div class="actions">
+      <button type="submit" [disabled]="loading">
+        {{ loading ? 'Consultando...' : 'Consultar extrato' }}
+      </button>
+    </div>
+  </form>
+
+  @if (extrato) {
+    <section class="resultado-card">
+      <header class="resultado-header">
+        <div>
+          <h2>Extrato da conta {{ extrato.conta }}</h2>
+          <p>Saldo atual: <strong>{{ formatCurrency(extrato.saldo) }}</strong></p>
+        </div>
+      </header>
+
+      @if (!hasDias()) {
+        <div class="empty-state">Nenhuma movimentação encontrada no período informado.</div>
+      }
+
+      @for (dia of extrato.dias; track trackDia($index, dia)) {
+        <article class="dia-card">
+          <header class="dia-header">
+            <div>
+              <h3>{{ formatDate(dia.data) }}</h3>
+              <p>Saldo consolidado: <strong>{{ formatCurrency(dia.saldoConsolidado) }}</strong></p>
+            </div>
+          </header>
+
+          <div class="movimentacoes-list">
+            @if (!dia.movimentacoes.length) {
+              <div class="movimentacao-row sem-movimentacao">
+                Nenhuma movimentação neste dia.
+              </div>
+            }
+
+            @for (movimentacao of dia.movimentacoes; track trackMovimentacao($index, movimentacao)) {
+              <div
+                class="movimentacao-row"
+                [class.movimentacao-entrada]="isEntrada(movimentacao)"
+                [class.movimentacao-saida]="isSaida(movimentacao)"
+              >
+                <div>
+                  <span class="label">Data/hora</span>
+                  <strong>{{ formatDateTime(movimentacao.dataHora) }}</strong>
+                </div>
+
+                <div>
+                  <span class="label">Operação</span>
+                  <strong>{{ movimentacao.operacao }}</strong>
+                </div>
+
+                <div>
+                  <span class="label">Origem</span>
+                  <strong>{{ movimentacao.origem || '-' }}</strong>
+                </div>
+
+                <div>
+                  <span class="label">Destino</span>
+                  <strong>{{ movimentacao.destino || '-' }}</strong>
+                </div>
+
+                <div>
+                  <span class="label">Valor</span>
+                  <strong>{{ formatCurrency(movimentacao.valor) }}</strong>
+                </div>
+              </div>
+            }
+          </div>
+        </article>
+      }
+    </section>
+  }
+</section>
