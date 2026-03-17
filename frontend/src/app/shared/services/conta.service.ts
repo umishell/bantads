@@ -11,7 +11,7 @@ import {
 import { ExtratoResponseModel } from '../models/conta/extrato-response.model';
 import { TransferenciaRequestModel } from '../models/conta/transferencia-request.model';
 import { TransferenciaResponseModel } from '../models/conta/transferencia-response.model';
-import { AuthService } from './auth.service';
+import { AuthService } from '../../core/services/auth.service';
 
 type RawExtratoMovimentacao = {
   dataHora?: string;

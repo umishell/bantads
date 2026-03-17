@@ -4,7 +4,7 @@ import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { finalize } from 'rxjs';
 
 import { AuthService } from '../../../../core/services/auth.service';
-import { ContaService } from '../../../../core/services/conta.service';
+import { ContaService } from '../../../../shared/services/conta.service';
 
 @Component({
   selector: 'app-transferencia',
