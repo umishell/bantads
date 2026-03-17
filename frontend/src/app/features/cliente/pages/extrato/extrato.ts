@@ -3,11 +3,11 @@ import { Component, OnInit, inject } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { finalize } from 'rxjs';
 
-import { ExtratoDiaModel } from '../../../../core/models/conta/extrato-dia.model';
-import { ExtratoMovimentacaoModel } from '../../../../core/models/conta/extrato-movimentacao.model';
-import { ExtratoResponseModel } from '../../../../core/models/conta/extrato-response.model';
+import { ExtratoDiaModel } from '../../../../shared/models/conta/extrato-dia.model';
+import { ExtratoMovimentacaoModel } from '../../../../shared/models/conta/extrato-movimentacao.model';
+import { ExtratoResponseModel } from '../../../../shared/models/conta/extrato-response.model';
 import { AuthService } from '../../../../core/services/auth.service';
-import { ContaService } from '../../../../core/services/conta.service';
+import { ContaService } from '../../../../shared/services/conta.service';
 
 @Component({
   selector: 'app-extrato',
