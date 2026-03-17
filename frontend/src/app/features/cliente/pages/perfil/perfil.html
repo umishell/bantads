@@ -1,0 +1,47 @@
+<div class="container-perfil">
+  <h2 class="titulo">Alteração de Perfil</h2>
+
+  <div *ngIf="errorMessage" class="alert alert-danger">{{ errorMessage }}</div>
+  <div *ngIf="successMessage" class="alert alert-success">{{ successMessage }}</div>
+
+  <form [formGroup]="perfilForm" (ngSubmit)="salvar()" *ngIf="!loading; else spinner">
+    <div class="row">
+      <div class="col-md-6 mb-3">
+        <label>Nome Completo</label>
+        <input type="text" formControlName="nome" class="form-control" [class.is-invalid]="isInvalid('nome')">
+      </div>
+
+      <div class="col-md-6 mb-3">
+        <label>E-mail</label>
+        <input type="email" formControlName="email" class="form-control" [class.is-invalid]="isInvalid('email')">
+      </div>
+
+      <div class="col-md-6 mb-3">
+        <label>CPF (Não alterável)</label>
+        <input type="text" formControlName="cpf" class="form-control input-readonly">
+      </div>
+
+      <div class="col-md-6 mb-3">
+        <label>Salário Mensal (R$)</label>
+        <input type="number" formControlName="salario" class="form-control" [class.is-invalid]="isInvalid('salario')">
+      </div>
+
+      <div class="col-12 mb-3">
+        <label>Endereço</label>
+        <input type="text" formControlName="endereco" class="form-control" [class.is-invalid]="isInvalid('endereco')">
+      </div>
+    </div>
+
+    <div class="acoes">
+      <button type="submit" class="btn btn-success" [disabled]="salvando">
+        {{ salvando ? 'Salvando...' : 'Salvar Alterações' }}
+      </button>
+    </div>
+  </form>
+
+  <ng-template #spinner>
+    <div class="text-center p-5">
+      <span>Carregando dados...</span>
+    </div>
+  </ng-template>
+</div>
