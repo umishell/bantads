@@ -1,0 +1,51 @@
+<div class="container-home">
+  <div *ngIf="errorMessage" class="alert alert-danger">{{ errorMessage }}</div>
+
+  <div *ngIf="!loading; else spinner">
+    <header class="header-welcome" *ngIf="cliente">
+      <h2>Olá, {{ cliente.nome }}!</h2>
+      <p class="text-muted">Gerente: <strong>{{ cliente.gerente_nome }}</strong></p> </header>
+
+    <div class="row" *ngIf="cliente">
+      <div class="col-md-6 mb-4">
+        <div class="card shadow-sm card-financeiro">
+          <div class="card-body">
+            <span class="label">Saldo Atual</span>
+            <h1 class="valor-saldo" [class.negativo]="isSaldoNegativo()">
+              {{ formatCurrency(cliente.saldo) }}
+            </h1>
+            <div class="limite-footer mt-3 pt-2">
+              <span>Limite da Conta: {{ formatCurrency(cliente.limite) }}</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="col-md-6">
+        <div class="grid-acoes">
+          <button class="btn btn-primary action-item" routerLink="/cliente/deposito">
+            <i class="bi bi-cash-stack"></i> Depositar
+          </button>
+          <button class="btn btn-primary action-item" routerLink="/cliente/saque">
+            <i class="bi bi-bank"></i> Sacar
+          </button>
+          <button class="btn btn-primary action-item" routerLink="/cliente/transferencia">
+            <i class="bi bi-arrow-left-right"></i> Transferir
+          </button>
+          <button class="btn btn-dark action-item" routerLink="/cliente/extrato">
+            <i class="bi bi-list-ul"></i> Ver Extrato
+          </button>
+          <button class="btn btn-outline-secondary action-item" routerLink="/cliente/perfil">
+            <i class="bi bi-person-gear"></i> Alterar Perfil
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <ng-template #spinner>
+    <div class="text-center p-5">
+      <span>Carregando sua conta...</span>
+    </div>
+  </ng-template>
+</div>
