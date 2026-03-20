@@ -8,6 +8,13 @@ import { AuthService } from '../../../../core/services/auth.service';
 import { ClienteService } from '../../../../shared/services/cliente.service';
 import { ClienteModel } from '../../../../shared/models/cliente/cliente.model';
 
+type ClienteDashboard = ClienteModel & {
+  gerente_nome?: string;
+  gerente_email?: string;
+  saldo?: number;
+  limite?: number;
+};
+
 @Component({
   selector: 'app-home',
   standalone: true,
@@ -23,7 +30,7 @@ export class HomeComponent implements OnInit {
 
   protected loading = false;
   protected errorMessage = '';
-  protected cliente: ClienteModel | null = null;
+  protected cliente: ClienteDashboard | null = null;
 
   ngOnInit(): void {
     this.carregarDashboard();
@@ -43,7 +50,7 @@ export class HomeComponent implements OnInit {
       .pipe(finalize(() => (this.loading = false)))
       .subscribe({
         next: (response: ClienteModel) => {
-          this.cliente = response;
+          this.cliente = response as ClienteDashboard;
         },
         error: (error: HttpErrorResponse) => {
           const payload = error.error as { message?: string; erro?: string } | null;

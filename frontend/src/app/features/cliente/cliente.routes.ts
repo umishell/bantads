@@ -3,8 +3,18 @@ import { Routes } from '@angular/router';
 export const CLIENTE_ROUTES: Routes = [
   {
     path: '',
-    redirectTo: 'transferencia',
+    redirectTo: 'home',
     pathMatch: 'full',
+  },
+  {
+    path: 'home',
+    title: 'BANTADS - Home do Cliente',
+    loadComponent: () => import('./pages/home/home').then((m) => m.HomeComponent),
+  },
+  {
+    path: 'perfil',
+    title: 'BANTADS - Perfil do Cliente',
+    loadComponent: () => import('./pages/perfil/perfil').then((m) => m.PerfilComponent),
   },
   {
     path: 'deposito',
