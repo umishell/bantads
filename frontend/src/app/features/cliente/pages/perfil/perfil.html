@@ -5,30 +5,45 @@
   <div *ngIf="successMessage" class="alert alert-success">{{ successMessage }}</div>
 
   <form [formGroup]="perfilForm" (ngSubmit)="salvar()" *ngIf="!loading; else spinner">
-    <div class="row">
-      <div class="col-md-6 mb-3">
-        <label>Nome Completo</label>
-        <input type="text" formControlName="nome" class="form-control" [class.is-invalid]="isInvalid('nome')">
+    <div class="grid-form">
+      <div class="field full">
+        <label for="nome">Nome Completo</label>
+        <input id="nome" type="text" formControlName="nome" class="form-control" [class.is-invalid]="isInvalid('nome')">
       </div>
 
-      <div class="col-md-6 mb-3">
-        <label>E-mail</label>
-        <input type="email" formControlName="email" class="form-control" [class.is-invalid]="isInvalid('email')">
+      <div class="field">
+        <label for="email">E-mail</label>
+        <input id="email" type="email" formControlName="email" class="form-control" [class.is-invalid]="isInvalid('email')">
       </div>
 
-      <div class="col-md-6 mb-3">
-        <label>CPF (Não alterável)</label>
-        <input type="text" formControlName="cpf" class="form-control input-readonly">
+      <div class="field">
+        <label for="cpf">CPF (Não alterável)</label>
+        <input id="cpf" type="text" formControlName="cpf" class="form-control input-readonly">
       </div>
 
-      <div class="col-md-6 mb-3">
-        <label>Salário Mensal (R$)</label>
-        <input type="number" formControlName="salario" class="form-control" [class.is-invalid]="isInvalid('salario')">
+      <div class="field">
+        <label for="salario">Salário Mensal (R$)</label>
+        <input id="salario" type="number" formControlName="salario" class="form-control" [class.is-invalid]="isInvalid('salario')">
       </div>
 
-      <div class="col-12 mb-3">
-        <label>Endereço</label>
-        <input type="text" formControlName="endereco" class="form-control" [class.is-invalid]="isInvalid('endereco')">
+      <div class="field full">
+        <label for="endereco">Endereço</label>
+        <input id="endereco" type="text" formControlName="endereco" class="form-control" [class.is-invalid]="isInvalid('endereco')">
+      </div>
+
+      <div class="field">
+        <label for="cep">CEP</label>
+        <input id="cep" type="text" formControlName="cep" class="form-control" [class.is-invalid]="isInvalid('cep')">
+      </div>
+
+      <div class="field">
+        <label for="cidade">Cidade</label>
+        <input id="cidade" type="text" formControlName="cidade" class="form-control" [class.is-invalid]="isInvalid('cidade')">
+      </div>
+
+      <div class="field">
+        <label for="estado">Estado</label>
+        <input id="estado" type="text" formControlName="estado" class="form-control" [class.is-invalid]="isInvalid('estado')">
       </div>
     </div>
 

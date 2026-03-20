@@ -4,7 +4,10 @@
   <div *ngIf="!loading; else spinner">
     <header class="header-welcome" *ngIf="cliente">
       <h2>Olá, {{ cliente.nome }}!</h2>
-      <p class="text-muted">Gerente: <strong>{{ cliente.gerente_nome }}</strong></p> </header>
+      <p class="text-muted" *ngIf="cliente.gerente_nome">
+        Gerente: <strong>{{ cliente.gerente_nome }}</strong>
+      </p>
+    </header>
 
     <div class="row" *ngIf="cliente">
       <div class="col-md-6 mb-4">
@@ -23,20 +26,20 @@
 
       <div class="col-md-6">
         <div class="grid-acoes">
-          <button class="btn btn-primary action-item" routerLink="/cliente/deposito">
-            <i class="bi bi-cash-stack"></i> Depositar
+          <button class="btn btn-primary action-item" routerLink="/cliente/deposito" type="button">
+            Depositar
           </button>
-          <button class="btn btn-primary action-item" routerLink="/cliente/saque">
-            <i class="bi bi-bank"></i> Sacar
+          <button class="btn btn-primary action-item" routerLink="/cliente/saque" type="button">
+            Sacar
           </button>
-          <button class="btn btn-primary action-item" routerLink="/cliente/transferencia">
-            <i class="bi bi-arrow-left-right"></i> Transferir
+          <button class="btn btn-primary action-item" routerLink="/cliente/transferencia" type="button">
+            Transferir
           </button>
-          <button class="btn btn-dark action-item" routerLink="/cliente/extrato">
-            <i class="bi bi-list-ul"></i> Ver Extrato
+          <button class="btn btn-dark action-item" routerLink="/cliente/extrato" type="button">
+            Ver Extrato
           </button>
-          <button class="btn btn-outline-secondary action-item" routerLink="/cliente/perfil">
-            <i class="bi bi-person-gear"></i> Alterar Perfil
+          <button class="btn btn-outline-secondary action-item wide" routerLink="/cliente/perfil" type="button">
+            Alterar Perfil
           </button>
         </div>
       </div>

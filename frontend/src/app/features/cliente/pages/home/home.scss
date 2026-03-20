@@ -4,8 +4,17 @@
   margin: 0 auto;
 
   .header-welcome {
-    margin-bottom: 2.5rem;
-    h2 { color: #2c3e50; font-weight: 700; }
+    margin-bottom: 2rem;
+
+    h2 {
+      margin: 0 0 0.5rem;
+      color: #2c3e50;
+      font-weight: 700;
+    }
+
+    .text-muted {
+      color: #6b7280;
+    }
   }
 
   .card-financeiro {
@@ -23,41 +32,45 @@
 
     .valor-saldo {
       margin: 1rem 0;
-      font-size: 3rem;
+      font-size: 2.4rem;
       font-weight: 800;
-      color: #27ae60; 
+      color: #27ae60;
 
       &.negativo {
-        color: #e74c3c !important; 
+        color: #e74c3c;
+      }
     }
 
     .limite-footer {
       border-top: 1px solid #f1f2f6;
       color: #7f8c8d;
       font-weight: 500;
+      padding-top: 0.75rem;
     }
   }
 
   .grid-acoes {
     display: grid;
-    grid-template-columns: repeat(2, 1fr);
+    grid-template-columns: repeat(2, minmax(0, 1fr));
     gap: 1rem;
 
     .action-item {
-      padding: 1.5rem;
+      padding: 1.25rem;
       font-weight: 600;
       border-radius: 10px;
       display: flex;
-      flex-direction: column;
       align-items: center;
       justify-content: center;
-      gap: 0.5rem;
-      transition: transform 0.2s;
+      min-height: 64px;
+      transition: transform 0.2s ease;
 
       &:hover {
-        transform: translateY(-3px);
+        transform: translateY(-2px);
+      }
+
+      &.wide {
+        grid-column: 1 / -1;
       }
     }
   }
-}
 }
