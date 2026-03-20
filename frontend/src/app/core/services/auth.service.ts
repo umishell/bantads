@@ -18,7 +18,7 @@ export class AuthService {
   // ==========================================================================
   // 1. ESTADO REATIVO PRIVADO (A Fonte da Verdade)
   // ==========================================================================
-  
+
   // Lemos do sessionStorage apenas na inicialização do serviço
   private _token = signal<string | null>(sessionStorage.getItem(this.tokenKey));
   private _usuario = signal<UsuarioLogado | null>(this.getUsuarioDoStorage());
@@ -51,24 +51,36 @@ export class AuthService {
     return this.userRole()?.toUpperCase() === expectedRole.toUpperCase();
   }
 
+  getToken(): string | null {
+    return this.token?.() ?? null;
+  }
+
+  getNumeroConta(): string | null {
+    return this.numeroConta?.() ?? null;
+  }
+
+  getCpf(): string | null {
+    return this._usuario()?.cpf ?? null;
+  }
+
   // ==========================================================================
   // 4.Session management
   // ==========================================================================
 
-   /**
+  /**
    * Efetua o login comunicando-se diretamente com o API Gateway.
    * O sucesso desta operação dispara automaticamente a atualização dos Signals.
    */
-   public login(credenciais: LoginRequest): Observable<LoginResponse> {
+  public login(credenciais: LoginRequest): Observable<LoginResponse> {
     const url = `${this.apiUrl}/login`;
 
     return this.http.post<LoginResponse>(url, credenciais).pipe(
-      // O 'tap' é um operador de "efeito colateral". 
-      // Ele executa o saveSession ANTES do dado chegar no componente, 
+      // O 'tap' é um operador de "efeito colateral".
+      // Ele executa o saveSession ANTES do dado chegar no componente,
       // garantindo que os Signals já estejam atualizados.
       tap((res: LoginResponse) => {
         this.saveSession(res.usuario, res.token);
-      })
+      }),
     );
 
     // ---- PRODUÇÃO (Descomentar para conectar ao MS-AUTH via Gateway) ----
@@ -77,17 +89,17 @@ export class AuthService {
       tap(res => this.saveSession(res.usuario, res.token))
     );
     */
-    
-    // (Optional) If you want to keep the mock throw error, you need to decide 
+
+    // (Optional) If you want to keep the mock throw error, you need to decide
     // whether to return the http.post OR the throwError. You can't return twice in the same block.
     // return throwError(() => new Error('Usuário ou senha inválidos')).pipe(delay(500));
   }
-  
+
   public saveSession(usuario: UsuarioLogado, token: string): void {
     // 1. Salva no disco (para não perder no F5)
     sessionStorage.setItem(this.tokenKey, token);
     sessionStorage.setItem(this.userKey, JSON.stringify(usuario));
-    
+
     // 2. Atualiza os Signals (avisa a aplicação inteira instantaneamente)
     this._token.set(token);
     this._usuario.set(usuario);
@@ -96,7 +108,7 @@ export class AuthService {
   public logout(): void {
     // 1. Limpa o disco
     sessionStorage.clear();
-    
+
     // 2. Reseta os Signals
     this._token.set(null);
     this._usuario.set(null);
