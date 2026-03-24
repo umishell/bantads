@@ -1,0 +1,135 @@
+services:
+  # --- INFRAESTRUTURA ---
+  rabbitmq:
+    image: rabbitmq:3-management
+    container_name: rabbitmq
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    networks:
+      - bantads-net
+
+  # Bancos de Dados 
+  db-auth:
+    image: postgres:latest
+    environment:
+      POSTGRES_DB: auth_db
+      POSTGRES_USER: user
+      POSTGRES_PASSWORD: password
+    volumes:
+      - ./data/auth:/var/lib/postgresql/data
+    networks:
+      - bantads-net
+
+  db-cliente:
+    image: postgres:latest
+    environment:
+      POSTGRES_DB: cliente_db
+      POSTGRES_USER: user
+      POSTGRES_PASSWORD: password
+    volumes:
+      - ./data/cliente:/var/lib/postgresql/data
+    networks:
+      - bantads-net
+
+  db-conta:
+    image: postgres:latest
+    environment:
+      POSTGRES_DB: conta_db
+      POSTGRES_USER: user
+      POSTGRES_PASSWORD: password
+    volumes:
+      - ./data/conta:/var/lib/postgresql/data
+    networks:
+      - bantads-net
+
+  db-gerente:
+    image: postgres:latest
+    environment:
+      POSTGRES_DB: gerente_db
+      POSTGRES_USER: user
+      POSTGRES_PASSWORD: password
+    volumes:
+      - ./data/gerente:/var/lib/postgresql/data
+    networks:
+      - bantads-net
+
+  # --- BACKEND MICROSSERVIÇOS ---
+  ms-auth:
+    build: ./microservices/ms-auth
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://db-auth:5432/auth_db
+      SPRING_RABBITMQ_HOST: rabbitmq
+    depends_on:
+      - db-auth
+      - rabbitmq
+    networks:
+      - bantads-net
+
+  ms-cliente:
+    build: ./microservices/ms-cliente
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://db-cliente:5432/cliente_db
+      SPRING_RABBITMQ_HOST: rabbitmq
+    depends_on:
+      - db-cliente
+      - rabbitmq
+    networks:
+      - bantads-net
+
+  ms-conta:
+    build: ./microservices/ms-conta
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://db-conta:5432/conta_db
+      SPRING_RABBITMQ_HOST: rabbitmq
+    depends_on:
+      - db-conta
+      - rabbitmq
+    networks:
+      - bantads-net
+
+  ms-gerente:
+    build: ./microservices/ms-gerente
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://db-gerente:5432/gerente_db
+      SPRING_RABBITMQ_HOST: rabbitmq
+    depends_on:
+      - db-gerente
+      - rabbitmq
+    networks:
+      - bantads-net
+
+  ms-saga:
+    build: ./microservices/ms-saga-orchestrator
+    environment:
+      SPRING_RABBITMQ_HOST: rabbitmq
+    depends_on:
+      - rabbitmq
+    networks:
+      - bantads-net
+
+  # --- FRONTEND E GATEWAY ---
+  frontend:
+    build: ./frontend
+    networks:
+      - bantads-net
+
+  gateway:
+    image: nginx:latest
+    ports:
+      - "80:80"
+    volumes:
+      - ./gateway/nginx.conf:/etc/nginx/nginx.conf:ro
+    depends_on:
+      - ms-auth
+      - ms-cliente
+      - ms-conta
+      - ms-gerente
+      - ms-saga
+      - frontend
+    networks:
+      - bantads-net
+
+networks:
+  bantads-net:
+    driver: bridge

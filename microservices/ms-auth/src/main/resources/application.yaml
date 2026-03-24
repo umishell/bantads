@@ -1,0 +1,71 @@
+server:
+  port: 8081
+  servlet:
+    context-path: /auth # Facilita o roteamento no Gateway
+  error:
+    include-message: always
+
+spring:
+  application:
+    name: ms-auth
+  
+  # Banco de Dados PostgreSQL
+  datasource:
+    url: jdbc:postgresql://${DB_HOST:localhost}:5432/auth_db
+    username: ${DB_USER:user}
+    password: ${DB_PASSWORD:password}
+    driver-class-name: org.postgresql.Driver
+    # Configuração de Pool (Hikari) - Toque Sênior
+    hikari:
+      maximum-pool-size: 10
+      minimum-idle: 5
+  
+  jpa:
+    database-platform: org.hibernate.dialect.PostgreSQLDialect
+    hibernate:
+      ddl-auto: update
+    show-sql: true
+    open-in-view: false # Melhora performance de conexões
+    properties:
+      hibernate:
+        format_sql: true
+
+  # Mensageria RabbitMQ
+  rabbitmq:
+    host: ${RABBIT_HOST:localhost}
+    port: 5672
+    username: ${RABBIT_USER:guest}
+    password: ${RABBIT_PASSWORD:guest}
+    template:
+      retry:
+        enabled: true
+        initial-interval: 3s
+        max-attempts: 3
+
+  # Padronização de Datas e Timezone (Crucial para Bancos)
+  jackson:
+    date-format: yyyy-MM-dd'T'HH:mm:ss
+    time-zone: GMT-3
+    deserialization:
+      fail-on-unknown-properties: false
+
+# Monitoramento de Saúde do Microsserviço
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health, info
+  endpoint:
+    health:
+      show-details: always
+
+# Segurança JWT
+jwt:
+  secret: ${JWT_SECRET:7a56403163745262704573315a6b3164746b386153646c7a4d31354a726e3230}
+  expiration: 3600000 # 1 hora
+
+logging:
+  level:
+    root: INFO
+    br.ufpr.tads.dac.auth: DEBUG
+    org.hibernate.SQL: DEBUG
