@@ -1,4 +1,5 @@
 import { CommonModule } from '@angular/common';
+import { HttpErrorResponse } from '@angular/common/http';
 import { Component, OnInit, inject } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { finalize } from 'rxjs';
@@ -6,6 +7,13 @@ import { finalize } from 'rxjs';
 import { AuthService } from '../../../../core/services/auth.service';
 import { ClienteService } from '../../../../shared/services/cliente.service';
 import { ClienteModel } from '../../../../shared/models/cliente/cliente.model';
+
+type ClienteDashboard = ClienteModel & {
+  gerente_nome?: string;
+  gerente_email?: string;
+  saldo?: number;
+  limite?: number;
+};
 
 @Component({
   selector: 'app-home',
@@ -19,10 +27,10 @@ export class HomeComponent implements OnInit {
   private readonly authService = inject(AuthService);
 
   protected readonly cpfUsuario = this.authService.getCpf();
-  
+
   protected loading = false;
   protected errorMessage = '';
-  protected cliente: ClienteModel | null = null;
+  protected cliente: ClienteDashboard | null = null;
 
   ngOnInit(): void {
     this.carregarDashboard();
@@ -41,18 +49,19 @@ export class HomeComponent implements OnInit {
       .buscarPorCpf(this.cpfUsuario)
       .pipe(finalize(() => (this.loading = false)))
       .subscribe({
-        next: (response) => {
-          this.cliente = response;
+        next: (response: ClienteModel) => {
+          this.cliente = response as ClienteDashboard;
         },
-        error: (error) => {
-          const apiMessage = error?.error?.message ?? error?.error?.erro ?? error?.message;
-          this.errorMessage = apiMessage || 'Erro ao carregar informações da conta.';
+        error: (error: HttpErrorResponse) => {
+          const payload = error.error as { message?: string; erro?: string } | null;
+          const apiMessage = payload?.message ?? payload?.erro ?? error.message;
+          this.errorMessage = apiMessage || 'Erro ao carregar dados do cliente.';
         },
       });
   }
 
   protected isSaldoNegativo(): boolean {
-    return (this.cliente?.saldo ?? 0) < 0; 
+    return (this.cliente?.saldo ?? 0) < 0;
   }
 
   protected formatCurrency(value: number | undefined): string {

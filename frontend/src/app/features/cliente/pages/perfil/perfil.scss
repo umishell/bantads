@@ -2,9 +2,9 @@
   padding: 2rem;
   background-color: #f8f9fa;
   border-radius: 8px;
-  max-width: 800px;
+  max-width: 900px;
   margin: 2rem auto;
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.08);
 
   .titulo {
     color: #2c3e50;
@@ -13,8 +13,45 @@
     padding-bottom: 0.5rem;
   }
 
+  .grid-form {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 1rem;
+  }
+
+  .field {
+    display: flex;
+    flex-direction: column;
+    gap: 0.4rem;
+
+    &.full {
+      grid-column: 1 / -1;
+    }
+  }
+
+  label {
+    font-weight: 600;
+    color: #374151;
+  }
+
+  .form-control {
+    padding: 0.75rem 0.9rem;
+    border: 1px solid #d1d5db;
+    border-radius: 8px;
+    outline: none;
+
+    &:focus {
+      border-color: #2563eb;
+      box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.15);
+    }
+
+    &.is-invalid {
+      border-color: #dc2626;
+    }
+  }
+
   .input-readonly {
-    background-color: #e9ecef !important;
+    background-color: #e9ecef;
     cursor: not-allowed;
   }
 
@@ -25,10 +62,12 @@
 
     .btn-success {
       background-color: #27ae60;
+      color: #fff;
       border: none;
-      padding: 0.75rem 2rem;
-      font-weight: bold;
-      
+      border-radius: 8px;
+      padding: 0.85rem 1.4rem;
+      font-weight: 700;
+
       &:disabled {
         background-color: #95a5a6;
       }
@@ -37,7 +76,7 @@
 
   .alert {
     padding: 1rem;
-    border-radius: 4px;
+    border-radius: 6px;
     margin-bottom: 1.5rem;
   }
 }
