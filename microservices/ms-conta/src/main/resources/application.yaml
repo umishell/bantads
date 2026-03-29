@@ -1,0 +1,27 @@
+server:
+  port: 8083
+  servlet:
+    context-path: /contas
+
+spring:
+  application:
+    name: ms-conta
+  datasource:
+    url: ${SPRING_DATASOURCE_URL:jdbc:postgresql://localhost:5432/conta_db}
+    username: user
+    password: password
+  jpa:
+    hibernate:
+      ddl-auto: update
+    open-in-view: false
+  rabbitmq:
+    host: ${SPRING_RABBITMQ_HOST:localhost}
+    port: 5672
+    username: guest
+    password: guest
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health, info

@@ -9,18 +9,17 @@ services:
     networks:
       - bantads-net
 
-  # Bancos de Dados 
-  db-auth:
-    image: postgres:latest
-    environment:
-      POSTGRES_DB: auth_db
-      POSTGRES_USER: user
-      POSTGRES_PASSWORD: password
+  mongo-auth:
+    image: mongo:7
+    container_name: mongo-auth
+    ports:
+      - "27017:27017"
     volumes:
-      - ./data/auth:/var/lib/postgresql/data
+      - ./data/mongo-auth:/data/db
     networks:
       - bantads-net
 
+  # Bancos PostgreSQL (demais microsserviços)
   db-cliente:
     image: postgres:latest
     environment:
@@ -57,11 +56,14 @@ services:
   # --- BACKEND MICROSSERVIÇOS ---
   ms-auth:
     build: ./microservices/ms-auth
+    ports:
+      - "8081:8081"
     environment:
-      SPRING_DATASOURCE_URL: jdbc:postgresql://db-auth:5432/auth_db
+      SPRING_DATA_MONGODB_URI: mongodb://mongo-auth:27017/auth_db
       SPRING_RABBITMQ_HOST: rabbitmq
+      JWT_SECRET: ${JWT_SECRET:-7a56403163745262704573315a6b3164746b386153646c7a4d31354a726e3230}
     depends_on:
-      - db-auth
+      - mongo-auth
       - rabbitmq
     networks:
       - bantads-net
@@ -108,24 +110,54 @@ services:
     networks:
       - bantads-net
 
-  # --- FRONTEND E GATEWAY ---
+  mailhog:
+    image: mailhog/mailhog:v1.0.1
+    ports:
+      - "1025:1025"
+      - "8025:8025"
+    networks:
+      - bantads-net
+
+  ms-email:
+    build: ./microservices/ms-email
+    environment:
+      SPRING_RABBITMQ_HOST: rabbitmq
+      SPRING_MAIL_HOST: mailhog
+      SPRING_MAIL_PORT: 1025
+      BANTADS_MAIL_FROM: noreply@bantads.local
+    depends_on:
+      - rabbitmq
+      - mailhog
+    networks:
+      - bantads-net
+
+  # --- FRONTEND E GATEWAY (Node + Fastify: JWT nas rotas /api protegidas) ---
   frontend:
     build: ./frontend
     networks:
       - bantads-net
 
   gateway:
-    image: nginx:latest
+    build: ./gateway
     ports:
-      - "80:80"
-    volumes:
-      - ./gateway/nginx.conf:/etc/nginx/nginx.conf:ro
+      - "80:3000"
+    environment:
+      PORT: 3000
+      HOST: 0.0.0.0
+      JWT_SECRET: ${JWT_SECRET:-7a56403163745262704573315a6b3164746b386153646c7a4d31354a726e3230}
+      UPSTREAM_AUTH: http://ms-auth:8081
+      UPSTREAM_CLIENTE: http://ms-cliente:8082
+      UPSTREAM_CONTA: http://ms-conta:8083
+      UPSTREAM_GERENTE: http://ms-gerente:8084
+      UPSTREAM_SAGA: http://ms-saga:8085
+      UPSTREAM_FRONTEND: http://frontend:4200
     depends_on:
       - ms-auth
       - ms-cliente
       - ms-conta
       - ms-gerente
       - ms-saga
+      - ms-email
       - frontend
     networks:
       - bantads-net

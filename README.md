@@ -132,6 +132,36 @@ C:.
 
 ---
 
+## Saga BANTADS — autocadastro em duas fases (decisões fixas)
+
+Esta seção registra decisões únicas para o trabalho DAC / BANTADS (alinhadas ao enunciado). O código-fonte do
+`ms-cliente` repete as constantes em `SagaAprovacaoClientePolicy` para quem implementar a saga e os demais MS.
+
+### Métrica de menor carga do gerente
+
+- **O que conta:** número de **contas ativas** no **`ms-conta`** (PostgreSQL) por gerente responsável.
+- **Por quê:** o requisito R1 associa o gerente ao **cliente/conta**; usar o banco de contas como fonte evita
+  divergência entre “clientes” e “contas”.
+- **Empate:** gerente com **menor CPF** (string de 11 dígitos; ordem lexicográfica).
+
+### Política de falha, retry e status do cliente
+
+- **E-mail:** até **3** tentativas no passo `ms-email` antes de considerar falha terminal desse passo.
+- **Após falha terminal da saga** (e compensações aplicáveis): o cliente em `PROCESSANDO_APROVACAO` volta para
+  **`PENDENTE_APROVACAO`**, para o gerente poder **reaprovar**. Não há estado `ERRO_PROCESSAMENTO` neste desenho.
+- **Compensação:** executar na ordem inversa ao fluxo feliz (ver matriz do enunciado); logs **sem** senha em claro.
+
+### Stack Docker (`docker compose`)
+
+Serviços principais: **RabbitMQ**, **MongoDB** (`ms-auth`), **PostgreSQL** (cliente / conta / gerente), **ms-saga-orchestrator**
+(hub de comandos assíncronos), **ms-conta**, **ms-gerente**, **ms-email** (SMTP → **MailHog** em dev, UI em
+http://localhost:8025), **ms-cliente**, **ms-auth**, **gateway** (porta 80) e **frontend**.
+
+Mensagens entre microsserviços de negócio passam pela **saga** (filas `cmd.*` e `saga-response-exchange`). O gateway exige
+**JWT perfil GERENTE** em `GET /api/clientes/pendentes` e em `POST /api/clientes/{id}/aprovar|rejeitar`.
+
+---
+
 ## Observações
 
 - Este README representa a **versão inicial** da documentação do projeto.

@@ -1,0 +1,27 @@
+server:
+  port: 8085
+
+spring:
+  application:
+    name: ms-saga-orchestrator
+  rabbitmq:
+    host: ${SPRING_RABBITMQ_HOST:localhost}
+    port: 5672
+    username: guest
+    password: guest
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health, info
+
+bantads:
+  saga:
+    exchange: bantads.saga
+    response-exchange: saga-response-exchange
+    email-max-attempts: 3
+
+logging:
+  level:
+    bantads.saga: INFO

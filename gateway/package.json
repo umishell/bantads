@@ -1,0 +1,20 @@
+{
+  "name": "bantads-api-gateway",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "API Gateway BANTADS — Fastify, proxy e validação JWT (R2)",
+  "main": "src/app.js",
+  "scripts": {
+    "start": "node src/app.js",
+    "dev": "node --watch src/app.js"
+  },
+  "engines": {
+    "node": ">=20"
+  },
+  "dependencies": {
+    "@fastify/http-proxy": "^11.1.2",
+    "fastify": "^5.2.1",
+    "jsonwebtoken": "^9.0.2"
+  }
+}
