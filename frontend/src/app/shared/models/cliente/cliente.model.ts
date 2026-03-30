@@ -1,24 +1,34 @@
+export interface ClienteModel {
+  cpf: string;
+  nome: string;
+  telefone: string;
+  email: string;
+  endereco: string;
+  cidade: string;
+  estado: string;
+  salario: number;
+  conta?: string;
+  saldo?: number;
+  limite?: number;
+  gerente_nome: string;
+  situacao: 'PENDENTE' | 'APROVADO' | 'REJEITADO';
+}
+export type Cliente = ClienteModel;
 export interface Endereco {
-    cep: string;
-    logradouro: string;
-    numero: number;
-    complemento: string;
-    bairro: string;
-    cidade: string;
-    estado: string;
-  }
-  
-  export interface ClienteAutocadastro {
-    nome: string;
-    email: string;
-    cpf: string;
-    telefone: string;
-    salario: number;
-    endereco: Endereco;
-  }
+  cep: string;
+  logradouro: string;
+  numero: number;
+  complemento: string;
+  bairro: string;
+  cidade: string;
+  estado: string;
+}
 
-  export interface Cliente extends ClienteAutocadastro {
-    id: string;
-    situacao: 'PENDENTE' | 'APROVADO' | 'REJEITADO';
-    gerenteResponsavel?: string;
-  }
+export interface ClienteAutocadastro {
+  nome: string;
+  email: string;
+  cpf: string;
+  telefone: string;
+  salario: number;
+  endereco: Endereco;
+}
