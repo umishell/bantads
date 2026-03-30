@@ -1,6 +1,7 @@
 import { CommonModule } from '@angular/common';
 import { Component, inject } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
+import { RouterLink } from '@angular/router';
 import { finalize } from 'rxjs';
 
 import { AuthService } from '../../../../core/services/auth.service';
@@ -9,7 +10,7 @@ import { ContaService } from '../../../../shared/services/conta.service';
 @Component({
   selector: 'app-transferencia',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule],
+  imports: [CommonModule, ReactiveFormsModule, RouterLink],
   templateUrl: './transferencia.html',
   styleUrl: './transferencia.scss',
 })
@@ -18,18 +19,23 @@ export class TransferenciaComponent {
   private readonly contaService = inject(ContaService);
   private readonly authService = inject(AuthService);
 
-  protected readonly numeroConta = this.authService.getNumeroConta();
+  public readonly numeroConta = this.authService.getNumeroConta();
+  public readonly agencia = '0001';
 
-  protected readonly transferenciaForm = this.fb.group({
+  public readonly transferenciaForm = this.fb.group({
     destino: ['', [Validators.required, Validators.pattern(/^\d{4}$/)]],
     valor: [null as number | null, [Validators.required, Validators.min(0.01)]],
   });
 
-  protected loading = false;
-  protected errorMessage = '';
-  protected successMessage = '';
+  public loading = false;
+  public errorMessage = '';
+  public successMessage = '';
 
-  protected submit(): void {
+  public selecionarValor(valor: number): void {
+    this.transferenciaForm.patchValue({ valor });
+  }
+
+  public submit(): void {
     this.errorMessage = '';
     this.successMessage = '';
 
@@ -70,19 +76,19 @@ export class TransferenciaComponent {
       });
   }
 
-  protected isInvalid(controlName: 'destino' | 'valor'): boolean {
+  public isInvalid(controlName: 'destino' | 'valor'): boolean {
     const control = this.transferenciaForm.get(controlName);
     return !!control && control.invalid && (control.dirty || control.touched);
   }
 
-  protected formatCurrency(value: number): string {
+  public formatCurrency(value: number | null | undefined): string {
     return new Intl.NumberFormat('pt-BR', {
       style: 'currency',
       currency: 'BRL',
-    }).format(value);
+    }).format(value ?? 0);
   }
 
-  protected formatDateTime(value: string): string {
+  public formatDateTime(value: string): string {
     if (!value) {
       return '-';
     }

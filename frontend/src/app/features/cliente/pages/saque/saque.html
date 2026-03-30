@@ -1,23 +1,110 @@
-<h2>Saque</h2>
+<div class="bank-page operation-page">
+  <header class="bank-topbar">
+    <div class="bank-brand">
+      <span class="bank-brand__mark">BT</span>
+      <div>
+        <span class="bank-brand__title">BANTADS</span>
+        <span class="bank-brand__subtitle">Retirada de valores da conta</span>
+      </div>
+    </div>
 
-<label for="valor-saque">Valor:</label>
-<input
-  id="valor-saque"
-  type="number"
-  [(ngModel)]="valor"
-  min="0.01"
-  step="0.01"
-  placeholder="Digite o valor"
-/>
+    <nav class="bank-nav" aria-label="Navegação do cliente">
+      <a class="bank-nav__link" routerLink="/cliente/home">Home</a>
+      <a class="bank-nav__link" routerLink="/cliente/extrato">Extrato</a>
+      <a class="bank-nav__link" routerLink="/cliente/transferencia">Transferência</a>
+      <a class="bank-nav__link" routerLink="/cliente/perfil">Perfil</a>
+    </nav>
+  </header>
 
-<br /><br />
+  <section class="page-header-card">
+    <div class="page-header-row">
+      <div>
+        <span class="chip">Saque</span>
+        <h1>Retire valores da sua conta</h1>
+        <p>
+          Tela padronizada para simular saque, testar a experiência do fluxo e manter o visual do
+          módulo do cliente consistente.
+        </p>
 
-<button type="button" (click)="sacar()">Sacar</button>
+        <div class="page-header-meta">
+          <span class="info-chip">Agência {{ agencia }}</span>
+          <span class="info-chip">Conta {{ numeroConta || 'não identificada' }}</span>
+        </div>
+      </div>
 
-@if (mensagem) {
-  <p>{{ mensagem }}</p>
-}
+      <div class="actions">
+        <button type="button" class="button button--ghost" routerLink="/cliente/home">
+          Voltar para home
+        </button>
+      </div>
+    </div>
+  </section>
 
-@if (erro) {
-  <p>{{ erro }}</p>
-}
+  <div class="operation-grid">
+    <section class="panel">
+      <div class="section-title">
+        <div>
+          <h2>Valor do saque</h2>
+          <p>Preencha o valor manualmente ou escolha uma das sugestões rápidas.</p>
+        </div>
+      </div>
+
+      <label for="valor-saque">Valor</label>
+      <input
+        id="valor-saque"
+        type="number"
+        [(ngModel)]="valor"
+        min="0.01"
+        step="0.01"
+        placeholder="Digite o valor do saque"
+      />
+
+      <div class="suggestions-row">
+        <button type="button" class="button button--secondary" (click)="selecionarValor(20)">R$ 20</button>
+        <button type="button" class="button button--secondary" (click)="selecionarValor(50)">R$ 50</button>
+        <button type="button" class="button button--secondary" (click)="selecionarValor(100)">R$ 100</button>
+        <button type="button" class="button button--secondary" (click)="selecionarValor(200)">R$ 200</button>
+      </div>
+
+      <div *ngIf="mensagem" class="feedback feedback--success">{{ mensagem }}</div>
+      <div *ngIf="erro" class="feedback feedback--error">{{ erro }}</div>
+
+      <div class="actions">
+        <button type="button" class="button button--primary" (click)="sacar()">Confirmar saque</button>
+      </div>
+    </section>
+
+    <aside class="panel">
+      <div class="section-title">
+        <div>
+          <h2>Resumo da operação</h2>
+          <p>Conferência visual para o fluxo do front-end.</p>
+        </div>
+      </div>
+
+      <div class="info-card">
+        <span class="summary-card__label">Conta de origem</span>
+        <strong>{{ numeroConta || 'não identificada' }}</strong>
+        <small>Agência {{ agencia }}</small>
+      </div>
+
+      <div class="info-card">
+        <span class="summary-card__label">Valor informado</span>
+        <strong>{{ formatCurrency(valor) }}</strong>
+        <small>Prévia antes da confirmação.</small>
+      </div>
+
+      <div class="info-card" *ngIf="ultimoSaque !== null">
+        <span class="summary-card__label">Último saque visual</span>
+        <strong>{{ formatCurrency(ultimoSaque) }}</strong>
+        <small>Registro local para conferência da interface.</small>
+      </div>
+
+      <ul class="security-list security-list--compact">
+        <li>Confirme valor e conta antes de concluir o saque.</li>
+        <li>Quando o backend estiver pronto, valide a movimentação no extrato.</li>
+        <li>O mesmo padrão visual foi mantido para todas as páginas do cliente.</li>
+      </ul>
+    </aside>
+  </div>
+</div>

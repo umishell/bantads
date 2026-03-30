@@ -1,107 +1,174 @@
-<section class="extrato-page">
-  <header class="page-header">
-    <h1>Consulta de extrato</h1>
-    <p>Informe a data inicial e a data final para consultar as movimentações da sua conta.</p>
-    <p class="account-info">
-      Conta consultada:
-      <strong>{{ numeroConta || 'não identificada' }}</strong>
-    </p>
-  </header>
-
-  <form class="filtro-card" [formGroup]="filtroForm" (ngSubmit)="consultar()">
-    <div class="filtro-grid">
-      <div class="form-group">
-        <label for="dataInicio">Data inicial</label>
-        <input id="dataInicio" type="date" formControlName="dataInicio" />
-        @if (isInvalid('dataInicio')) {
-          <small class="error">Informe a data inicial.</small>
-        }
-      </div>
-
-      <div class="form-group">
-        <label for="dataFim">Data final</label>
-        <input id="dataFim" type="date" formControlName="dataFim" />
-        @if (isInvalid('dataFim')) {
-          <small class="error">Informe a data final.</small>
-        }
+<div class="bank-page extrato-page">
+  <header class="bank-topbar">
+    <div class="bank-brand">
+      <span class="bank-brand__mark">BT</span>
+      <div>
+        <span class="bank-brand__title">BANTADS</span>
+        <span class="bank-brand__subtitle">Consulta detalhada do extrato</span>
       </div>
     </div>
 
-    @if (errorMessage) {
-      <div class="feedback feedback-error">{{ errorMessage }}</div>
-    }
+    <nav class="bank-nav" aria-label="Navegação do cliente">
+      <a class="bank-nav__link" routerLink="/cliente/home">Home</a>
+      <a class="bank-nav__link" routerLink="/cliente/deposito">Depósito</a>
+      <a class="bank-nav__link" routerLink="/cliente/saque">Saque</a>
+      <a class="bank-nav__link" routerLink="/cliente/transferencia">Transferência</a>
+    </nav>
+  </header>
 
-    <div class="actions">
-      <button type="submit" [disabled]="loading">
+  <section class="page-header-card">
+    <div class="page-header-row">
+      <div>
+        <span class="chip">Extrato</span>
+        <h1>Consulte as movimentações por período</h1>
+        <p>
+          Defina a data inicial e a data final para visualizar os lançamentos agrupados por dia,
+          com saldo consolidado e identificação de entradas e saídas.
+        </p>
+
+        <div class="page-header-meta">
+          <span class="info-chip">Agência {{ agencia }}</span>
+          <span class="info-chip">Conta {{ numeroConta || 'não identificada' }}</span>
+          <span class="info-chip">{{ getPeriodoSelecionado() }}</span>
+        </div>
+      </div>
+
+      <div class="actions">
+        <button type="button" class="button button--ghost" routerLink="/cliente/home">
+          Voltar para home
+        </button>
+      </div>
+    </div>
+  </section>
+
+  <form class="panel" [formGroup]="filtroForm" (ngSubmit)="consultar()">
+    <div class="section-title">
+      <div>
+        <h2>Filtro de consulta</h2>
+        <p>Selecione o intervalo e carregue o extrato da conta.</p>
+      </div>
+    </div>
+
+    <div class="form-grid extrato-filter-grid">
+      <div class="field">
+        <label for="dataInicio">Data inicial</label>
+        <input
+          id="dataInicio"
+          type="date"
+          formControlName="dataInicio"
+          class="form-control"
+          [class.is-invalid]="isInvalid('dataInicio')"
+        />
+        <small *ngIf="isInvalid('dataInicio')" class="field-error">Informe a data inicial.</small>
+      </div>
+
+      <div class="field">
+        <label for="dataFim">Data final</label>
+        <input
+          id="dataFim"
+          type="date"
+          formControlName="dataFim"
+          class="form-control"
+          [class.is-invalid]="isInvalid('dataFim')"
+        />
+        <small *ngIf="isInvalid('dataFim')" class="field-error">Informe a data final.</small>
+      </div>
+    </div>
+
+    <div *ngIf="errorMessage" class="feedback feedback--error">{{ errorMessage }}</div>
+
+    <div class="form-actions">
+      <button type="submit" class="button button--primary" [disabled]="loading">
         {{ loading ? 'Consultando...' : 'Consultar extrato' }}
       </button>
     </div>
   </form>
 
-  @if (extrato) {
-    <section class="resultado-card">
-      <header class="resultado-header">
-        <div>
-          <h2>Extrato da conta {{ extrato.conta }}</h2>
-          <p>Saldo atual: <strong>{{ formatCurrency(extrato.saldo) }}</strong></p>
-        </div>
-      </header>
+  <section class="summary-grid" *ngIf="extrato">
+    <article class="summary-card">
+      <span class="summary-card__label">Conta consultada</span>
+      <strong>{{ extrato.conta }}</strong>
+      <small>Identificação da conta retornada pela API.</small>
+    </article>
 
-      @if (!hasDias()) {
-        <div class="empty-state">Nenhuma movimentação encontrada no período informado.</div>
-      }
+    <article class="summary-card">
+      <span class="summary-card__label">Saldo atual</span>
+      <strong>{{ formatCurrency(extrato.saldo) }}</strong>
+      <small>Saldo mais recente informado pelo serviço.</small>
+    </article>
 
-      @for (dia of extrato.dias; track trackDia($index, dia)) {
-        <article class="dia-card">
-          <header class="dia-header">
-            <div>
-              <h3>{{ formatDate(dia.data) }}</h3>
-              <p>Saldo consolidado: <strong>{{ formatCurrency(dia.saldoConsolidado) }}</strong></p>
-            </div>
-          </header>
+    <article class="summary-card">
+      <span class="summary-card__label">Período</span>
+      <strong>{{ getPeriodoSelecionado() }}</strong>
+      <small>Intervalo usado na consulta do extrato.</small>
+    </article>
 
-          <div class="movimentacoes-list">
-            @if (!dia.movimentacoes.length) {
-              <div class="movimentacao-row sem-movimentacao">
-                Nenhuma movimentação neste dia.
-              </div>
-            }
+    <article class="summary-card">
+      <span class="summary-card__label">Dias com movimento</span>
+      <strong>{{ extrato.dias.length }}</strong>
+      <small>Quantidade de blocos diários retornados.</small>
+    </article>
+  </section>
 
-            @for (movimentacao of dia.movimentacoes; track trackMovimentacao($index, movimentacao)) {
-              <div
-                class="movimentacao-row"
-                [class.movimentacao-entrada]="isEntrada(movimentacao)"
-                [class.movimentacao-saida]="isSaida(movimentacao)"
-              >
-                <div>
-                  <span class="label">Data/hora</span>
-                  <strong>{{ formatDateTime(movimentacao.dataHora) }}</strong>
-                </div>
-
-                <div>
-                  <span class="label">Operação</span>
-                  <strong>{{ movimentacao.operacao }}</strong>
-                </div>
-
-                <div>
-                  <span class="label">Origem</span>
-                  <strong>{{ movimentacao.origem || '-' }}</strong>
-                </div>
-
-                <div>
-                  <span class="label">Destino</span>
-                  <strong>{{ movimentacao.destino || '-' }}</strong>
-                </div>
-
-                <div>
-                  <span class="label">Valor</span>
-                  <strong>{{ formatCurrency(movimentacao.valor) }}</strong>
-                </div>
-              </div>
-            }
-          </div>
-        </article>
-      }
+  <ng-container *ngIf="extrato">
+    <section class="panel" *ngIf="!hasDias()">
+      <div class="empty-state">
+        <strong>Nenhuma movimentação encontrada.</strong>
+        <span>Altere o período selecionado para tentar novamente.</span>
+      </div>
     </section>
-  }
-</section>
+
+    <section class="extrato-result-list" *ngIf="hasDias()">
+      <article class="panel dia-card" *ngFor="let dia of extrato.dias; trackBy: trackDia">
+        <header class="dia-header">
+          <div>
+            <h2>{{ formatDate(dia.data) }}</h2>
+            <p>Saldo consolidado: <strong>{{ formatCurrency(dia.saldoConsolidado) }}</strong></p>
+          </div>
+        </header>
+
+        <div class="movimentacoes-list">
+          <div class="movimentacao-row movimentacao-row--head">
+            <span>Data/hora</span>
+            <span>Operação</span>
+            <span>Origem</span>
+            <span>Destino</span>
+            <span>Valor</span>
+          </div>
+
+          <div class="empty-state empty-state--inline" *ngIf="!dia.movimentacoes.length">
+            Nenhuma movimentação neste dia.
+          </div>
+
+          <div
+            class="movimentacao-row"
+            *ngFor="let movimentacao of dia.movimentacoes; trackBy: trackMovimentacao"
+            [class.movimentacao-row--entrada]="isEntrada(movimentacao)"
+            [class.movimentacao-row--saida]="isSaida(movimentacao)"
+          >
+            <div>
+              <span class="cell-label">Data/hora</span>
+              <strong>{{ formatDateTime(movimentacao.dataHora) }}</strong>
+            </div>
+            <div>
+              <span class="cell-label">Operação</span>
+              <strong>{{ movimentacao.operacao }}</strong>
+            </div>
+            <div>
+              <span class="cell-label">Origem</span>
+              <strong>{{ movimentacao.origem || '-' }}</strong>
+            </div>
+            <div>
+              <span class="cell-label">Destino</span>
+              <strong>{{ movimentacao.destino || '-' }}</strong>
+            </div>
+            <div>
+              <span class="cell-label">Valor</span>
+              <strong>{{ formatCurrency(movimentacao.valor) }}</strong>
+            </div>
+          </div>
+        </div>
+      </article>
+    </section>
+  </ng-container>
+</div>

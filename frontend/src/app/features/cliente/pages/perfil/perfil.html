@@ -1,62 +1,337 @@
-<div class="container-perfil">
-  <h2 class="titulo">Alteração de Perfil</h2>
-
-  <div *ngIf="errorMessage" class="alert alert-danger">{{ errorMessage }}</div>
-  <div *ngIf="successMessage" class="alert alert-success">{{ successMessage }}</div>
-
-  <form [formGroup]="perfilForm" (ngSubmit)="salvar()" *ngIf="!loading; else spinner">
-    <div class="grid-form">
-      <div class="field full">
-        <label for="nome">Nome Completo</label>
-        <input id="nome" type="text" formControlName="nome" class="form-control" [class.is-invalid]="isInvalid('nome')">
-      </div>
-
-      <div class="field">
-        <label for="email">E-mail</label>
-        <input id="email" type="email" formControlName="email" class="form-control" [class.is-invalid]="isInvalid('email')">
-      </div>
-
-      <div class="field">
-        <label for="cpf">CPF (Não alterável)</label>
-        <input id="cpf" type="text" formControlName="cpf" class="form-control input-readonly">
-      </div>
-
-      <div class="field">
-        <label for="salario">Salário Mensal (R$)</label>
-        <input id="salario" type="number" formControlName="salario" class="form-control" [class.is-invalid]="isInvalid('salario')">
-      </div>
-
-      <div class="field full">
-        <label for="endereco">Endereço</label>
-        <input id="endereco" type="text" formControlName="endereco" class="form-control" [class.is-invalid]="isInvalid('endereco')">
-      </div>
-
-      <div class="field">
-        <label for="cep">CEP</label>
-        <input id="cep" type="text" formControlName="cep" class="form-control" [class.is-invalid]="isInvalid('cep')">
-      </div>
-
-      <div class="field">
-        <label for="cidade">Cidade</label>
-        <input id="cidade" type="text" formControlName="cidade" class="form-control" [class.is-invalid]="isInvalid('cidade')">
-      </div>
-
-      <div class="field">
-        <label for="estado">Estado</label>
-        <input id="estado" type="text" formControlName="estado" class="form-control" [class.is-invalid]="isInvalid('estado')">
+<div class="bank-page perfil-page">
+  <header class="bank-topbar">
+    <div class="bank-brand">
+      <span class="bank-brand__mark">BT</span>
+      <div>
+        <span class="bank-brand__title">BANTADS</span>
+        <span class="bank-brand__subtitle">Cadastro, acesso e segurança</span>
       </div>
     </div>
 
-    <div class="acoes">
-      <button type="submit" class="btn btn-success" [disabled]="salvando">
-        {{ salvando ? 'Salvando...' : 'Salvar Alterações' }}
-      </button>
-    </div>
-  </form>
+    <nav class="bank-nav" aria-label="Navegação do cliente">
+      <a class="bank-nav__link" routerLink="/cliente/home">Home</a>
+      <a class="bank-nav__link" routerLink="/cliente/deposito">Depósito</a>
+      <a class="bank-nav__link" routerLink="/cliente/saque">Saque</a>
+      <a class="bank-nav__link" routerLink="/cliente/extrato">Extrato</a>
+    </nav>
+  </header>
 
-  <ng-template #spinner>
-    <div class="text-center p-5">
-      <span>Carregando dados...</span>
+  <section class="page-header-card">
+    <div class="page-header-row">
+      <div>
+        <span class="chip">Meu perfil</span>
+        <h1>Dados cadastrais, contato e acesso da conta</h1>
+        <p>
+          Mantenha endereço, e-mail, telefone e informações de segurança atualizados para usar o
+          internet banking com mais confiança.
+        </p>
+
+        <div class="page-header-meta" *ngIf="clienteResumo">
+          <span class="info-chip">Agência {{ getAgencia() }}</span>
+          <span class="info-chip">Conta {{ formatConta(clienteResumo.conta) }}</span>
+          <span class="status-pill" [ngClass]="getSituacaoClass()">{{ getSituacaoLabel() }}</span>
+        </div>
+      </div>
+
+      <div class="actions">
+        <button type="button" class="button button--ghost" routerLink="/cliente/home">
+          Voltar para home
+        </button>
+      </div>
+    </div>
+  </section>
+
+  <div *ngIf="errorMessage" class="feedback feedback--error">{{ errorMessage }}</div>
+  <div *ngIf="successMessage" class="feedback feedback--success">{{ successMessage }}</div>
+
+  <ng-container *ngIf="!loading; else loadingTpl">
+    <section class="summary-grid" *ngIf="clienteResumo">
+      <article class="summary-card">
+        <span class="summary-card__label">CPF</span>
+        <strong>{{ formatCpf(clienteResumo.cpf) }}</strong>
+        <small>Documento principal do cadastro.</small>
+      </article>
+
+      <article class="summary-card">
+        <span class="summary-card__label">Agência / conta</span>
+        <strong>{{ getAgencia() }} • {{ formatConta(clienteResumo.conta) }}</strong>
+        <small>Referência bancária da conta do cliente.</small>
+      </article>
+
+      <article class="summary-card">
+        <span class="summary-card__label">Situação</span>
+        <strong class="status-pill" [ngClass]="getSituacaoClass()">{{ getSituacaoLabel() }}</strong>
+        <small>Status atual do cadastro no banco.</small>
+      </article>
+
+      <article class="summary-card">
+        <span class="summary-card__label">Limite atual</span>
+        <strong>{{ formatCurrency(clienteResumo.limite) }}</strong>
+        <small>Faixa disponível para uso emergencial.</small>
+      </article>
+    </section>
+
+    <div class="perfil-grid">
+      <form class="panel" [formGroup]="perfilForm" (ngSubmit)="salvar()">
+        <section class="form-section">
+          <div class="section-title">
+            <div>
+              <h2>Dados pessoais</h2>
+              <p>Informações que identificam você dentro do BANTADS.</p>
+            </div>
+          </div>
+
+          <div class="form-grid">
+            <div class="field field--full">
+              <label for="nome">Nome completo</label>
+              <input
+                id="nome"
+                type="text"
+                formControlName="nome"
+                class="form-control"
+                [class.is-invalid]="isInvalid('nome')"
+              />
+              <small *ngIf="isInvalid('nome')" class="field-error">{{ getErrorMessage('nome') }}</small>
+            </div>
+
+            <div class="field">
+              <label for="cpf">CPF</label>
+              <input id="cpf" type="text" formControlName="cpf" class="form-control readonly" />
+            </div>
+
+            <div class="field">
+              <label for="salario">Salário mensal (R$)</label>
+              <input
+                id="salario"
+                type="number"
+                min="0"
+                formControlName="salario"
+                class="form-control"
+                [class.is-invalid]="isInvalid('salario')"
+              />
+              <small *ngIf="isInvalid('salario')" class="field-error">
+                {{ getErrorMessage('salario') }}
+              </small>
+            </div>
+          </div>
+        </section>
+
+        <section class="form-section">
+          <div class="section-title">
+            <div>
+              <h2>Contato</h2>
+              <p>Esses dados são usados para comunicação, avisos e recuperação de acesso.</p>
+            </div>
+          </div>
+
+          <div class="form-grid">
+            <div class="field">
+              <label for="email">E-mail</label>
+              <input
+                id="email"
+                type="email"
+                formControlName="email"
+                class="form-control"
+                [class.is-invalid]="isInvalid('email')"
+              />
+              <small *ngIf="isInvalid('email')" class="field-error">{{ getErrorMessage('email') }}</small>
+            </div>
+
+            <div class="field">
+              <label for="telefone">Telefone</label>
+              <input
+                id="telefone"
+                type="text"
+                formControlName="telefone"
+                class="form-control"
+                [class.is-invalid]="isInvalid('telefone')"
+              />
+              <small *ngIf="isInvalid('telefone')" class="field-error">
+                {{ getErrorMessage('telefone') }}
+              </small>
+            </div>
+          </div>
+        </section>
+
+        <section class="form-section">
+          <div class="section-title">
+            <div>
+              <h2>Endereço</h2>
+              <p>Use informações corretas para manter o cadastro bancário completo.</p>
+            </div>
+          </div>
+
+          <div class="form-grid">
+            <div class="field field--full">
+              <label for="endereco">Endereço</label>
+              <input
+                id="endereco"
+                type="text"
+                formControlName="endereco"
+                class="form-control"
+                [class.is-invalid]="isInvalid('endereco')"
+              />
+              <small *ngIf="isInvalid('endereco')" class="field-error">
+                {{ getErrorMessage('endereco') }}
+              </small>
+            </div>
+
+            <div class="field">
+              <label for="cep">CEP</label>
+              <input
+                id="cep"
+                type="text"
+                formControlName="cep"
+                class="form-control"
+                [class.is-invalid]="isInvalid('cep')"
+              />
+              <small *ngIf="isInvalid('cep')" class="field-error">{{ getErrorMessage('cep') }}</small>
+            </div>
+
+            <div class="field">
+              <label for="cidade">Cidade</label>
+              <input
+                id="cidade"
+                type="text"
+                formControlName="cidade"
+                class="form-control"
+                [class.is-invalid]="isInvalid('cidade')"
+              />
+              <small *ngIf="isInvalid('cidade')" class="field-error">{{ getErrorMessage('cidade') }}</small>
+            </div>
+
+            <div class="field">
+              <label for="estado">Estado</label>
+              <input
+                id="estado"
+                type="text"
+                formControlName="estado"
+                class="form-control"
+                [class.is-invalid]="isInvalid('estado')"
+              />
+              <small *ngIf="isInvalid('estado')" class="field-error">{{ getErrorMessage('estado') }}</small>
+            </div>
+          </div>
+        </section>
+
+        <div class="form-actions">
+          <button type="button" class="button button--secondary" routerLink="/cliente/home">
+            Cancelar
+          </button>
+
+          <button type="submit" class="button button--primary" [disabled]="salvando">
+            {{ salvando ? 'Salvando...' : 'Salvar alterações' }}
+          </button>
+        </div>
+      </form>
+
+      <aside class="perfil-side-column" *ngIf="clienteResumo">
+        <section class="panel">
+          <div class="section-title">
+            <div>
+              <h2>Resumo da conta</h2>
+              <p>Dados úteis para conferência rápida do seu cadastro.</p>
+            </div>
+          </div>
+
+          <div class="side-stack">
+            <div class="info-card">
+              <span class="summary-card__label">Gerente responsável</span>
+              <strong>{{ clienteResumo.gerente_nome || 'Em definição' }}</strong>
+              <small>{{ clienteResumo.gerente_email || 'Sem e-mail informado' }}</small>
+            </div>
+
+            <div class="info-card">
+              <span class="summary-card__label">Login principal</span>
+              <strong>{{ clienteResumo.email || 'Não informado' }}</strong>
+              <small>E-mail usado para alertas e acesso.</small>
+            </div>
+
+            <div class="info-card">
+              <span class="summary-card__label">Conta bancária</span>
+              <strong>Agência {{ getAgencia() }} • Conta {{ formatConta(clienteResumo.conta) }}</strong>
+              <small>Use esses dados para validar suas operações.</small>
+            </div>
+          </div>
+        </section>
+
+        <section class="panel">
+          <div class="section-title">
+            <div>
+              <h2>Acesso e segurança</h2>
+              <p>Fluxo visual para troca de senha até a integração do módulo de autenticação.</p>
+            </div>
+          </div>
+
+          <div *ngIf="securityErrorMessage" class="feedback feedback--error">
+            {{ securityErrorMessage }}
+          </div>
+          <div *ngIf="securitySuccessMessage" class="feedback feedback--success">
+            {{ securitySuccessMessage }}
+          </div>
+
+          <form class="security-form" [formGroup]="senhaForm" (ngSubmit)="salvarSenha()">
+            <div class="field">
+              <label for="senhaAtual">Senha atual</label>
+              <input
+                id="senhaAtual"
+                type="password"
+                formControlName="senhaAtual"
+                class="form-control"
+                [class.is-invalid]="isSenhaInvalid('senhaAtual')"
+              />
+              <small *ngIf="isSenhaInvalid('senhaAtual')" class="field-error">
+                {{ getSenhaErrorMessage('senhaAtual') }}
+              </small>
+            </div>
+
+            <div class="field">
+              <label for="novaSenha">Nova senha</label>
+              <input
+                id="novaSenha"
+                type="password"
+                formControlName="novaSenha"
+                class="form-control"
+                [class.is-invalid]="isSenhaInvalid('novaSenha')"
+              />
+              <small *ngIf="isSenhaInvalid('novaSenha')" class="field-error">
+                {{ getSenhaErrorMessage('novaSenha') }}
+              </small>
+            </div>
+
+            <div class="field">
+              <label for="confirmarNovaSenha">Confirmar nova senha</label>
+              <input
+                id="confirmarNovaSenha"
+                type="password"
+                formControlName="confirmarNovaSenha"
+                class="form-control"
+                [class.is-invalid]="isSenhaInvalid('confirmarNovaSenha')"
+              />
+              <small *ngIf="isSenhaInvalid('confirmarNovaSenha')" class="field-error">
+                {{ getSenhaErrorMessage('confirmarNovaSenha') }}
+              </small>
+            </div>
+
+            <div class="form-actions form-actions--stacked">
+              <button type="submit" class="button button--primary">Atualizar senha</button>
+            </div>
+          </form>
+
+          <ul class="security-list security-list--compact">
+            <li>Revise o extrato após operações de maior valor.</li>
+            <li>Atualize telefone e e-mail para receber alertas importantes.</li>
+            <li>Evite repetir a senha atual quando o fluxo real for integrado.</li>
+          </ul>
+        </section>
+      </aside>
+    </div>
+  </ng-container>
+
+  <ng-template #loadingTpl>
+    <div class="loading-state">
+      <div class="loading-state__spinner"></div>
+      <span>Carregando dados do perfil...</span>
     </div>
   </ng-template>
 </div>

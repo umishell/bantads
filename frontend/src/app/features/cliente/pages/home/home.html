@@ -1,54 +1,249 @@
-<div class="container-home">
-  <div *ngIf="errorMessage" class="alert alert-danger">{{ errorMessage }}</div>
-
-  <div *ngIf="!loading; else spinner">
-    <header class="header-welcome" *ngIf="cliente">
-      <h2>Olá, {{ cliente.nome }}!</h2>
-      <p class="text-muted" *ngIf="cliente.gerente_nome">
-        Gerente: <strong>{{ cliente.gerente_nome }}</strong>
-      </p>
-    </header>
-
-    <div class="row" *ngIf="cliente">
-      <div class="col-md-6 mb-4">
-        <div class="card shadow-sm card-financeiro">
-          <div class="card-body">
-            <span class="label">Saldo Atual</span>
-            <h1 class="valor-saldo" [class.negativo]="isSaldoNegativo()">
-              {{ formatCurrency(cliente.saldo) }}
-            </h1>
-            <div class="limite-footer mt-3 pt-2">
-              <span>Limite da Conta: {{ formatCurrency(cliente.limite) }}</span>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <div class="col-md-6">
-        <div class="grid-acoes">
-          <button class="btn btn-primary action-item" routerLink="/cliente/deposito" type="button">
-            Depositar
-          </button>
-          <button class="btn btn-primary action-item" routerLink="/cliente/saque" type="button">
-            Sacar
-          </button>
-          <button class="btn btn-primary action-item" routerLink="/cliente/transferencia" type="button">
-            Transferir
-          </button>
-          <button class="btn btn-dark action-item" routerLink="/cliente/extrato" type="button">
-            Ver Extrato
-          </button>
-          <button class="btn btn-outline-secondary action-item wide" routerLink="/cliente/perfil" type="button">
-            Alterar Perfil
-          </button>
-        </div>
+<div class="bank-page home-page">
+  <header class="bank-topbar">
+    <div class="bank-brand">
+      <span class="bank-brand__mark">BT</span>
+      <div>
+        <span class="bank-brand__title">BANTADS</span>
+        <span class="bank-brand__subtitle">Cliente • visão geral da conta</span>
       </div>
     </div>
+
+    <nav class="bank-nav" aria-label="Navegação do cliente">
+      <a class="bank-nav__link" routerLink="/cliente/home">Home</a>
+      <a class="bank-nav__link" routerLink="/cliente/extrato">Extrato</a>
+      <a class="bank-nav__link" routerLink="/cliente/transferencia">Transferência</a>
+      <a class="bank-nav__link" routerLink="/cliente/perfil">Perfil</a>
+    </nav>
+  </header>
+
+  <div *ngIf="errorMessage" class="feedback feedback--error">
+    {{ errorMessage }}
   </div>
 
-  <ng-template #spinner>
-    <div class="text-center p-5">
-      <span>Carregando sua conta...</span>
+  <ng-container *ngIf="!loading; else loadingTpl">
+    <ng-container *ngIf="cliente">
+      <section class="hero-card hero-section">
+        <div class="hero-grid">
+          <div class="hero-copy">
+            <span class="chip">{{ saudacao }}, {{ primeiroNome }}</span>
+            <h1>Seu internet banking, mais claro e mais rápido.</h1>
+            <p>
+              Consulte saldo, acompanhe limite, visualize dados da conta e acesse as principais
+              operações sem sair da tela inicial.
+            </p>
+
+            <div class="hero-card__chips">
+              <span class="info-chip">Agência {{ getAgencia() }}</span>
+              <span class="info-chip">Conta {{ formatConta(cliente.conta) }}</span>
+              <span class="info-chip">CPF {{ formatCpf(cliente.cpf) }}</span>
+              <span class="status-pill" [ngClass]="getSituacaoClass()">{{ getSituacaoLabel() }}</span>
+              <span class="info-chip">{{ getModoVisualLabel() }}</span>
+            </div>
+          </div>
+
+          <div class="hero-actions">
+            <button type="button" class="button button--primary" routerLink="/cliente/extrato">
+              Ver extrato
+            </button>
+            <button
+              type="button"
+              class="button button--secondary"
+              routerLink="/cliente/transferencia"
+            >
+              Fazer transferência
+            </button>
+            <button type="button" class="button button--ghost" routerLink="/cliente/perfil">
+              Ajustar meu perfil
+            </button>
+          </div>
+        </div>
+      </section>
+
+      <section class="summary-grid summary-grid--home">
+        <article class="summary-card">
+          <span class="summary-card__label">Saldo em conta</span>
+          <strong class="summary-card__value" [class.summary-card__value--negative]="isSaldoNegativo()">
+            {{ formatCurrency(cliente.saldo) }}
+          </strong>
+          <small class="summary-card__helper">Saldo atual para movimentações imediatas.</small>
+        </article>
+
+        <article class="summary-card">
+          <span class="summary-card__label">Limite disponível</span>
+          <strong class="summary-card__value">{{ formatCurrency(cliente.limite) }}</strong>
+          <small class="summary-card__helper">Crédito emergencial da conta corrente.</small>
+        </article>
+
+        <article class="summary-card">
+          <span class="summary-card__label">Disponível total</span>
+          <strong class="summary-card__value">{{ formatCurrency(getSaldoDisponivel()) }}</strong>
+          <small class="summary-card__helper">Saldo somado ao limite liberado.</small>
+        </article>
+
+        <article class="summary-card">
+          <span class="summary-card__label">Situação cadastral</span>
+          <strong class="status-pill" [ngClass]="getSituacaoClass()">{{ getSituacaoLabel() }}</strong>
+          <small class="summary-card__helper">Acompanhe o status atual do cadastro.</small>
+        </article>
+      </section>
+
+      <section class="home-grid">
+        <article class="panel financial-panel">
+          <div class="section-title">
+            <div>
+              <h2>Resumo financeiro</h2>
+              <p>Uma leitura rápida para entender saldo, limite e uso da conta.</p>
+            </div>
+          </div>
+
+          <div class="financial-box">
+            <div class="financial-row">
+              <span>Saldo atual</span>
+              <strong [class.negative]="isSaldoNegativo()">{{ formatCurrency(cliente.saldo) }}</strong>
+            </div>
+            <div class="financial-row">
+              <span>Limite contratado</span>
+              <strong>{{ formatCurrency(cliente.limite) }}</strong>
+            </div>
+            <div class="financial-row financial-row--total">
+              <span>Valor disponível hoje</span>
+              <strong>{{ formatCurrency(getSaldoDisponivel()) }}</strong>
+            </div>
+          </div>
+
+          <div class="limit-widget">
+            <div class="section-title section-title--compact">
+              <div>
+                <h2>Uso do limite</h2>
+                <p>Monitoramento visual do limite consumido.</p>
+              </div>
+              <strong>{{ formatCurrency(getLimiteUtilizado()) }}</strong>
+            </div>
+
+            <div class="progress-bar" aria-hidden="true">
+              <div class="progress-bar__fill" [style.width.%]="getPercentualLimiteUtilizado()"></div>
+            </div>
+
+            <small class="helper-text">
+              {{ getPercentualLimiteUtilizado() | number : '1.0-0' }}% do limite utilizado no
+              momento.
+            </small>
+          </div>
+        </article>
+
+        <article class="panel actions-panel">
+          <div class="section-title">
+            <div>
+              <h2>Ações rápidas</h2>
+              <p>As operações mais frequentes em um único bloco.</p>
+            </div>
+          </div>
+
+          <div class="actions-grid">
+            <a class="action-card" routerLink="/cliente/deposito">
+              <span class="action-card__eyebrow">Adicionar saldo</span>
+              <strong class="action-card__title">Depósito</strong>
+              <small>Entrada rápida de valores na conta.</small>
+            </a>
+
+            <a class="action-card" routerLink="/cliente/saque">
+              <span class="action-card__eyebrow">Movimentar saldo</span>
+              <strong class="action-card__title">Saque</strong>
+              <small>Retirada simulada com feedback imediato.</small>
+            </a>
+
+            <a class="action-card" routerLink="/cliente/transferencia">
+              <span class="action-card__eyebrow">Enviar recursos</span>
+              <strong class="action-card__title">Transferência</strong>
+              <small>Envio para outra conta com confirmação do resultado.</small>
+            </a>
+
+            <a class="action-card" routerLink="/cliente/extrato">
+              <span class="action-card__eyebrow">Histórico financeiro</span>
+              <strong class="action-card__title">Extrato</strong>
+              <small>Consulta por período com agrupamento das movimentações.</small>
+            </a>
+
+            <a class="action-card action-card--wide" routerLink="/cliente/perfil">
+              <span class="action-card__eyebrow">Cadastro e segurança</span>
+              <strong class="action-card__title">Perfil do cliente</strong>
+              <small>Atualize dados, contato, endereço e acompanhe a conta.</small>
+            </a>
+          </div>
+        </article>
+      </section>
+
+      <section class="home-bottom-grid">
+        <article class="panel">
+          <div class="section-title">
+            <div>
+              <h2>Dados bancários</h2>
+              <p>Informações principais do relacionamento com o banco.</p>
+            </div>
+          </div>
+
+          <dl class="details-list">
+            <div>
+              <dt>Nome completo</dt>
+              <dd>{{ cliente.nome }}</dd>
+            </div>
+            <div>
+              <dt>Agência</dt>
+              <dd>{{ getAgencia() }}</dd>
+            </div>
+            <div>
+              <dt>Conta</dt>
+              <dd>{{ formatConta(cliente.conta) }}</dd>
+            </div>
+            <div>
+              <dt>CPF</dt>
+              <dd>{{ formatCpf(cliente.cpf) }}</dd>
+            </div>
+            <div>
+              <dt>E-mail</dt>
+              <dd>{{ cliente.email || 'Não informado' }}</dd>
+            </div>
+            <div>
+              <dt>Cidade / Estado</dt>
+              <dd>{{ cliente.cidade || '—' }} / {{ cliente.estado || '—' }}</dd>
+            </div>
+          </dl>
+        </article>
+
+        <article class="panel">
+          <div class="section-title">
+            <div>
+              <h2>Relacionamento e segurança</h2>
+              <p>Boas práticas para manter a conta organizada e protegida.</p>
+            </div>
+          </div>
+
+          <div class="info-card relationship-card">
+            <span class="summary-card__label">Gerente responsável</span>
+            <strong>{{ cliente.gerente_nome || 'Em definição' }}</strong>
+            <small>{{ cliente.gerente_email || 'Sem e-mail informado' }}</small>
+          </div>
+
+          <ul class="security-list">
+            <li>Revise o extrato depois de depósitos, saques e transferências relevantes.</li>
+            <li>Mantenha telefone, e-mail e endereço atualizados no perfil do cliente.</li>
+            <li>Use o painel de perfil para revisar dados de acesso e segurança da conta.</li>
+          </ul>
+
+          <div class="actions">
+            <button type="button" class="button button--ghost" routerLink="/cliente/perfil">
+              Atualizar meus dados
+            </button>
+          </div>
+        </article>
+      </section>
+    </ng-container>
+  </ng-container>
+
+  <ng-template #loadingTpl>
+    <div class="loading-state">
+      <div class="loading-state__spinner"></div>
+      <span>Carregando sua visão da conta...</span>
     </div>
   </ng-template>
 </div>
