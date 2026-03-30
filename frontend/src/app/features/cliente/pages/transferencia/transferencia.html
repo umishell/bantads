@@ -1,42 +1,131 @@
-<section class="transferencia-page">
-  <header class="page-header">
-    <h1>Transferência</h1>
-    <p>Informe a conta destino e o valor que deseja transferir.</p>
-    <p class="account-info">
-      Conta de origem:
-      <strong>{{ numeroConta || 'não identificada' }}</strong>
-    </p>
+<div class="bank-page transfer-page">
+  <header class="bank-topbar">
+    <div class="bank-brand">
+      <span class="bank-brand__mark">BT</span>
+      <div>
+        <span class="bank-brand__title">BANTADS</span>
+        <span class="bank-brand__subtitle">Transferência entre contas</span>
+      </div>
+    </div>
+
+    <nav class="bank-nav" aria-label="Navegação do cliente">
+      <a class="bank-nav__link" routerLink="/cliente/home">Home</a>
+      <a class="bank-nav__link" routerLink="/cliente/deposito">Depósito</a>
+      <a class="bank-nav__link" routerLink="/cliente/saque">Saque</a>
+      <a class="bank-nav__link" routerLink="/cliente/extrato">Extrato</a>
+    </nav>
   </header>
 
-  <form class="transferencia-card" [formGroup]="transferenciaForm" (ngSubmit)="submit()">
-    <div class="form-group">
-      <label for="destino">Conta destino</label>
-      <input id="destino" type="text" maxlength="4" formControlName="destino" placeholder="Ex.: 0950" />
-      @if (isInvalid('destino')) {
-        <small class="error">Informe uma conta destino com 4 dígitos.</small>
-      }
+  <section class="page-header-card">
+    <div class="page-header-row">
+      <div>
+        <span class="chip">Transferência</span>
+        <h1>Envie valores para outra conta</h1>
+        <p>
+          Fluxo com validação de conta destino, valor mínimo e mensagens de sucesso ou erro de
+          forma padronizada com o restante do módulo do cliente.
+        </p>
+
+        <div class="page-header-meta">
+          <span class="info-chip">Agência {{ agencia }}</span>
+          <span class="info-chip">Conta de origem {{ numeroConta || 'não identificada' }}</span>
+        </div>
+      </div>
+
+      <div class="actions">
+        <button type="button" class="button button--ghost" routerLink="/cliente/home">
+          Voltar para home
+        </button>
+      </div>
     </div>
+  </section>
 
-    <div class="form-group">
-      <label for="valor">Valor</label>
-      <input id="valor" type="number" min="0.01" step="0.01" formControlName="valor" placeholder="Ex.: 100.00" />
-      @if (isInvalid('valor')) {
-        <small class="error">Informe um valor maior que zero.</small>
-      }
-    </div>
+  <div class="transfer-grid">
+    <form class="panel" [formGroup]="transferenciaForm" (ngSubmit)="submit()">
+      <div class="section-title">
+        <div>
+          <h2>Dados da transferência</h2>
+          <p>Preencha a conta destino e o valor que será enviado.</p>
+        </div>
+      </div>
 
-    @if (errorMessage) {
-      <div class="feedback feedback-error">{{ errorMessage }}</div>
-    }
+      <div class="form-grid">
+        <div class="field">
+          <label for="destino">Conta destino</label>
+          <input
+            id="destino"
+            type="text"
+            maxlength="4"
+            formControlName="destino"
+            class="form-control"
+            placeholder="Ex.: 0950"
+            [class.is-invalid]="isInvalid('destino')"
+          />
+          <small *ngIf="isInvalid('destino')" class="field-error">
+            Informe uma conta destino com 4 dígitos.
+          </small>
+        </div>
 
-    @if (successMessage) {
-      <div class="feedback feedback-success">{{ successMessage }}</div>
-    }
+        <div class="field">
+          <label for="valor">Valor</label>
+          <input
+            id="valor"
+            type="number"
+            min="0.01"
+            step="0.01"
+            formControlName="valor"
+            class="form-control"
+            placeholder="Ex.: 100.00"
+            [class.is-invalid]="isInvalid('valor')"
+          />
+          <small *ngIf="isInvalid('valor')" class="field-error">
+            Informe um valor maior que zero.
+          </small>
+        </div>
+      </div>
 
-    <div class="actions">
-      <button type="submit" [disabled]="loading">
-        {{ loading ? 'Transferindo...' : 'Confirmar transferência' }}
-      </button>
-    </div>
-  </form>
-</section>
+      <div class="suggestions-row">
+        <button type="button" class="button button--secondary" (click)="selecionarValor(50)">R$ 50</button>
+        <button type="button" class="button button--secondary" (click)="selecionarValor(100)">R$ 100</button>
+        <button type="button" class="button button--secondary" (click)="selecionarValor(250)">R$ 250</button>
+        <button type="button" class="button button--secondary" (click)="selecionarValor(500)">R$ 500</button>
+      </div>
+
+      <div *ngIf="errorMessage" class="feedback feedback--error">{{ errorMessage }}</div>
+      <div *ngIf="successMessage" class="feedback feedback--success">{{ successMessage }}</div>
+
+      <div class="form-actions">
+        <button type="submit" class="button button--primary" [disabled]="loading">
+          {{ loading ? 'Transferindo...' : 'Confirmar transferência' }}
+        </button>
+      </div>
+    </form>
+
+    <aside class="panel">
+      <div class="section-title">
+        <div>
+          <h2>Dicas para conferência</h2>
+          <p>Boas práticas antes de concluir a movimentação.</p>
+        </div>
+      </div>
+
+      <div class="info-card">
+        <span class="summary-card__label">Conta de origem</span>
+        <strong>{{ numeroConta || 'não identificada' }}</strong>
+        <small>Agência {{ agencia }}</small>
+      </div>
+
+      <div class="info-card">
+        <span class="summary-card__label">Valor digitado</span>
+        <strong>{{ formatCurrency(transferenciaForm.get('valor')?.value) }}</strong>
+        <small>Prévia instantânea do valor informado.</small>
+      </div>
+
+      <ul class="security-list security-list--compact">
+        <li>Revise a conta destino antes de enviar o dinheiro.</li>
+        <li>Depois da confirmação, acompanhe o saldo e o extrato.</li>
+        <li>Evite transferir para a própria conta.</li>
+      </ul>
+    </aside>
+  </div>
+</div>

@@ -1,20 +1,32 @@
 import { CommonModule } from '@angular/common';
-import { Component } from '@angular/core';
+import { Component, inject } from '@angular/core';
 import { FormsModule } from '@angular/forms';
+import { RouterLink } from '@angular/router';
+
+import { AuthService } from '../../../../core/services/auth.service';
 
 @Component({
   selector: 'app-saque',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, RouterLink],
   templateUrl: './saque.html',
   styleUrl: './saque.scss',
 })
 export class SaqueComponent {
-  valor: number | null = null;
-  mensagem = '';
-  erro = '';
+  private readonly authService = inject(AuthService);
 
-  sacar(): void {
+  public valor: number | null = null;
+  public mensagem = '';
+  public erro = '';
+  public ultimoSaque: number | null = null;
+  public readonly numeroConta = this.authService.getNumeroConta();
+  public readonly agencia = '0001';
+
+  public selecionarValor(valor: number): void {
+    this.valor = valor;
+  }
+
+  public sacar(): void {
     this.mensagem = '';
     this.erro = '';
 
@@ -23,8 +35,15 @@ export class SaqueComponent {
       return;
     }
 
-    console.log('Saque realizado:', this.valor);
-    this.mensagem = `Saque realizado: R$ ${this.valor.toFixed(2)}`;
+    this.ultimoSaque = this.valor;
+    this.mensagem = `Saque registrado em modo visual: ${this.formatCurrency(this.valor)}.`;
     this.valor = null;
+  }
+
+  public formatCurrency(value: number | null | undefined): string {
+    return new Intl.NumberFormat('pt-BR', {
+      style: 'currency',
+      currency: 'BRL',
+    }).format(value ?? 0);
   }
 }

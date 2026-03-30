@@ -1,76 +1,185 @@
-.container-home {
-  padding: 2rem;
-  max-width: 1100px;
-  margin: 0 auto;
+.home-page {
+  display: grid;
+  gap: 1.35rem;
+}
 
-  .header-welcome {
-    margin-bottom: 2rem;
+.hero-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1.55fr) minmax(280px, 0.85fr);
+  gap: 1.25rem;
+  align-items: center;
+}
 
-    h2 {
-      margin: 0 0 0.5rem;
-      color: #2c3e50;
-      font-weight: 700;
-    }
+.hero-copy {
+  display: grid;
+  gap: 1rem;
+}
 
-    .text-muted {
-      color: #6b7280;
-    }
+.hero-actions {
+  display: grid;
+  gap: 0.75rem;
+}
+
+.summary-grid--home {
+  margin-top: 0.15rem;
+}
+
+.home-grid,
+.home-bottom-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1.15fr) minmax(320px, 0.85fr);
+  gap: 1rem;
+}
+
+.financial-box,
+.limit-widget {
+  padding: 1rem;
+  border-radius: 18px;
+  background: linear-gradient(180deg, rgba(253, 241, 244, 0.78), #fff);
+  border: 1px solid rgba(179, 19, 51, 0.12);
+}
+
+.financial-box {
+  display: grid;
+  gap: 0.9rem;
+}
+
+.financial-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding-bottom: 0.8rem;
+  border-bottom: 1px solid rgba(179, 19, 51, 0.08);
+}
+
+.financial-row--total {
+  padding-bottom: 0;
+  border-bottom: 0;
+}
+
+.financial-row span {
+  color: var(--color-text-soft);
+  font-weight: 600;
+}
+
+.financial-row strong {
+  font-size: 1.05rem;
+}
+
+.limit-widget {
+  margin-top: 1rem;
+}
+
+.section-title--compact {
+  margin-bottom: 0.85rem;
+}
+
+.progress-bar {
+  height: 0.95rem;
+  overflow: hidden;
+  border-radius: 999px;
+  background: rgba(179, 19, 51, 0.1);
+}
+
+.progress-bar__fill {
+  height: 100%;
+  border-radius: inherit;
+  background: linear-gradient(90deg, #ff8aa2 0%, var(--color-primary) 55%, var(--color-primary-strong) 100%);
+}
+
+.actions-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.9rem;
+}
+
+.action-card {
+  display: grid;
+  gap: 0.45rem;
+  padding: 1rem;
+  color: inherit;
+  text-align: left;
+  transition: 0.2s ease;
+}
+
+.action-card:hover {
+  transform: translateY(-2px);
+  border-color: rgba(179, 19, 51, 0.22);
+  box-shadow: var(--shadow-md);
+}
+
+.action-card--wide {
+  grid-column: 1 / -1;
+}
+
+.action-card__eyebrow {
+  color: var(--color-primary);
+  font-size: 0.82rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+.action-card__title {
+  font-size: 1.08rem;
+}
+
+.action-card small {
+  color: var(--color-text-soft);
+  line-height: 1.5;
+}
+
+.details-list {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1rem;
+}
+
+.details-list div {
+  padding: 0.95rem;
+  border-radius: 18px;
+  background: rgba(248, 250, 252, 0.9);
+  border: 1px solid rgba(226, 232, 240, 0.85);
+}
+
+.details-list dt {
+  color: var(--color-text-faint);
+  font-size: 0.86rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.details-list dd {
+  margin: 0.4rem 0 0;
+  font-weight: 700;
+  color: var(--color-text);
+}
+
+.relationship-card {
+  margin-bottom: 1rem;
+}
+
+.security-list {
+  display: grid;
+  gap: 0.7rem;
+  margin: 0;
+  padding-left: 1.15rem;
+  color: var(--color-text-soft);
+}
+
+@media (max-width: 1024px) {
+  .hero-grid,
+  .home-grid,
+  .home-bottom-grid {
+    grid-template-columns: 1fr;
   }
+}
 
-  .card-financeiro {
-    border: none;
-    border-radius: 12px;
-    background: #ffffff;
-
-    .label {
-      color: #95a5a6;
-      text-transform: uppercase;
-      font-size: 0.8rem;
-      letter-spacing: 1px;
-      font-weight: 600;
-    }
-
-    .valor-saldo {
-      margin: 1rem 0;
-      font-size: 2.4rem;
-      font-weight: 800;
-      color: #27ae60;
-
-      &.negativo {
-        color: #e74c3c;
-      }
-    }
-
-    .limite-footer {
-      border-top: 1px solid #f1f2f6;
-      color: #7f8c8d;
-      font-weight: 500;
-      padding-top: 0.75rem;
-    }
-  }
-
-  .grid-acoes {
-    display: grid;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 1rem;
-
-    .action-item {
-      padding: 1.25rem;
-      font-weight: 600;
-      border-radius: 10px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      min-height: 64px;
-      transition: transform 0.2s ease;
-
-      &:hover {
-        transform: translateY(-2px);
-      }
-
-      &.wide {
-        grid-column: 1 / -1;
-      }
-    }
+@media (max-width: 720px) {
+  .actions-grid,
+  .details-list {
+    grid-template-columns: 1fr;
   }
 }

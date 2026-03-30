@@ -1,0 +1,23 @@
+.operation-page {
+  display: grid;
+  gap: 1.35rem;
+}
+
+.operation-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1.1fr) minmax(300px, 0.9fr);
+  gap: 1rem;
+}
+
+.suggestions-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  margin-top: 1rem;
+}
+
+@media (max-width: 960px) {
+  .operation-grid {
+    grid-template-columns: 1fr;
+  }
+}

@@ -1,6 +1,7 @@
 import { CommonModule } from '@angular/common';
 import { Component, OnInit, inject } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
+import { RouterLink } from '@angular/router';
 import { finalize } from 'rxjs';
 
 import { ExtratoDiaModel } from '../../../../shared/models/conta/extrato-dia.model';
@@ -12,7 +13,7 @@ import { ContaService } from '../../../../shared/services/conta.service';
 @Component({
   selector: 'app-extrato',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule],
+  imports: [CommonModule, ReactiveFormsModule, RouterLink],
   templateUrl: './extrato.html',
   styleUrl: './extrato.scss',
 })
@@ -21,22 +22,23 @@ export class ExtratoComponent implements OnInit {
   private readonly contaService = inject(ContaService);
   private readonly authService = inject(AuthService);
 
-  protected readonly numeroConta = this.authService.getNumeroConta();
+  public readonly numeroConta = this.authService.getNumeroConta();
+  public readonly agencia = '0001';
 
-  protected readonly filtroForm = this.fb.group({
+  public readonly filtroForm = this.fb.group({
     dataInicio: ['', Validators.required],
     dataFim: ['', Validators.required],
   });
 
-  protected loading = false;
-  protected errorMessage = '';
-  protected extrato: ExtratoResponseModel | null = null;
+  public loading = false;
+  public errorMessage = '';
+  public extrato: ExtratoResponseModel | null = null;
 
-  ngOnInit(): void {
+  public ngOnInit(): void {
     this.preencherUltimos30Dias();
   }
 
-  protected consultar(): void {
+  public consultar(): void {
     this.errorMessage = '';
 
     if (!this.numeroConta) {
@@ -76,31 +78,31 @@ export class ExtratoComponent implements OnInit {
       });
   }
 
-  protected isInvalid(controlName: 'dataInicio' | 'dataFim'): boolean {
+  public isInvalid(controlName: 'dataInicio' | 'dataFim'): boolean {
     const control = this.filtroForm.get(controlName);
     return !!control && control.invalid && (control.dirty || control.touched);
   }
 
-  protected hasDias(): boolean {
+  public hasDias(): boolean {
     return !!this.extrato?.dias?.length;
   }
 
-  protected isEntrada(movimentacao: ExtratoMovimentacaoModel): boolean {
+  public isEntrada(movimentacao: ExtratoMovimentacaoModel): boolean {
     return movimentacao.natureza === 'ENTRADA';
   }
 
-  protected isSaida(movimentacao: ExtratoMovimentacaoModel): boolean {
+  public isSaida(movimentacao: ExtratoMovimentacaoModel): boolean {
     return movimentacao.natureza === 'SAIDA';
   }
 
-  protected formatCurrency(value: number | undefined): string {
+  public formatCurrency(value: number | undefined): string {
     return new Intl.NumberFormat('pt-BR', {
       style: 'currency',
       currency: 'BRL',
     }).format(value ?? 0);
   }
 
-  protected formatDate(value: string): string {
+  public formatDate(value: string): string {
     if (!value) {
       return '-';
     }
@@ -108,7 +110,7 @@ export class ExtratoComponent implements OnInit {
     return new Intl.DateTimeFormat('pt-BR', { dateStyle: 'short' }).format(new Date(`${value}T00:00:00`));
   }
 
-  protected formatDateTime(value: string): string {
+  public formatDateTime(value: string): string {
     if (!value) {
       return '-';
     }
@@ -119,12 +121,22 @@ export class ExtratoComponent implements OnInit {
     }).format(new Date(value));
   }
 
-  protected trackDia(_: number, dia: ExtratoDiaModel): string {
+  public trackDia(_: number, dia: ExtratoDiaModel): string {
     return dia.data;
   }
 
-  protected trackMovimentacao(_: number, movimentacao: ExtratoMovimentacaoModel): string {
+  public trackMovimentacao(_: number, movimentacao: ExtratoMovimentacaoModel): string {
     return `${movimentacao.dataHora}-${movimentacao.operacao}-${movimentacao.valor}`;
+  }
+
+  public getPeriodoSelecionado(): string {
+    const { dataInicio, dataFim } = this.filtroForm.getRawValue();
+
+    if (!dataInicio || !dataFim) {
+      return 'Período não definido';
+    }
+
+    return `${this.formatDate(dataInicio)} até ${this.formatDate(dataFim)}`;
   }
 
   private preencherUltimos30Dias(): void {

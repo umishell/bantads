@@ -1,20 +1,32 @@
 import { CommonModule } from '@angular/common';
-import { Component } from '@angular/core';
+import { Component, inject } from '@angular/core';
 import { FormsModule } from '@angular/forms';
+import { RouterLink } from '@angular/router';
+
+import { AuthService } from '../../../../core/services/auth.service';
 
 @Component({
   selector: 'app-deposito',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, RouterLink],
   templateUrl: './deposito.html',
   styleUrl: './deposito.scss',
 })
 export class DepositoComponent {
-  valor: number | null = null;
-  mensagem = '';
-  erro = '';
+  private readonly authService = inject(AuthService);
 
-  depositar(): void {
+  public valor: number | null = null;
+  public mensagem = '';
+  public erro = '';
+  public ultimoDeposito: number | null = null;
+  public readonly numeroConta = this.authService.getNumeroConta();
+  public readonly agencia = '0001';
+
+  public selecionarValor(valor: number): void {
+    this.valor = valor;
+  }
+
+  public depositar(): void {
     this.mensagem = '';
     this.erro = '';
 
@@ -23,8 +35,15 @@ export class DepositoComponent {
       return;
     }
 
-    console.log('Depósito realizado:', this.valor);
-    this.mensagem = `Depósito realizado: R$ ${this.valor.toFixed(2)}`;
+    this.ultimoDeposito = this.valor;
+    this.mensagem = `Depósito registrado em modo visual: ${this.formatCurrency(this.valor)}.`;
     this.valor = null;
+  }
+
+  public formatCurrency(value: number | null | undefined): string {
+    return new Intl.NumberFormat('pt-BR', {
+      style: 'currency',
+      currency: 'BRL',
+    }).format(value ?? 0);
   }
 }
