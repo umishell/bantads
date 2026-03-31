@@ -1,0 +1,9 @@
+package bantads.gerente.repository
+
+import bantads.gerente.model.Gerente
+import org.springframework.data.jpa.repository.JpaRepository
+import java.util.UUID
+
+interface GerenteRepository : JpaRepository<Gerente, UUID> {
+    fun findAllByAtivoTrueOrderByCpfAsc(): List<Gerente>
+}
