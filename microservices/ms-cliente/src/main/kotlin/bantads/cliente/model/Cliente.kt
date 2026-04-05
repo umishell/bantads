@@ -53,6 +53,9 @@ class Cliente(
     @Column(length = 2000)
     var motivoRejeicao: String? = null,
 
+    /** Data/hora da decisão do gerente (aprovação solicitada → saga, ou rejeição). R10/R11. */
+    var decisaoGerenteEm: Instant? = null,
+
     @Column(nullable = false)
     var criadoEm: Instant = Instant.now(),
 )

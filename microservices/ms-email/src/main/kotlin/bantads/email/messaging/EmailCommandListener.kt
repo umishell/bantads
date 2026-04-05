@@ -28,6 +28,7 @@ class EmailCommandListener(
             when (cmd) {
                 "EMAIL_SEND_CREDENTIALS" -> sendCredentials(root, correlationId, sagaId)
                 "EMAIL_REJEICAO_CADASTRO" -> sendRejeicao(root, correlationId, sagaId)
+                "EMAIL_FALHA_APROVACAO_SAGA" -> sendFalhaAprovacaoSaga(root, correlationId, sagaId)
                 else -> log.warn("Comando e-mail desconhecido: {}", cmd)
             }
         } catch (ex: Exception) {
@@ -39,7 +40,11 @@ class EmailCommandListener(
                     "sagaId" to sagaId,
                     "success" to false,
                     "source" to "EMAIL",
-                    "intent" to if (cmd == "EMAIL_REJEICAO_CADASTRO") "REJEICAO" else "SEND",
+                    "intent" to when (cmd) {
+                        "EMAIL_REJEICAO_CADASTRO" -> "REJEICAO"
+                        "EMAIL_FALHA_APROVACAO_SAGA" -> "FALHA_APROVACAO"
+                        else -> "SEND"
+                    },
                     "error" to (ex.message ?: "erro"),
                 ),
             )
@@ -89,5 +94,35 @@ class EmailCommandListener(
         msg.text = "Olá, $nome.\nInfelizmente seu cadastro não foi aprovado.\nMotivo informado: $motivo"
         mailSender.send(msg)
         log.info("E-mail de rejeição enviado sagaId={} destino={}", sagaId, to)
+    }
+
+    /** R1: falha em processo interno após aprovação do gerente — solicitação não efetivada; cliente volta à fila pendente. */
+    private fun sendFalhaAprovacaoSaga(
+        root: com.fasterxml.jackson.databind.JsonNode,
+        correlationId: String,
+        sagaId: String,
+    ) {
+        val to = root.path("email").asText()
+        val nome = root.path("nome").asText()
+        val msg = SimpleMailMessage()
+        msg.from = from
+        msg.setTo(to)
+        msg.subject = "BANTADS — solicitação não concluída"
+        msg.text = buildString {
+            appendLine("Olá, $nome.")
+            appendLine(
+                "Informamos que ocorreu uma falha em processos internos após a análise favorável do seu pedido. " +
+                    "Nesta etapa, a solicitação de abertura de conta não foi efetivada.",
+            )
+            appendLine()
+            appendLine(
+                "Seu cadastro permanece na fila para nova tentativa pela agência. " +
+                    "Não foi criada conta e não há senha de acesso até que o processo seja concluído com sucesso.",
+            )
+            appendLine()
+            appendLine("Em caso de dúvidas, entre em contato com o BANTADS.")
+        }
+        mailSender.send(msg)
+        log.info("E-mail de falha na saga de aprovação enviado sagaId={} destino={}", sagaId, to)
     }
 }

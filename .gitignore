@@ -14,6 +14,9 @@ build/
 !**/gradle/wrapper/gradle-wrapper.jar
 .kotlin/
 
+# --- Dados locais (PostgreSQL/Mongo em bind mount via Docker; nunca versionar) ---
+data/
+
 # --- Ambiente e segredos ---
 .env
 .env.*
