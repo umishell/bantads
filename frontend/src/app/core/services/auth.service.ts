@@ -1,8 +1,14 @@
 import { Injectable, computed, inject, signal } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { Observable, of, throwError } from 'rxjs';
-import { delay, tap } from 'rxjs/operators';
-import { UsuarioLogado, LoginRequest, LoginResponse } from '../../shared/models/auth/auth.model'; // Ajuste o caminho se necessário
+import { Observable } from 'rxjs';
+import { map, tap } from 'rxjs/operators';
+import {
+  UsuarioLogado,
+  LoginRequest,
+  LoginResponse,
+  LoginApiResponse,
+  Perfil,
+} from '../../shared/models/auth/auth.model';
 
 @Injectable({
   providedIn: 'root', // Garante que o serviço seja um Singleton para toda a aplicação
@@ -11,9 +17,8 @@ export class AuthService {
   private readonly tokenKey = 'bantads_token';
   private readonly userKey = 'bantads_user';
 
-  private readonly apiUrl = 'http://localhost:3000';
-
-  private http = inject(HttpClient);
+  /** Mesma origem do gateway (ex.: http://localhost) quando o Angular é servido por ele. */
+  private readonly http = inject(HttpClient);
 
   // ==========================================================================
   // 1. ESTADO REATIVO PRIVADO (A Fonte da Verdade)
@@ -63,36 +68,64 @@ export class AuthService {
     return this._usuario()?.cpf ?? null;
   }
 
+  /**
+   * Destino pós-login conforme perfil armazenado (JWT + sessão).
+   * ADMIN cai em gerente até existir módulo `/admin`.
+   */
+  getHomeUrl(): string {
+    if (this.isCliente()) return '/cliente/home';
+    if (this.isGerente()) return '/gerente/home';
+    if (this.isAdmin()) return '/gerente/home';
+    return '/auth/login';
+  }
+
+  /** JWT do ms-auth: exp em segundos (UTC). Sem token ou payload inválido = expirado. */
+  isAccessTokenExpired(): boolean {
+    const t = this.getToken();
+    if (!t) return true;
+    const expSec = readJwtExpSeconds(t);
+    if (expSec === null) return false;
+    return expSec * 1000 <= Date.now();
+  }
+
   // ==========================================================================
   // 4.Session management
   // ==========================================================================
 
   /**
-   * Efetua o login comunicando-se diretamente com o API Gateway.
-   * O sucesso desta operação dispara automaticamente a atualização dos Signals.
+   * Login via Gateway: POST /api/auth/login → ms-auth /auth/login (rota pública).
+   * Mapeia access_token e usuario.tipo para o modelo do front.
    */
   public login(credenciais: LoginRequest): Observable<LoginResponse> {
-    const url = `${this.apiUrl}/login`;
-
-    return this.http.post<LoginResponse>(url, credenciais).pipe(
-      // O 'tap' é um operador de "efeito colateral".
-      // Ele executa o saveSession ANTES do dado chegar no componente,
-      // garantindo que os Signals já estejam atualizados.
-      tap((res: LoginResponse) => {
-        this.saveSession(res.usuario, res.token);
+    return this.http.post<LoginApiResponse>('/api/auth/login', credenciais).pipe(
+      tap((raw) => {
+        const usuario = this.mapUsuarioLogado(raw.usuario);
+        this.saveSession(usuario, raw.access_token);
       }),
+      map(
+        (raw): LoginResponse => ({
+          token: raw.access_token,
+          usuario: this.mapUsuarioLogado(raw.usuario),
+        }),
+      ),
     );
+  }
 
-    // ---- PRODUÇÃO (Descomentar para conectar ao MS-AUTH via Gateway) ----
-    /*
-    return this.http.post<LoginResponse>(`${this.apiUrl}/login`, credenciais).pipe(
-      tap(res => this.saveSession(res.usuario, res.token))
-    );
-    */
+  private mapPerfil(tipo: string): Perfil {
+    const t = tipo.toUpperCase();
+    if (t === 'ADMINISTRADOR') return 'ADMIN';
+    if (t === 'GERENTE') return 'GERENTE';
+    return 'CLIENTE';
+  }
 
-    // (Optional) If you want to keep the mock throw error, you need to decide
-    // whether to return the http.post OR the throwError. You can't return twice in the same block.
-    // return throwError(() => new Error('Usuário ou senha inválidos')).pipe(delay(500));
+  private mapUsuarioLogado(u: LoginApiResponse['usuario']): UsuarioLogado {
+    return {
+      id: u.cpf,
+      cpf: u.cpf,
+      nome: u.nome,
+      email: u.email,
+      perfil: this.mapPerfil(u.tipo),
+    };
   }
 
   public saveSession(usuario: UsuarioLogado, token: string): void {
@@ -132,5 +165,18 @@ export class AuthService {
       this.logout();
       return null;
     }
+  }
+}
+
+function readJwtExpSeconds(jwt: string): number | null {
+  try {
+    const parts = jwt.split('.');
+    if (parts.length < 2) return null;
+    const b64 = parts[1].replace(/-/g, '+').replace(/_/g, '/');
+    const padded = b64 + '='.repeat((4 - (b64.length % 4)) % 4);
+    const payload = JSON.parse(atob(padded)) as { exp?: number };
+    return typeof payload.exp === 'number' ? payload.exp : null;
+  } catch {
+    return null;
   }
 }

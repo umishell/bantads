@@ -32,3 +32,19 @@ export interface ClienteAutocadastro {
   salario: number;
   endereco: Endereco;
 }
+
+/**
+ * Corpo JSON de POST /api/clientes (ms-cliente AutocadastroRequest).
+ * Campo CEP em maiúsculo por @JsonProperty no backend.
+ */
+export interface AutocadastroApiRequest {
+  cpf: string;
+  email: string;
+  nome: string;
+  telefone: string;
+  salario: number;
+  endereco: string;
+  CEP: string;
+  cidade: string;
+  estado: string;
+}

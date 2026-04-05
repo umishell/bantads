@@ -30,6 +30,19 @@ export interface AvaliacaoCadastroRequest {
   motivoRejeicao?: string; // Opcional, útil caso o cliente seja rejeitado
 }
 
+/** Item de GET /api/clientes/pendentes (Fase 1 — autocadastro aguardando aprovação). */
+export interface ClientePendenteListItem {
+  id: string;
+  cpf: string;
+  nome: string;
+  email: string;
+  telefone: string;
+  salario: number;
+  cidade: string;
+  estado: string;
+  criadoEm: string;
+}
+
 /**
  * Estrutura de dados para alimentar a tela inicial (Dashboard) do Gerente.
  * Facilita a vinculação dos dados aos gráficos ou cartões informativos.

@@ -1,13 +1,16 @@
 import { Routes } from '@angular/router';
+import { BlankRouteComponent } from './core/components/blank-route.component';
 import { authGuard } from './core/guards/auth.guard';
+import { defaultRedirectGuard } from './core/guards/default-redirect.guard';
 import { roleGuard } from './core/guards/role.guard';
 
 export const routes: Routes = [
-  // 1. Rota Raiz: Redirecionamento inicial para o fluxo de entrada
+  // 1. Rota Raiz: home do perfil se logado; senão login
   {
     path: '',
-    redirectTo: 'auth/login',
     pathMatch: 'full',
+    canActivate: [defaultRedirectGuard],
+    component: BlankRouteComponent,
   },
 
   // 2. Módulo de Autenticação (Público)
@@ -20,16 +23,16 @@ export const routes: Routes = [
   // 3. Área do Cliente (Protegida)
   {
     path: 'cliente',
-    // canActivate: [authGuard, roleGuard],
-    data: { roles: ['CLIENTE'] }, // Definimos o perfil necessário no metadata da rota
+    canActivate: [authGuard, roleGuard],
+    data: { roles: ['CLIENTE'] },
     loadChildren: () => import('./features/cliente/cliente.routes').then((m) => m.CLIENTE_ROUTES),
   },
 
   // 4. Área do Gerente (Protegida)
   {
     path: 'gerente',
-    // canActivate: [authGuard, roleGuard],
-    data: { roles: ['GERENTE'] },
+    canActivate: [authGuard, roleGuard],
+    data: { roles: ['GERENTE', 'ADMIN'] },
     loadChildren: () => import('./features/gerente/gerente.routes').then((m) => m.GERENTE_ROUTES),
   },
 

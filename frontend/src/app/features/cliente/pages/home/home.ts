@@ -1,7 +1,7 @@
 import { CommonModule } from '@angular/common';
 import { HttpErrorResponse } from '@angular/common/http';
 import { Component, OnInit, inject } from '@angular/core';
-import { RouterLink } from '@angular/router';
+import { Router, RouterLink } from '@angular/router';
 import { finalize } from 'rxjs';
 
 import { AuthService } from '../../../../core/services/auth.service';
@@ -24,6 +24,7 @@ type ClienteDashboard = ClienteModel & {
 export class HomeComponent implements OnInit {
   private readonly clienteService = inject(ClienteService);
   private readonly authService = inject(AuthService);
+  private readonly router = inject(Router);
 
   public loading = false;
   public errorMessage = '';
@@ -35,6 +36,11 @@ export class HomeComponent implements OnInit {
 
   public ngOnInit(): void {
     this.carregarDashboard();
+  }
+
+  public sair(): void {
+    this.authService.logout();
+    void this.router.navigate(['/auth/login']);
   }
 
   public carregarDashboard(): void {

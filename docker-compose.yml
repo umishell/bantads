@@ -6,6 +6,12 @@ services:
     ports:
       - "5672:5672"
       - "15672:15672"
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "-q", "ping"]
+      interval: 5s
+      timeout: 10s
+      retries: 10
+      start_period: 40s
     networks:
       - bantads-net
 
@@ -16,40 +22,70 @@ services:
       - "27017:27017"
     volumes:
       - ./data/mongo-auth:/data/db
+    healthcheck:
+      test: ["CMD", "mongosh", "--quiet", "mongodb://127.0.0.1:27017/auth_db", "--eval", "db.adminCommand({ ping: 1 })"]
+      interval: 5s
+      timeout: 5s
+      retries: 12
+      start_period: 90s
     networks:
       - bantads-net
 
-  # Bancos PostgreSQL (demais microsserviços)
+  # Bancos PostgreSQL — pin em 16: postgres:latest (18+) mudou layout de volume e quebra ./data montado em /var/lib/postgresql/data
   db-cliente:
-    image: postgres:latest
+    image: postgres:16
+    ports:
+      - "5433:5432"
     environment:
       POSTGRES_DB: cliente_db
       POSTGRES_USER: user
       POSTGRES_PASSWORD: password
     volumes:
       - ./data/cliente:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U user -d cliente_db"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+      start_period: 20s
     networks:
       - bantads-net
 
   db-conta:
-    image: postgres:latest
+    image: postgres:16
+    ports:
+      - "5434:5432"
     environment:
       POSTGRES_DB: conta_db
       POSTGRES_USER: user
       POSTGRES_PASSWORD: password
     volumes:
       - ./data/conta:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U user -d conta_db"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+      start_period: 20s
     networks:
       - bantads-net
 
   db-gerente:
-    image: postgres:latest
+    image: postgres:16
+    ports:
+      - "5435:5432"
     environment:
       POSTGRES_DB: gerente_db
       POSTGRES_USER: user
       POSTGRES_PASSWORD: password
     volumes:
       - ./data/gerente:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U user -d gerente_db"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+      start_period: 20s
     networks:
       - bantads-net
 
@@ -63,50 +99,67 @@ services:
       SPRING_RABBITMQ_HOST: rabbitmq
       JWT_SECRET: ${JWT_SECRET:-7a56403163745262704573315a6b3164746b386153646c7a4d31354a726e3230}
     depends_on:
-      - mongo-auth
-      - rabbitmq
+      mongo-auth:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
     networks:
       - bantads-net
 
   ms-cliente:
     build: ./microservices/ms-cliente
+    ports:
+      - "8082:8082"
     environment:
       SPRING_DATASOURCE_URL: jdbc:postgresql://db-cliente:5432/cliente_db
       SPRING_RABBITMQ_HOST: rabbitmq
     depends_on:
-      - db-cliente
-      - rabbitmq
+      db-cliente:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
     networks:
       - bantads-net
 
   ms-conta:
     build: ./microservices/ms-conta
+    ports:
+      - "8083:8083"
     environment:
       SPRING_DATASOURCE_URL: jdbc:postgresql://db-conta:5432/conta_db
       SPRING_RABBITMQ_HOST: rabbitmq
     depends_on:
-      - db-conta
-      - rabbitmq
+      db-conta:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
     networks:
       - bantads-net
 
   ms-gerente:
     build: ./microservices/ms-gerente
+    ports:
+      - "8084:8084"
     environment:
       SPRING_DATASOURCE_URL: jdbc:postgresql://db-gerente:5432/gerente_db
       SPRING_RABBITMQ_HOST: rabbitmq
     depends_on:
-      - db-gerente
-      - rabbitmq
+      db-gerente:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
     networks:
       - bantads-net
 
   ms-saga:
     build: ./microservices/ms-saga-orchestrator
+    ports:
+      - "8085:8085"
     environment:
       SPRING_RABBITMQ_HOST: rabbitmq
     depends_on:
-      - rabbitmq
+      rabbitmq:
+        condition: service_healthy
     networks:
       - bantads-net
 
@@ -120,20 +173,26 @@ services:
 
   ms-email:
     build: ./microservices/ms-email
+    ports:
+      - "8086:8086"
     environment:
       SPRING_RABBITMQ_HOST: rabbitmq
       SPRING_MAIL_HOST: mailhog
       SPRING_MAIL_PORT: 1025
       BANTADS_MAIL_FROM: noreply@bantads.local
     depends_on:
-      - rabbitmq
-      - mailhog
+      rabbitmq:
+        condition: service_healthy
+      mailhog:
+        condition: service_started
     networks:
       - bantads-net
 
   # --- FRONTEND E GATEWAY (Node + Fastify: JWT nas rotas /api protegidas) ---
   frontend:
     build: ./frontend
+    ports:
+      - "4200:4200"
     networks:
       - bantads-net
 

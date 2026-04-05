@@ -2,6 +2,7 @@ import { Component, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router, RouterModule } from '@angular/router';
+import { HttpErrorResponse } from '@angular/common/http';
 import { AuthService } from '../../../core/services/auth.service';
 import { LoginRequest } from '../../../shared/models/auth/auth.model';
 
@@ -25,7 +26,8 @@ export class LoginComponent {
   // Construção do Formulário Reativo com validações síncronas
   public loginForm: FormGroup = this.fb.group({
     login: ['', [Validators.required, Validators.email]],
-    senha: ['', [Validators.required, Validators.minLength(6)]]
+    /** Alinhado ao ms-auth (@Size min 4); seeds de teste usam senha curta (ex.: "tads"). */
+    senha: ['', [Validators.required, Validators.minLength(4)]],
   });
 
   /**
@@ -43,7 +45,11 @@ export class LoginComponent {
     this.mensagemErro.set(null);
 
     // 3. Extrai os dados validados conforme a nossa interface
-    const credenciais: LoginRequest = this.loginForm.value;
+    const raw = this.loginForm.value as LoginRequest;
+    const credenciais: LoginRequest = {
+      login: raw.login.trim().toLowerCase(),
+      senha: raw.senha,
+    };
 
     // 4. Chama o serviço de autenticação
     this.authService.login(credenciais).subscribe({
@@ -51,11 +57,17 @@ export class LoginComponent {
         this.isLoading.set(false);
         this.redirecionarPorPerfil();
       },
-      error: (err) => {
+      error: (err: HttpErrorResponse) => {
         this.isLoading.set(false);
-        // Exibe o erro retornado pelo Gateway ou uma mensagem padrão
-        this.mensagemErro.set(err.message || 'Erro ao efetuar login. Tente novamente.');
-      }
+        const body = err.error as { message?: string } | string | null | undefined;
+        const fromServer =
+          typeof body === 'object' && body && 'message' in body && typeof body.message === 'string'
+            ? body.message
+            : undefined;
+        this.mensagemErro.set(
+          fromServer || err.message || 'Erro ao efetuar login. Tente novamente.',
+        );
+      },
     });
   }
 
@@ -63,15 +75,12 @@ export class LoginComponent {
    * Lê o Signal do AuthService para descobrir para onde mandar o usuário
    */
   private redirecionarPorPerfil(): void {
-    if (this.authService.isCliente()) {
-      this.router.navigate(['/cliente/home']);
-    } else if (this.authService.isGerente()) {
-      this.router.navigate(['/gerente/home']);
-    } else if (this.authService.isAdmin()) {
-      this.router.navigate(['/admin/home']);
-    } else {
+    const url = this.authService.getHomeUrl();
+    if (url === '/auth/login') {
       this.mensagemErro.set('Perfil não reconhecido pelo sistema.');
-      this.authService.logout(); // Desloga por segurança se o perfil for inválido
+      this.authService.logout();
+      return;
     }
+    void this.router.navigateByUrl(url);
   }
 }

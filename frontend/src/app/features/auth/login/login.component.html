@@ -14,7 +14,7 @@
             id="login" 
             type="email" 
             formControlName="login" 
-            placeholder="exemplo@bantads.com"
+            placeholder="cli1@bantads.com.br"
             [class.is-invalid]="loginForm.get('login')?.invalid && loginForm.get('login')?.touched"
           >
           @if (loginForm.get('login')?.hasError('required') && loginForm.get('login')?.touched) {
@@ -38,7 +38,7 @@
             <small class="error-text">A senha é obrigatória.</small>
           }
           @if (loginForm.get('senha')?.hasError('minlength') && loginForm.get('senha')?.touched) {
-            <small class="error-text">A senha deve ter no mínimo 6 caracteres.</small>
+            <small class="error-text">A senha deve ter no mínimo 4 caracteres.</small>
           }
         </div>
   
@@ -60,7 +60,12 @@
   
       <div class="login-footer">
         <p>Ainda não é cliente?</p>
-        <a routerLink="/autocadastro" class="btn-link">Abra sua conta agora</a>
+        <a routerLink="/auth/autocadastro" class="btn-link">Abra sua conta agora</a>
+        <p class="hint-text">
+          <strong>Mock (seed):</strong> <code>cli1@bantads.com.br</code> / <code>tads</code> (cliente);
+          <code>ger1@bantads.com.br</code> ou <code>adm1@bantads.com.br</code> / <code>tads</code>.
+          Se não logar, abra no navegador <code>/api/auth/reboot</code> (GET) para recriar usuários.
+        </p>
       </div>
   
     </div>

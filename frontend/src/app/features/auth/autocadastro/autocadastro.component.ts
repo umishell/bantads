@@ -1,9 +1,12 @@
 import { Component, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
-import { Router, RouterModule } from '@angular/router';
-import { HttpClient } from '@angular/common/http';
-import { ClienteAutocadastro } from '../../../shared/models/cliente/cliente.model';
+import { RouterModule } from '@angular/router';
+import { HttpClient, HttpErrorResponse } from '@angular/common/http';
+import {
+  AutocadastroApiRequest,
+  ClienteAutocadastro,
+} from '../../../shared/models/cliente/cliente.model';
 
 @Component({
   selector: 'app-autocadastro',
@@ -14,7 +17,6 @@ import { ClienteAutocadastro } from '../../../shared/models/cliente/cliente.mode
 })
 export class AutocadastroComponent {
   private fb = inject(FormBuilder);
-  private router = inject(Router);
   private http = inject(HttpClient); // Usado para buscar o CEP e enviar o form
 
   // Signals para controle de tela
@@ -28,7 +30,7 @@ export class AutocadastroComponent {
     email: ['', [Validators.required, Validators.email]],
     cpf: ['', [Validators.required, Validators.pattern(/^\d{11}$/)]], // Aceita apenas 11 números
     telefone: ['', [Validators.required]],
-    salario: ['', [Validators.required, Validators.min(0)]], // Salário não pode ser negativo
+    salario: ['', [Validators.required, Validators.min(0.01)]], // ms-cliente: DecimalMin 0.01
     
     // Sub-grupo para o endereço (reflete a interface Endereco)
     endereco: this.fb.group({
@@ -77,22 +79,59 @@ export class AutocadastroComponent {
     this.isLoading.set(true);
     this.mensagemErro.set(null);
 
-    // Extrai o objeto tipado e pronto para ser enviado ao Gateway
-    const novoCliente: ClienteAutocadastro = this.cadastroForm.value;
+    const form: ClienteAutocadastro = this.cadastroForm.value;
+    const payload = this.toAutocadastroApiPayload(form);
 
-    // TODO: Criar o ClienteService futuramente para centralizar esta chamada
-    const apiUrl = 'http://localhost:3000/autocadastro'; // Ajuste conforme seu API Gateway
-
-    this.http.post(apiUrl, novoCliente).subscribe({
+    /** Mesma origem do gateway ao acessar via http://localhost (docker: porta 80 → gateway). */
+    this.http.post<unknown>('/api/clientes', payload).subscribe({
       next: () => {
         this.isLoading.set(false);
-        this.cadastroSucesso.set(true); // Muda a tela para a mensagem de sucesso
+        this.cadastroSucesso.set(true);
       },
-      error: (err) => {
+      error: (err: HttpErrorResponse) => {
         this.isLoading.set(false);
-        this.mensagemErro.set('Ocorreu um erro ao enviar seu cadastro. Tente novamente mais tarde.');
+        this.mensagemErro.set(this.mensagemErroCadastro(err));
         console.error(err);
-      }
+      },
     });
+  }
+
+  /**
+   * ms-cliente espera DTO plano (AutocadastroRequest), não o endereço aninhado do formulário.
+   * CEP no JSON deve ser a chave `CEP` (ver @JsonProperty no Kotlin).
+   */
+  private toAutocadastroApiPayload(v: ClienteAutocadastro): AutocadastroApiRequest {
+    const e = v.endereco;
+    const comp = (e.complemento ?? '').trim();
+    const enderecoLinha = [
+      `${e.logradouro.trim()}, ${String(e.numero).trim()}`,
+      comp ? comp : null,
+      e.bairro.trim() ? `— ${e.bairro.trim()}` : null,
+    ]
+      .filter(Boolean)
+      .join(' ');
+    const salario = Number(v.salario);
+    return {
+      cpf: String(v.cpf).replace(/\D/g, ''),
+      email: v.email.trim().toLowerCase(),
+      nome: v.nome.trim(),
+      telefone: String(v.telefone).trim(),
+      salario,
+      endereco: enderecoLinha,
+      CEP: String(e.cep).replace(/\D/g, ''),
+      cidade: e.cidade.trim(),
+      estado: e.estado.trim().toUpperCase(),
+    };
+  }
+
+  private mensagemErroCadastro(err: HttpErrorResponse): string {
+    const body = err.error;
+    if (typeof body === 'object' && body !== null && 'message' in body) {
+      const m = (body as { message: unknown }).message;
+      if (typeof m === 'string' && m.trim()) return m;
+    }
+    if (err.status === 409) return 'CPF ou dados já cadastrados.';
+    if (err.status === 400) return 'Dados inválidos. Verifique os campos e tente novamente.';
+    return 'Ocorreu um erro ao enviar seu cadastro. Tente novamente mais tarde.';
   }
 }

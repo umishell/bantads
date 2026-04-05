@@ -330,8 +330,21 @@ class SagaOrchestrator(
                 "motivo" to "Falha no fluxo de aprovação; reabra a aprovação.",
             ),
         )
+        send(
+            "cmd.email",
+            mapOf(
+                "command" to "EMAIL_FALHA_APROVACAO_SAGA",
+                "correlationId" to "$corrBase-email-falha",
+                "sagaId" to ctx.sagaId,
+                "email" to ctx.email,
+                "nome" to ctx.nome,
+            ),
+        )
         sessions.remove(ctx.sagaId)
-        log.info("Compensação enfileirada e cliente revertido para pendente sagaId={}", ctx.sagaId)
+        log.info(
+            "Compensação enfileirada, cliente revertido para pendente e e-mail de falha notificado sagaId={}",
+            ctx.sagaId,
+        )
     }
 
     private fun send(queue: String, body: Map<String, Any?>) {

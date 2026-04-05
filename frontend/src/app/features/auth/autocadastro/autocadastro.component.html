@@ -3,15 +3,23 @@
       
       @if (cadastroSucesso()) {
         <div class="sucesso-view">
-          <h2 class="text-success">Cadastro Enviado!</h2>
-          <p>Seus dados foram enviados para análise. Um dos nossos gerentes avaliará seu perfil em breve.</p>
-          <button routerLink="/login" class="btn-primary">Voltar para o Login</button>
+          <h2 class="text-success">Solicitação recebida</h2>
+          <p>Seu pedido de cadastro foi registrado com sucesso. Aguarde a análise e a aprovação de um gerente.</p>
+          <p>
+            Você ainda <strong>não</strong> possui senha de acesso: após a aprovação, o login e a senha
+            provisória serão enviados ao e-mail informado no formulário.
+          </p>
+          <button routerLink="/auth/login" class="btn-primary">Voltar para o Login</button>
         </div>
       } 
       @else {
         <div class="header">
           <h2>Abra sua conta BANTADS</h2>
           <p>Preencha os dados abaixo para solicitar sua conta.</p>
+          <p class="hint-text">
+            Use CPF e e-mail que ainda não estejam no sistema (ex.: não reutilize
+            <code>12912861012</code> nem <code>cli1@bantads.com.br</code> dos mocks de login).
+          </p>
         </div>
   
         <form [formGroup]="cadastroForm" (ngSubmit)="onSubmit()">
@@ -51,7 +59,7 @@
   
             <div class="form-group">
               <label>Salário Mensal (R$)</label>
-              <input type="number" formControlName="salario" placeholder="0.00" min="0">
+              <input type="number" formControlName="salario" placeholder="0.00" min="0.01" step="0.01">
             </div>
           </fieldset>
   
@@ -103,7 +111,7 @@
           }
   
           <div class="form-actions">
-            <a routerLink="/login" class="btn-link">Voltar para o Login</a>
+            <a routerLink="/auth/login" class="btn-link">Voltar para o Login</a>
             <button type="submit" [disabled]="cadastroForm.invalid || isLoading()" class="btn-primary">
               @if (isLoading()) { <span>Enviando...</span> } 
               @else { <span>Solicitar Abertura de Conta</span> }

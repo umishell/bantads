@@ -133,6 +133,13 @@ a {
   color: var(--color-primary-strong);
 }
 
+.bank-nav .button {
+  width: auto;
+  min-height: 2.2rem;
+  padding: 0.55rem 1rem;
+  border-radius: 999px;
+}
+
 .bank-card,
 .panel,
 .summary-card,

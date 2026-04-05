@@ -1,0 +1,147 @@
+<div class="bank-page gerente-pendencias-page">
+  <header class="bank-topbar">
+    <div class="bank-brand">
+      <span class="bank-brand__mark">BT</span>
+      <div>
+        <span class="bank-brand__title">BANTADS</span>
+        <span class="bank-brand__subtitle">Gerente • autocadastros pendentes de aprovação</span>
+      </div>
+    </div>
+
+    <nav class="bank-nav gerente-pendencias-page__actions" aria-label="Ações">
+      <button
+        type="button"
+        class="button button--secondary"
+        (click)="carregarPendentes()"
+        [disabled]="loading()"
+      >
+        Atualizar lista
+      </button>
+      <button type="button" class="button button--ghost" (click)="sair()">Sair</button>
+    </nav>
+  </header>
+
+  <section class="hero-card gerente-pendencias-page__intro">
+    <h1>Solicitações de abertura de conta</h1>
+    <p class="bank-muted">
+      Clientes que concluíram o autocadastro e aguardam análise. Ao aprovar, a abertura de conta, o
+      usuário de login e o e-mail com a senha são tratados de forma assíncrona pela saga; ao rejeitar,
+      o cliente recebe e-mail com o motivo.
+    </p>
+  </section>
+
+  @if (erro()) {
+    <div class="feedback feedback--error" role="alert">{{ erro() }}</div>
+  }
+
+  @if (loading() && pendentes().length === 0) {
+    <div class="loading-state" role="status">
+      <span class="loading-state__spinner" aria-hidden="true"></span>
+      Carregando solicitações…
+    </div>
+  } @else if (!loading() && pendentes().length === 0 && !erro()) {
+    <div class="empty-state">
+      <p>Nenhum autocadastro pendente no momento.</p>
+      <p class="helper-text">Novas solicitações aparecem aqui após o cliente enviar o formulário.</p>
+    </div>
+  } @else if (pendentes().length > 0) {
+    <div class="panel gerente-pendencias-page__table-panel">
+      <div class="section-header">
+        <div>
+          <h2 class="section-title h2-plain">Pendentes</h2>
+          <p class="bank-muted">Da solicitação mais antiga para a mais recente.</p>
+        </div>
+      </div>
+
+      <div class="gerente-pendencias-page__table-wrap">
+        <table class="gerente-pendencias-page__table">
+          <thead>
+            <tr>
+              <th>Nome</th>
+              <th>CPF</th>
+              <th>E-mail</th>
+              <th>Telefone</th>
+              <th>Salário (R$)</th>
+              <th>Cidade / UF</th>
+              <th>Solicitado em</th>
+              <th class="gerente-pendencias-page__th-acoes">Ações</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (p of pendentes(); track p.id) {
+              <tr>
+                <td>{{ p.nome }}</td>
+                <td>{{ p.cpf }}</td>
+                <td>{{ p.email }}</td>
+                <td>{{ p.telefone }}</td>
+                <td>{{ p.salario | number : '1.2-2' }}</td>
+                <td>{{ p.cidade }} / {{ p.estado }}</td>
+                <td>{{ p.criadoEm | date : 'short' }}</td>
+                <td class="gerente-pendencias-page__td-acoes">
+                  <div class="gerente-pendencias-page__acoes">
+                    <button
+                      type="button"
+                      class="button button--primary button--small"
+                      [disabled]="
+                        acaoClienteId() !== null || loading() || rejeitarClienteId() === p.id
+                      "
+                      (click)="aprovar(p)"
+                      title="Inicia a saga: conta, usuário e e-mail com senha"
+                    >
+                      Aprovar
+                    </button>
+                    <button
+                      type="button"
+                      class="button button--secondary button--small"
+                      [disabled]="acaoClienteId() !== null || loading()"
+                      (click)="abrirRejeitar(p)"
+                    >
+                      Recusar
+                    </button>
+                  </div>
+                  @if (rejeitarClienteId() === p.id) {
+                    <div class="gerente-pendencias-page__rejeitar" (click)="$event.stopPropagation()">
+                      <label class="gerente-pendencias-page__rejeitar-label" for="motivo-{{ p.id }}"
+                        >Motivo da recusa (obrigatório)</label
+                      >
+                      <textarea
+                        id="motivo-{{ p.id }}"
+                        class="gerente-pendencias-page__rejeitar-textarea"
+                        rows="3"
+                        [formControl]="motivoRejeicao"
+                        placeholder="Explique ao cliente o motivo da não aprovação."
+                      ></textarea>
+                      @if (motivoRejeicao.invalid && motivoRejeicao.touched) {
+                        <small class="gerente-pendencias-page__rejeitar-hint"
+                          >Motivo é obrigatório (máx. 2000 caracteres).</small
+                        >
+                      }
+                      <div class="gerente-pendencias-page__rejeitar-botoes">
+                        <button
+                          type="button"
+                          class="button button--ghost button--small"
+                          [disabled]="acaoClienteId() !== null"
+                          (click)="cancelarRejeitar()"
+                        >
+                          Cancelar
+                        </button>
+                        <button
+                          type="button"
+                          class="button button--primary button--small"
+                          [disabled]="acaoClienteId() !== null"
+                          (click)="confirmarRejeitar(p)"
+                        >
+                          Enviar recusa
+                        </button>
+                      </div>
+                    </div>
+                  }
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    </div>
+  }
+</div>

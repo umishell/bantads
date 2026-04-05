@@ -9,9 +9,12 @@ spring:
   application:
     name: ms-auth
 
+  # Conexão: Spring Boot 4 usa spring.mongodb.* (spring.data.mongodb.uri não alimenta mais o cliente).
+  mongodb:
+    uri: ${SPRING_MONGODB_URI:${SPRING_DATA_MONGODB_URI:mongodb://${MONGO_HOST:localhost}:27017/auth_db}}
+
   data:
     mongodb:
-      uri: ${SPRING_DATA_MONGODB_URI:mongodb://${MONGO_HOST:localhost}:27017/auth_db}
       auto-index-creation: true
 
   rabbitmq:

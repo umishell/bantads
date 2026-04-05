@@ -1,0 +1,2 @@
+# Gradle wrapper must use LF so Linux/Docker can execute the shebang.
+**/gradlew text eol=lf
