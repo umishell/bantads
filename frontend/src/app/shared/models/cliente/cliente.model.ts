@@ -11,6 +11,7 @@ export interface ClienteModel {
   saldo?: number;
   limite?: number;
   gerente_nome: string;
+  cep: string;
   situacao: 'PENDENTE' | 'APROVADO' | 'REJEITADO';
 }
 export type Cliente = ClienteModel;

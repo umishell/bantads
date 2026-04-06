@@ -13,7 +13,13 @@
       <a class="bank-nav__link" routerLink="/cliente/deposito">Depósito</a>
       <a class="bank-nav__link" routerLink="/cliente/saque">Saque</a>
       <a class="bank-nav__link" routerLink="/cliente/transferencia">Transferência</a>
+      <a class="bank-nav__link" routerLink="/cliente/extrato">Extrato</a>
+      <a class="bank-nav__link" routerLink="/cliente/perfil">Perfil</a>
     </nav>
+
+    <div class="topbar-actions">
+      <button type="button" class="button button--ghost" (click)="logout()">Sair</button>
+    </div>
   </header>
 
   <section class="page-header-card">
@@ -22,8 +28,8 @@
         <span class="chip">Extrato</span>
         <h1>Consulte as movimentações por período</h1>
         <p>
-          Defina a data inicial e a data final para visualizar os lançamentos agrupados por dia,
-          com saldo consolidado e identificação de entradas e saídas.
+          O extrato agrupa o resultado por dia, inclui saldo consolidado mesmo sem movimentos e
+          permite gerar um PDF pronto para salvar ou imprimir.
         </p>
 
         <div class="page-header-meta">
@@ -81,6 +87,9 @@
       <button type="submit" class="button button--primary" [disabled]="loading">
         {{ loading ? 'Consultando...' : 'Consultar extrato' }}
       </button>
+      <button type="button" class="button button--secondary" [disabled]="!extrato" (click)="gerarPdf()">
+        Gerar PDF
+      </button>
     </div>
   </form>
 
@@ -88,13 +97,13 @@
     <article class="summary-card">
       <span class="summary-card__label">Conta consultada</span>
       <strong>{{ extrato.conta }}</strong>
-      <small>Identificação da conta retornada pela API.</small>
+      <small>Identificação da conta retornada pelo cache do protótipo.</small>
     </article>
 
     <article class="summary-card">
       <span class="summary-card__label">Saldo atual</span>
       <strong>{{ formatCurrency(extrato.saldo) }}</strong>
-      <small>Saldo mais recente informado pelo serviço.</small>
+      <small>Saldo mais recente da conta selecionada.</small>
     </article>
 
     <article class="summary-card">
@@ -104,9 +113,9 @@
     </article>
 
     <article class="summary-card">
-      <span class="summary-card__label">Dias com movimento</span>
+      <span class="summary-card__label">Dias listados</span>
       <strong>{{ extrato.dias.length }}</strong>
-      <small>Quantidade de blocos diários retornados.</small>
+      <small>Quantidade de dias retornados no período.</small>
     </article>
   </section>
 

@@ -12,8 +12,14 @@
       <a class="bank-nav__link" routerLink="/cliente/home">Home</a>
       <a class="bank-nav__link" routerLink="/cliente/deposito">Depósito</a>
       <a class="bank-nav__link" routerLink="/cliente/saque">Saque</a>
+      <a class="bank-nav__link" routerLink="/cliente/transferencia">Transferência</a>
       <a class="bank-nav__link" routerLink="/cliente/extrato">Extrato</a>
+      <a class="bank-nav__link" routerLink="/cliente/perfil">Perfil</a>
     </nav>
+
+    <div class="topbar-actions">
+      <button type="button" class="button button--ghost" (click)="logout()">Sair</button>
+    </div>
   </header>
 
   <section class="page-header-card">
@@ -22,13 +28,14 @@
         <span class="chip">Transferência</span>
         <h1>Envie valores para outra conta</h1>
         <p>
-          Fluxo com validação de conta destino, valor mínimo e mensagens de sucesso ou erro de
-          forma padronizada com o restante do módulo do cliente.
+          O fluxo usa as contas pré-cadastradas do protótipo. A saída entra no extrato do cliente
+          origem e a entrada pode ser demonstrada na conta destino ao fazer um novo login.
         </p>
 
         <div class="page-header-meta">
           <span class="info-chip">Agência {{ agencia }}</span>
           <span class="info-chip">Conta de origem {{ numeroConta || 'não identificada' }}</span>
+          <span class="info-chip">Saldo atual {{ formatCurrency(saldoAtual) }}</span>
         </div>
       </div>
 
@@ -104,15 +111,28 @@
     <aside class="panel">
       <div class="section-title">
         <div>
-          <h2>Dicas para conferência</h2>
-          <p>Boas práticas antes de concluir a movimentação.</p>
+          <h2>Contas para teste</h2>
+          <p>Selecione uma conta pré-cadastrada para preencher o destino rapidamente.</p>
         </div>
       </div>
 
-      <div class="info-card">
-        <span class="summary-card__label">Conta de origem</span>
-        <strong>{{ numeroConta || 'não identificada' }}</strong>
-        <small>Agência {{ agencia }}</small>
+      <div class="favorecidos-list">
+        <button
+          type="button"
+          class="info-card favorecido-card"
+          *ngFor="let favorecido of favorecidos"
+          (click)="selecionarFavorecido(favorecido.conta)"
+        >
+          <span class="summary-card__label">{{ favorecido.nome }}</span>
+          <strong>Agência {{ favorecido.agencia }} • Conta {{ favorecido.conta }}</strong>
+          <small>CPF {{ favorecido.cpf }}</small>
+        </button>
+      </div>
+
+      <div class="info-card" *ngIf="getFavorecidoSelecionado() as favorecidoSelecionado">
+        <span class="summary-card__label">Favorecido selecionado</span>
+        <strong>{{ favorecidoSelecionado.nome }}</strong>
+        <small>Agência {{ favorecidoSelecionado.agencia }} • Conta {{ favorecidoSelecionado.conta }}</small>
       </div>
 
       <div class="info-card">
@@ -123,8 +143,8 @@
 
       <ul class="security-list security-list--compact">
         <li>Revise a conta destino antes de enviar o dinheiro.</li>
-        <li>Depois da confirmação, acompanhe o saldo e o extrato.</li>
-        <li>Evite transferir para a própria conta.</li>
+        <li>Depois da confirmação, acompanhe o saldo e o extrato da conta origem.</li>
+        <li>Faça login com a conta destino para provar o crédito recebido no vídeo.</li>
       </ul>
     </aside>
   </div>

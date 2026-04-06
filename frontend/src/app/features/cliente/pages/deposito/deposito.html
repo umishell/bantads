@@ -10,10 +10,16 @@
 
     <nav class="bank-nav" aria-label="Navegação do cliente">
       <a class="bank-nav__link" routerLink="/cliente/home">Home</a>
-      <a class="bank-nav__link" routerLink="/cliente/extrato">Extrato</a>
+      <a class="bank-nav__link" routerLink="/cliente/deposito">Depósito</a>
+      <a class="bank-nav__link" routerLink="/cliente/saque">Saque</a>
       <a class="bank-nav__link" routerLink="/cliente/transferencia">Transferência</a>
+      <a class="bank-nav__link" routerLink="/cliente/extrato">Extrato</a>
       <a class="bank-nav__link" routerLink="/cliente/perfil">Perfil</a>
     </nav>
+
+    <div class="topbar-actions">
+      <button type="button" class="button button--ghost" (click)="logout()">Sair</button>
+    </div>
   </header>
 
   <section class="page-header-card">
@@ -22,13 +28,14 @@
         <span class="chip">Depósito</span>
         <h1>Adicione saldo à sua conta</h1>
         <p>
-          Simule rapidamente um depósito, valide o valor e mantenha a navegação alinhada com a
-          experiência do internet banking.
+          Registre um depósito no cache do protótipo e veja a atualização refletida na home,
+          extrato e demais telas do cliente.
         </p>
 
         <div class="page-header-meta">
           <span class="info-chip">Agência {{ agencia }}</span>
           <span class="info-chip">Conta {{ numeroConta || 'não identificada' }}</span>
+          <span class="info-chip" *ngIf="nomeTitular">Titular {{ nomeTitular }}</span>
         </div>
       </div>
 
@@ -91,21 +98,27 @@
       </div>
 
       <div class="info-card">
+        <span class="summary-card__label">Saldo atual</span>
+        <strong>{{ formatCurrency(saldoAtual) }}</strong>
+        <small>Atualizado após cada depósito confirmado.</small>
+      </div>
+
+      <div class="info-card">
         <span class="summary-card__label">Valor informado</span>
         <strong>{{ formatCurrency(valor) }}</strong>
         <small>Prévia do depósito antes do envio.</small>
       </div>
 
       <div class="info-card" *ngIf="ultimoDeposito !== null">
-        <span class="summary-card__label">Último depósito visual</span>
+        <span class="summary-card__label">Último depósito</span>
         <strong>{{ formatCurrency(ultimoDeposito) }}</strong>
-        <small>Registro local para testes de interface.</small>
+        <small>Já refletido no saldo e no extrato.</small>
       </div>
 
       <ul class="security-list security-list--compact">
-        <li>Confirme conta e valor antes de concluir a operação.</li>
-        <li>Após a integração real, consulte o extrato para validar a entrada.</li>
-        <li>Use a home para acessar as demais operações com o mesmo padrão visual.</li>
+        <li>O depósito afeta imediatamente a home e o extrato do cliente.</li>
+        <li>Use as contas pré-cadastradas para demonstrar o fluxo completo no vídeo.</li>
+        <li>Consulte o extrato após a confirmação para validar a entrada em azul.</li>
       </ul>
     </aside>
   </div>

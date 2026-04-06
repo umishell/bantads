@@ -1,0 +1,76 @@
+<div class="bank-page gerente-consulta-page">
+  <header class="bank-topbar">
+    <div class="bank-brand">
+      <span class="bank-brand__mark">BT</span>
+      <div>
+        <span class="bank-brand__title">BANTADS</span>
+        <span class="bank-brand__subtitle">Gerente • atendimento e análise da carteira</span>
+      </div>
+    </div>
+
+    <nav class="bank-nav" aria-label="Navegação do gerente">
+      <a class="bank-nav__link" routerLink="/gerente/home">Home</a>
+      <a class="bank-nav__link" routerLink="/gerente/clientes">Clientes</a>
+      <a class="bank-nav__link" routerLink="/gerente/consulta">Consultar cliente</a>
+      <a class="bank-nav__link" routerLink="/gerente/melhores-clientes">Top 3 clientes</a>
+    </nav>
+
+    <div class="topbar-actions">
+      <button type="button" class="button button--ghost" (click)="logout()">Sair</button>
+    </div>
+  </header>
+
+  <section class="page-header-card">
+    <div class="page-header-row">
+      <div>
+        <span class="chip">R13 • Consultar cliente</span>
+        <h1>Busque um cliente específico pelo CPF</h1>
+        <p>Informe o CPF para visualizar dados cadastrais, conta, saldo e limite do cliente da sua carteira.</p>
+      </div>
+    </div>
+  </section>
+
+  <form class="panel" [formGroup]="consultaForm" (ngSubmit)="consultar()">
+    <div class="form-grid">
+      <div class="field">
+        <label for="cpf-cliente">CPF do cliente</label>
+        <input id="cpf-cliente" type="text" maxlength="11" formControlName="cpf" placeholder="Somente números" />
+        <small *ngIf="isInvalid()" class="field-error">Informe um CPF válido com 11 dígitos.</small>
+      </div>
+    </div>
+
+    <div *ngIf="errorMessage" class="feedback feedback--error">{{ errorMessage }}</div>
+
+    <div class="form-actions">
+      <button type="submit" class="button button--primary">Consultar cliente</button>
+      <button type="button" class="button button--ghost" routerLink="/gerente/clientes">Ver tabela completa</button>
+    </div>
+  </form>
+
+  <section class="panel" *ngIf="cliente">
+    <div class="section-title">
+      <div>
+        <h2>Detalhes completos do cliente</h2>
+        <p>Dados pessoais e conta vinculados ao gerente atual.</p>
+      </div>
+    </div>
+
+    <div class="detail-grid">
+      <div class="detail-list">
+        <div class="detail-list__item"><span>Nome</span><strong>{{ cliente.nome }}</strong></div>
+        <div class="detail-list__item"><span>CPF</span><strong>{{ cliente.cpf }}</strong></div>
+        <div class="detail-list__item"><span>E-mail</span><strong>{{ cliente.email }}</strong></div>
+        <div class="detail-list__item"><span>Telefone</span><strong>{{ cliente.telefone }}</strong></div>
+        <div class="detail-list__item"><span>Cidade / Estado</span><strong>{{ cliente.cidade }} • {{ cliente.estado }}</strong></div>
+      </div>
+
+      <div class="detail-list">
+        <div class="detail-list__item"><span>Agência / Conta</span><strong>{{ cliente.agencia }} • {{ cliente.conta }}</strong></div>
+        <div class="detail-list__item"><span>Saldo</span><strong [class.text-danger]="cliente.saldo < 0">{{ formatCurrency(cliente.saldo) }}</strong></div>
+        <div class="detail-list__item"><span>Limite</span><strong>{{ formatCurrency(cliente.limite) }}</strong></div>
+        <div class="detail-list__item"><span>Salário</span><strong>{{ formatCurrency(cliente.salario) }}</strong></div>
+        <div class="detail-list__item"><span>Endereço</span><strong>{{ cliente.endereco }}</strong></div>
+      </div>
+    </div>
+  </section>
+</div>
