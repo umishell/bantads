@@ -1,0 +1,131 @@
+
+.admin-page {
+  display: grid;
+  gap: 1rem;
+}
+
+.theme--admin .bank-brand__mark {
+  background: linear-gradient(135deg, var(--color-admin) 0%, var(--color-admin-strong) 100%);
+}
+
+.theme--admin .bank-nav__link {
+  border-color: rgba(109, 40, 217, 0.16);
+}
+
+.theme--admin .bank-nav__link:hover {
+  border-color: rgba(109, 40, 217, 0.35);
+  color: var(--color-admin-strong);
+}
+
+.admin-accent-card {
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.98) 0%, rgba(245, 243, 255, 0.96) 100%);
+  border-color: rgba(109, 40, 217, 0.18);
+}
+
+.chip--admin {
+  color: var(--color-admin-strong);
+  border-color: rgba(109, 40, 217, 0.18);
+  background: rgba(245, 243, 255, 0.96);
+}
+
+.summary-card--admin {
+  border-color: rgba(109, 40, 217, 0.1);
+}
+
+.admin-chart-list {
+  display: grid;
+  gap: 1rem;
+}
+
+.chart-row {
+  border: 1px solid rgba(109, 40, 217, 0.1);
+  border-radius: var(--radius-sm);
+  padding: 1rem 1.1rem;
+  background: rgba(255, 255, 255, 0.94);
+}
+
+.chart-row__meta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+
+.chart-row__meta strong,
+.metric-line strong {
+  display: block;
+}
+
+.chart-row__meta span,
+.metric-line__label {
+  color: var(--color-text-soft);
+}
+
+.chart-row__bars {
+  display: grid;
+  gap: 0.85rem;
+}
+
+.metric-line {
+  display: grid;
+  grid-template-columns: 120px minmax(0, 1fr) auto;
+  gap: 0.8rem;
+  align-items: center;
+}
+
+.metric-line__track {
+  position: relative;
+  height: 12px;
+  border-radius: 999px;
+  overflow: hidden;
+}
+
+.metric-line__track--positive {
+  background: rgba(59, 130, 246, 0.14);
+}
+
+.metric-line__track--negative {
+  background: rgba(220, 38, 38, 0.12);
+}
+
+.metric-line__fill {
+  display: block;
+  height: 100%;
+  border-radius: 999px;
+}
+
+.metric-line__fill--positive {
+  background: linear-gradient(90deg, #8b5cf6 0%, #2563eb 100%);
+}
+
+.metric-line__fill--negative {
+  background: linear-gradient(90deg, #fb7185 0%, #dc2626 100%);
+}
+
+.highlight-panel {
+  border-color: rgba(109, 40, 217, 0.14);
+}
+
+@media print {
+  .print-hidden {
+    display: none !important;
+  }
+
+  .admin-page {
+    width: 100%;
+    margin: 0;
+    padding: 0;
+  }
+}
+
+@media (max-width: 900px) {
+  .metric-line {
+    grid-template-columns: 1fr;
+  }
+
+  .chart-row__meta {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+}

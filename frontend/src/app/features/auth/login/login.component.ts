@@ -51,17 +51,17 @@ export class LoginComponent {
 
   private redirecionarPorPerfil(): void {
     if (this.authService.isCliente()) {
-      this.router.navigate(['/cliente/home']);
+      void this.router.navigate(['/cliente/home']);
       return;
     }
 
     if (this.authService.isGerente()) {
-      this.router.navigate(['/gerente']);
+      void this.router.navigate(['/gerente/home']);
       return;
     }
 
     if (this.authService.isAdmin()) {
-      this.router.navigate(['/auth/login']);
+      void this.router.navigate(['/admin/home']);
       return;
     }
 

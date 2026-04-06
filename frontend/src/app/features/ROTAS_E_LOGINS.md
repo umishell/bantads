@@ -20,7 +20,7 @@
 - `ger2@bantads.com.br` / `tads` → Godophredo
 - `ger3@bantads.com.br` / `tads` → Gyândula
 
-## Login de administrador disponível no mock
+## Login de administrador
 
 - `adm1@bantads.com.br` / `tads` → Adamântio
 

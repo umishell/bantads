@@ -5,10 +5,7 @@ import { delay } from 'rxjs/operators';
 import { LoginRequest, LoginResponse, UsuarioLogado } from '../models/auth/auth.model';
 import { ClienteModel } from '../models/cliente/cliente.model';
 import { ExtratoDiaModel } from '../models/conta/extrato-dia.model';
-import {
-  ExtratoMovimentacaoModel,
-  NaturezaLancamento,
-} from '../models/conta/extrato-movimentacao.model';
+import { ExtratoMovimentacaoModel, NaturezaLancamento } from '../models/conta/extrato-movimentacao.model';
 import { ExtratoResponseModel } from '../models/conta/extrato-response.model';
 import { TransferenciaResponseModel } from '../models/conta/transferencia-response.model';
 import {
@@ -18,6 +15,15 @@ import {
   RejeicaoClienteModel,
   SolicitacaoClienteModel,
 } from '../models/gerente/gerente.model';
+import {
+  AdminDashboardGerenteItem,
+  AdminDashboardModel,
+  AdminGerenteFormModel,
+  AdminGerenteModel,
+  AdminGerenteMutationResponse,
+  AdminGerenteRemocaoResponse,
+  AdminRelatorioClienteModel,
+} from '../models/admin/admin.model';
 
 export type DemoPerfil = 'CLIENTE' | 'GERENTE' | 'ADMIN';
 
@@ -111,6 +117,7 @@ type DemoSolicitacaoRejeitada = {
   motivo: string;
   dataHora: string;
 };
+
 
 type DemoGerenteDisponivel = {
   cpf: string;
@@ -346,187 +353,24 @@ export class DemoBantadsStoreService {
   private readonly solicitacoesRejeitadas: DemoSolicitacaoRejeitada[] = [];
 
   private readonly movimentacoes: DemoMovimentacao[] = [
-    this.mov(
-      'm1',
-      '2020-01-01T10:00:00',
-      'DEPOSITO',
-      '1291',
-      'Catharyna',
-      '12912861012',
-      null,
-      null,
-      null,
-      1000,
-    ),
-    this.mov(
-      'm2',
-      '2020-01-01T11:00:00',
-      'DEPOSITO',
-      '1291',
-      'Catharyna',
-      '12912861012',
-      null,
-      null,
-      null,
-      900,
-    ),
-    this.mov(
-      'm3',
-      '2020-01-01T12:00:00',
-      'SAQUE',
-      '1291',
-      'Catharyna',
-      '12912861012',
-      null,
-      null,
-      null,
-      550,
-    ),
-    this.mov(
-      'm4',
-      '2020-01-01T13:00:00',
-      'SAQUE',
-      '1291',
-      'Catharyna',
-      '12912861012',
-      null,
-      null,
-      null,
-      350,
-    ),
-    this.mov(
-      'm5',
-      '2020-01-10T15:00:00',
-      'DEPOSITO',
-      '1291',
-      'Catharyna',
-      '12912861012',
-      null,
-      null,
-      null,
-      2000,
-    ),
-    this.mov(
-      'm6',
-      '2020-01-15T08:00:00',
-      'SAQUE',
-      '1291',
-      'Catharyna',
-      '12912861012',
-      null,
-      null,
-      null,
-      500,
-    ),
-    this.mov(
-      'm7',
-      '2020-01-20T12:00:00',
-      'TRANSFERENCIA',
-      '1291',
-      'Catharyna',
-      '12912861012',
-      '0950',
-      'Cleuddônio',
-      '09506382000',
-      1700,
-    ),
-    this.mov(
-      'm8',
-      '2025-01-01T12:00:00',
-      'DEPOSITO',
-      '0950',
-      'Cleuddônio',
-      '09506382000',
-      null,
-      null,
-      null,
-      1000,
-    ),
-    this.mov(
-      'm9',
-      '2025-01-02T10:00:00',
-      'DEPOSITO',
-      '0950',
-      'Cleuddônio',
-      '09506382000',
-      null,
-      null,
-      null,
-      5000,
-    ),
-    this.mov(
-      'm10',
-      '2025-01-10T10:00:00',
-      'SAQUE',
-      '0950',
-      'Cleuddônio',
-      '09506382000',
-      null,
-      null,
-      null,
-      200,
-    ),
-    this.mov(
-      'm11',
-      '2025-02-05T10:00:00',
-      'DEPOSITO',
-      '0950',
-      'Cleuddônio',
-      '09506382000',
-      null,
-      null,
-      null,
-      7000,
-    ),
-    this.mov(
-      'm12',
-      '2025-05-05T10:00:00',
-      'DEPOSITO',
-      '8573',
-      'Catianna',
-      '85733854057',
-      null,
-      null,
-      null,
-      1000,
-    ),
-    this.mov(
-      'm13',
-      '2025-05-06T10:00:00',
-      'SAQUE',
-      '8573',
-      'Catianna',
-      '85733854057',
-      null,
-      null,
-      null,
-      2000,
-    ),
-    this.mov(
-      'm14',
-      '2025-06-01T10:00:00',
-      'DEPOSITO',
-      '5887',
-      'Cutardo',
-      '58872160006',
-      null,
-      null,
-      null,
-      150000,
-    ),
-    this.mov(
-      'm15',
-      '2025-07-01T10:00:00',
-      'DEPOSITO',
-      '7617',
-      'Coândrya',
-      '76179646090',
-      null,
-      null,
-      null,
-      1500,
-    ),
+    this.mov('m1', '2020-01-01T10:00:00', 'DEPOSITO', '1291', 'Catharyna', '12912861012', null, null, null, 1000),
+    this.mov('m2', '2020-01-01T11:00:00', 'DEPOSITO', '1291', 'Catharyna', '12912861012', null, null, null, 900),
+    this.mov('m3', '2020-01-01T12:00:00', 'SAQUE', '1291', 'Catharyna', '12912861012', null, null, null, 550),
+    this.mov('m4', '2020-01-01T13:00:00', 'SAQUE', '1291', 'Catharyna', '12912861012', null, null, null, 350),
+    this.mov('m5', '2020-01-10T15:00:00', 'DEPOSITO', '1291', 'Catharyna', '12912861012', null, null, null, 2000),
+    this.mov('m6', '2020-01-15T08:00:00', 'SAQUE', '1291', 'Catharyna', '12912861012', null, null, null, 500),
+    this.mov('m7', '2020-01-20T12:00:00', 'TRANSFERENCIA', '1291', 'Catharyna', '12912861012', '0950', 'Cleuddônio', '09506382000', 1700),
+    this.mov('m8', '2025-01-01T12:00:00', 'DEPOSITO', '0950', 'Cleuddônio', '09506382000', null, null, null, 1000),
+    this.mov('m9', '2025-01-02T10:00:00', 'DEPOSITO', '0950', 'Cleuddônio', '09506382000', null, null, null, 5000),
+    this.mov('m10', '2025-01-10T10:00:00', 'SAQUE', '0950', 'Cleuddônio', '09506382000', null, null, null, 200),
+    this.mov('m11', '2025-02-05T10:00:00', 'DEPOSITO', '0950', 'Cleuddônio', '09506382000', null, null, null, 7000),
+    this.mov('m12', '2025-05-05T10:00:00', 'DEPOSITO', '8573', 'Catianna', '85733854057', null, null, null, 1000),
+    this.mov('m13', '2025-05-06T10:00:00', 'SAQUE', '8573', 'Catianna', '85733854057', null, null, null, 2000),
+    this.mov('m14', '2025-06-01T10:00:00', 'DEPOSITO', '5887', 'Cutardo', '58872160006', null, null, null, 150000),
+    this.mov('m15', '2025-07-01T10:00:00', 'DEPOSITO', '7617', 'Coândrya', '76179646090', null, null, null, 1500),
   ];
+
+
 
   public listarGerentesDisponiveis(): Observable<DemoGerenteDisponivel[]> {
     const rows = this.gerentes
@@ -553,46 +397,42 @@ export class DemoBantadsStoreService {
     gerenteCpf: string;
   }): Observable<DemoAutocadastroSolicitacaoResponse> {
     const cpf = String(payload.cpf ?? '').replace(/\D/g, '');
-    const email = String(payload.email ?? '')
-      .trim()
-      .toLowerCase();
+    const email = String(payload.email ?? '').trim().toLowerCase();
     const gerenteCpf = String(payload.gerenteCpf ?? '').trim();
 
     if (!cpf || cpf.length !== 11) {
-      return throwError(
-        () => new Error('Informe um CPF válido para solicitar a abertura da conta.'),
-      ).pipe(delay(this.simulatedDelayMs));
+      return throwError(() => new Error('Informe um CPF válido para solicitar a abertura da conta.')).pipe(
+        delay(this.simulatedDelayMs),
+      );
     }
 
     if (!email) {
-      return throwError(
-        () => new Error('Informe um e-mail válido para solicitar a abertura da conta.'),
-      ).pipe(delay(this.simulatedDelayMs));
+      return throwError(() => new Error('Informe um e-mail válido para solicitar a abertura da conta.')).pipe(
+        delay(this.simulatedDelayMs),
+      );
     }
 
     const gerente = this.buscarGerente(gerenteCpf);
     if (!gerente) {
-      return throwError(
-        () => new Error('Selecione um gerente responsável pela análise do cadastro.'),
-      ).pipe(delay(this.simulatedDelayMs));
+      return throwError(() => new Error('Selecione um gerente responsável pela análise do cadastro.')).pipe(
+        delay(this.simulatedDelayMs),
+      );
     }
 
-    const existeCliente = this.clientes.some(
-      (cliente) => cliente.cpf === cpf || cliente.email.toLowerCase() === email,
-    );
+    const existeCliente = this.clientes.some((cliente) => cliente.cpf === cpf || cliente.email.toLowerCase() === email);
     if (existeCliente) {
-      return throwError(
-        () => new Error('Já existe uma conta cadastrada com este CPF ou e-mail.'),
-      ).pipe(delay(this.simulatedDelayMs));
+      return throwError(() => new Error('Já existe uma conta cadastrada com este CPF ou e-mail.')).pipe(
+        delay(this.simulatedDelayMs),
+      );
     }
 
     const existePendente = this.solicitacoesPendentes.some(
       (solicitacao) => solicitacao.cpf === cpf || solicitacao.email.toLowerCase() === email,
     );
     if (existePendente) {
-      return throwError(
-        () => new Error('Já existe uma solicitação pendente para este CPF ou e-mail.'),
-      ).pipe(delay(this.simulatedDelayMs));
+      return throwError(() => new Error('Já existe uma solicitação pendente para este CPF ou e-mail.')).pipe(
+        delay(this.simulatedDelayMs),
+      );
     }
 
     const dataSolicitacao = this.nowIso();
@@ -604,9 +444,7 @@ export class DemoBantadsStoreService {
       salario: this.normalizarValor(Number(payload.salario ?? 0)),
       endereco: String(payload.endereco ?? '').trim(),
       cidade: String(payload.cidade ?? '').trim(),
-      estado: String(payload.estado ?? '')
-        .trim()
-        .toUpperCase(),
+      estado: String(payload.estado ?? '').trim().toUpperCase(),
       cep: this.optionalString(payload.cep),
       gerenteCpf: gerente.cpf,
       gerenteNome: gerente.nome,
@@ -626,9 +464,7 @@ export class DemoBantadsStoreService {
   }
 
   public autenticar(credenciais: LoginRequest): Observable<LoginResponse> {
-    const login = String(credenciais.login ?? '')
-      .trim()
-      .toLowerCase();
+    const login = this.normalizarLogin(String(credenciais.login ?? ''));
     const senha = String(credenciais.senha ?? '').trim();
 
     const user = this.getAllUsers().find(
@@ -636,9 +472,7 @@ export class DemoBantadsStoreService {
     );
 
     if (!user) {
-      return throwError(() => new Error('Usuário ou senha inválidos.')).pipe(
-        delay(this.simulatedDelayMs),
-      );
+      return throwError(() => new Error('Usuário ou senha inválidos.')).pipe(delay(this.simulatedDelayMs));
     }
 
     return of({
@@ -651,9 +485,7 @@ export class DemoBantadsStoreService {
     const cliente = this.clientes.find((item) => item.cpf === cpf);
 
     if (!cliente) {
-      return throwError(() => new Error('Cliente não encontrado.')).pipe(
-        delay(this.simulatedDelayMs),
-      );
+      return throwError(() => new Error('Cliente não encontrado.')).pipe(delay(this.simulatedDelayMs));
     }
 
     return of(this.toClienteModel(cliente)).pipe(delay(this.simulatedDelayMs));
@@ -681,9 +513,7 @@ export class DemoBantadsStoreService {
     const cliente = this.clientes.find((item) => item.cpf === cpf);
 
     if (!cliente) {
-      return throwError(() => new Error('Cliente não encontrado.')).pipe(
-        delay(this.simulatedDelayMs),
-      );
+      return throwError(() => new Error('Cliente não encontrado.')).pipe(delay(this.simulatedDelayMs));
     }
 
     cliente.nome = dados.nome ?? cliente.nome;
@@ -712,33 +542,18 @@ export class DemoBantadsStoreService {
     const valorNormalizado = this.normalizarValor(valor);
 
     if (!cliente) {
-      return throwError(() => new Error('Conta não encontrada para depósito.')).pipe(
-        delay(this.simulatedDelayMs),
-      );
+      return throwError(() => new Error('Conta não encontrada para depósito.')).pipe(delay(this.simulatedDelayMs));
     }
 
     if (valorNormalizado <= 0) {
-      return throwError(() => new Error('Informe um valor válido para depósito.')).pipe(
-        delay(this.simulatedDelayMs),
-      );
+      return throwError(() => new Error('Informe um valor válido para depósito.')).pipe(delay(this.simulatedDelayMs));
     }
 
     cliente.saldo = this.normalizarValor((cliente.saldo ?? 0) + valorNormalizado);
 
     const data = this.nowIso();
     this.movimentacoes.push(
-      this.mov(
-        this.buildMovementId(),
-        data,
-        'DEPOSITO',
-        cliente.numeroConta,
-        cliente.nome,
-        cliente.cpf,
-        null,
-        null,
-        null,
-        valorNormalizado,
-      ),
+      this.mov(this.buildMovementId(), data, 'DEPOSITO', cliente.numeroConta, cliente.nome, cliente.cpf, null, null, null, valorNormalizado),
     );
 
     return of({
@@ -754,40 +569,23 @@ export class DemoBantadsStoreService {
     const valorNormalizado = this.normalizarValor(valor);
 
     if (!cliente) {
-      return throwError(() => new Error('Conta não encontrada para saque.')).pipe(
-        delay(this.simulatedDelayMs),
-      );
+      return throwError(() => new Error('Conta não encontrada para saque.')).pipe(delay(this.simulatedDelayMs));
     }
 
     if (valorNormalizado <= 0) {
-      return throwError(() => new Error('Informe um valor válido para saque.')).pipe(
-        delay(this.simulatedDelayMs),
-      );
+      return throwError(() => new Error('Informe um valor válido para saque.')).pipe(delay(this.simulatedDelayMs));
     }
 
     const disponivel = (cliente.saldo ?? 0) + (cliente.limite ?? 0);
     if (disponivel < valorNormalizado) {
-      return throwError(() => new Error('Saldo insuficiente para realizar o saque.')).pipe(
-        delay(this.simulatedDelayMs),
-      );
+      return throwError(() => new Error('Saldo insuficiente para realizar o saque.')).pipe(delay(this.simulatedDelayMs));
     }
 
     cliente.saldo = this.normalizarValor((cliente.saldo ?? 0) - valorNormalizado);
 
     const data = this.nowIso();
     this.movimentacoes.push(
-      this.mov(
-        this.buildMovementId(),
-        data,
-        'SAQUE',
-        cliente.numeroConta,
-        cliente.nome,
-        cliente.cpf,
-        null,
-        null,
-        null,
-        valorNormalizado,
-      ),
+      this.mov(this.buildMovementId(), data, 'SAQUE', cliente.numeroConta, cliente.nome, cliente.cpf, null, null, null, valorNormalizado),
     );
 
     return of({
@@ -808,34 +606,24 @@ export class DemoBantadsStoreService {
     const valorNormalizado = this.normalizarValor(valor);
 
     if (!origem) {
-      return throwError(() => new Error('Conta de origem não encontrada.')).pipe(
-        delay(this.simulatedDelayMs),
-      );
+      return throwError(() => new Error('Conta de origem não encontrada.')).pipe(delay(this.simulatedDelayMs));
     }
 
     if (!favorecido) {
-      return throwError(() => new Error('Conta destino não encontrada.')).pipe(
-        delay(this.simulatedDelayMs),
-      );
+      return throwError(() => new Error('Conta destino não encontrada.')).pipe(delay(this.simulatedDelayMs));
     }
 
     if (origem.numeroConta === favorecido.numeroConta) {
-      return throwError(() => new Error('Você não pode transferir para a própria conta.')).pipe(
-        delay(this.simulatedDelayMs),
-      );
+      return throwError(() => new Error('Você não pode transferir para a própria conta.')).pipe(delay(this.simulatedDelayMs));
     }
 
     if (valorNormalizado <= 0) {
-      return throwError(() => new Error('Informe um valor válido para transferência.')).pipe(
-        delay(this.simulatedDelayMs),
-      );
+      return throwError(() => new Error('Informe um valor válido para transferência.')).pipe(delay(this.simulatedDelayMs));
     }
 
     const disponivel = (origem.saldo ?? 0) + (origem.limite ?? 0);
     if (disponivel < valorNormalizado) {
-      return throwError(() => new Error('Saldo insuficiente para realizar a transferência.')).pipe(
-        delay(this.simulatedDelayMs),
-      );
+      return throwError(() => new Error('Saldo insuficiente para realizar a transferência.')).pipe(delay(this.simulatedDelayMs));
     }
 
     origem.saldo = this.normalizarValor((origem.saldo ?? 0) - valorNormalizado);
@@ -866,25 +654,18 @@ export class DemoBantadsStoreService {
     }).pipe(delay(this.simulatedDelayMs));
   }
 
-  public consultarExtrato(
-    numeroConta: string,
-    filtro: DemoExtratoFiltro,
-  ): Observable<ExtratoResponseModel> {
+  public consultarExtrato(numeroConta: string, filtro: DemoExtratoFiltro): Observable<ExtratoResponseModel> {
     const cliente = this.buscarClienteInternoPorConta(numeroConta);
 
     if (!cliente) {
-      return throwError(() => new Error('Conta não encontrada para consulta de extrato.')).pipe(
-        delay(this.simulatedDelayMs),
-      );
+      return throwError(() => new Error('Conta não encontrada para consulta de extrato.')).pipe(delay(this.simulatedDelayMs));
     }
 
     const dataInicio = this.onlyDate(filtro.dataInicio);
     const dataFim = this.onlyDate(filtro.dataFim);
 
     if (!dataInicio || !dataFim) {
-      return throwError(
-        () => new Error('Informe um período válido para consulta do extrato.'),
-      ).pipe(delay(this.simulatedDelayMs));
+      return throwError(() => new Error('Informe um período válido para consulta do extrato.')).pipe(delay(this.simulatedDelayMs));
     }
 
     const dias = this.gerarExtratoPorPeriodo(cliente.numeroConta, dataInicio, dataFim);
@@ -900,9 +681,7 @@ export class DemoBantadsStoreService {
     const gerente = this.buscarGerente(gerenteCpf);
 
     if (!gerente) {
-      return throwError(() => new Error('Gerente não encontrado.')).pipe(
-        delay(this.simulatedDelayMs),
-      );
+      return throwError(() => new Error('Gerente não encontrado.')).pipe(delay(this.simulatedDelayMs));
     }
 
     const carteira = this.clientes.filter((cliente) => cliente.gerente_cpf === gerenteCpf);
@@ -921,8 +700,7 @@ export class DemoBantadsStoreService {
       totalClientes: carteira.length,
       totalSaldoPositivo: this.normalizarValor(totalSaldoPositivo),
       totalSaldoNegativo: this.normalizarValor(totalSaldoNegativo),
-      totalPendencias: this.solicitacoesPendentes.filter((item) => item.gerenteCpf === gerenteCpf)
-        .length,
+      totalPendencias: this.solicitacoesPendentes.filter((item) => item.gerenteCpf === gerenteCpf).length,
     }).pipe(delay(this.simulatedDelayMs));
   }
 
@@ -939,9 +717,7 @@ export class DemoBantadsStoreService {
     const index = this.solicitacoesPendentes.findIndex((item) => item.cpf === cpfSolicitacao);
 
     if (index < 0) {
-      return throwError(() => new Error('Solicitação não encontrada para aprovação.')).pipe(
-        delay(this.simulatedDelayMs),
-      );
+      return throwError(() => new Error('Solicitação não encontrada para aprovação.')).pipe(delay(this.simulatedDelayMs));
     }
 
     const solicitacao = this.solicitacoesPendentes.splice(index, 1)[0];
@@ -989,9 +765,7 @@ export class DemoBantadsStoreService {
     const index = this.solicitacoesPendentes.findIndex((item) => item.cpf === cpfSolicitacao);
 
     if (index < 0) {
-      return throwError(() => new Error('Solicitação não encontrada para rejeição.')).pipe(
-        delay(this.simulatedDelayMs),
-      );
+      return throwError(() => new Error('Solicitação não encontrada para rejeição.')).pipe(delay(this.simulatedDelayMs));
     }
 
     const solicitacao = this.solicitacoesPendentes.splice(index, 1)[0];
@@ -1007,10 +781,7 @@ export class DemoBantadsStoreService {
     return of(registro).pipe(delay(this.simulatedDelayMs));
   }
 
-  public listarClientesDoGerente(
-    gerenteCpf: string,
-    filtro = '',
-  ): Observable<ClienteCarteiraModel[]> {
+  public listarClientesDoGerente(gerenteCpf: string, filtro = ''): Observable<ClienteCarteiraModel[]> {
     const termo = filtro.trim().toLowerCase();
 
     const rows = this.clientes
@@ -1025,25 +796,21 @@ export class DemoBantadsStoreService {
     return of(rows).pipe(delay(this.simulatedDelayMs));
   }
 
-  public consultarClienteDoGerente(
-    gerenteCpf: string,
-    cpfCliente: string,
-  ): Observable<ClienteCarteiraModel> {
+  public consultarClienteDoGerente(gerenteCpf: string, cpfCliente: string): Observable<ClienteCarteiraModel> {
     const cliente = this.clientes.find(
       (item) => item.gerente_cpf === gerenteCpf && item.cpf === cpfCliente,
     );
 
     if (!cliente) {
-      return throwError(() => new Error('Cliente não encontrado na carteira deste gerente.')).pipe(
-        delay(this.simulatedDelayMs),
-      );
+      return throwError(() => new Error('Cliente não encontrado na carteira deste gerente.')).pipe(delay(this.simulatedDelayMs));
     }
 
     return of(this.toClienteCarteira(cliente)).pipe(delay(this.simulatedDelayMs));
   }
 
-  public listarMelhoresClientes(): Observable<ClienteCarteiraModel[]> {
+  public listarMelhoresClientes(gerenteCpf?: string): Observable<ClienteCarteiraModel[]> {
     const rows = [...this.clientes]
+      .filter((cliente) => !gerenteCpf || cliente.gerente_cpf === gerenteCpf)
       .sort((a, b) => (b.saldo ?? 0) - (a.saldo ?? 0))
       .slice(0, 3)
       .map((cliente) => this.toClienteCarteira(cliente));
@@ -1051,11 +818,193 @@ export class DemoBantadsStoreService {
     return of(rows).pipe(delay(this.simulatedDelayMs));
   }
 
-  private gerarExtratoPorPeriodo(
-    numeroConta: string,
-    dataInicio: string,
-    dataFim: string,
-  ): ExtratoDiaModel[] {
+  public obterDashboardAdmin(): Observable<AdminDashboardModel> {
+    const gerentes = this.gerentes
+      .map((gerente) => this.toAdminGerente(gerente))
+      .sort((a, b) => {
+        if (b.totalSaldoPositivo !== a.totalSaldoPositivo) {
+          return b.totalSaldoPositivo - a.totalSaldoPositivo;
+        }
+        return a.nome.localeCompare(b.nome, 'pt-BR');
+      });
+
+    const totalClientes = gerentes.reduce((acc, gerente) => acc + gerente.totalClientes, 0);
+    const totalSaldoPositivo = gerentes.reduce((acc, gerente) => acc + gerente.totalSaldoPositivo, 0);
+    const totalSaldoNegativo = gerentes.reduce((acc, gerente) => acc + gerente.totalSaldoNegativo, 0);
+
+    return of({
+      totalGerentes: gerentes.length,
+      totalClientes,
+      totalSaldoPositivo: this.normalizarValor(totalSaldoPositivo),
+      totalSaldoNegativo: this.normalizarValor(totalSaldoNegativo),
+      gerentes,
+    }).pipe(delay(this.simulatedDelayMs));
+  }
+
+  public listarRelatorioClientesAdmin(): Observable<AdminRelatorioClienteModel[]> {
+    const rows = [...this.clientes]
+      .sort((a, b) => a.nome.localeCompare(b.nome, 'pt-BR'))
+      .map((cliente) => ({
+        cpfCliente: cliente.cpf,
+        nomeCliente: cliente.nome,
+        emailCliente: cliente.email,
+        salario: cliente.salario,
+        numeroConta: cliente.numeroConta,
+        saldo: cliente.saldo ?? 0,
+        limite: cliente.limite ?? 0,
+        cpfGerente: cliente.gerente_cpf,
+        nomeGerente: cliente.gerente_nome,
+      }));
+
+    return of(this.clone(rows)).pipe(delay(this.simulatedDelayMs));
+  }
+
+  public listarGerentesAdmin(): Observable<AdminGerenteModel[]> {
+    const rows = this.gerentes
+      .map((gerente) => this.toAdminGerente(gerente))
+      .sort((a, b) => a.nome.localeCompare(b.nome, 'pt-BR'));
+
+    return of(this.clone(rows)).pipe(delay(this.simulatedDelayMs));
+  }
+
+  public inserirGerenteAdmin(payload: AdminGerenteFormModel): Observable<AdminGerenteMutationResponse> {
+    const cpf = String(payload.cpf ?? '').replace(/\D/g, '');
+    const nome = String(payload.nome ?? '').trim();
+    const email = String(payload.email ?? '').trim().toLowerCase();
+    const telefone = String(payload.telefone ?? '').trim();
+    const senha = String(payload.senha ?? '').trim();
+
+    if (cpf.length !== 11) {
+      return throwError(() => new Error('Informe um CPF válido para o gerente.')).pipe(delay(this.simulatedDelayMs));
+    }
+
+    if (!nome || !email || !telefone || !senha) {
+      return throwError(() => new Error('Preencha todos os dados do gerente.')).pipe(delay(this.simulatedDelayMs));
+    }
+
+    const cpfJaExiste = this.gerentes.some((gerente) => gerente.cpf === cpf);
+    if (cpfJaExiste) {
+      return throwError(() => new Error('Já existe um gerente cadastrado com este CPF.')).pipe(delay(this.simulatedDelayMs));
+    }
+
+    const emailJaExiste = this.getAllUsers().some((user) => user.email.toLowerCase() === email);
+    if (emailJaExiste) {
+      return throwError(() => new Error('Já existe um usuário cadastrado com este e-mail.')).pipe(delay(this.simulatedDelayMs));
+    }
+
+    const novoGerente: DemoGerente = {
+      cpf,
+      nome,
+      email,
+      telefone,
+      senha,
+      perfil: 'GERENTE',
+    };
+
+    const detalhes: string[] = [];
+    const gerenteDoador = this.escolherGerenteDoadorParaNovoGerente();
+    let clienteTransferido: DemoCliente | undefined;
+
+    this.gerentes.push(novoGerente);
+
+    if (gerenteDoador) {
+      clienteTransferido = this.escolherContaParaNovoGerente(gerenteDoador.cpf);
+      if (clienteTransferido) {
+        this.reatribuirCliente(clienteTransferido, novoGerente);
+        detalhes.push(
+          `Conta ${clienteTransferido.numeroConta} de ${clienteTransferido.nome} foi transferida de ${gerenteDoador.nome} para ${novoGerente.nome}.`,
+        );
+      } else {
+        detalhes.push(`Nenhuma conta precisou ser transferida de ${gerenteDoador.nome}.`);
+      }
+    } else {
+      detalhes.push('Nenhuma conta foi transferida porque não havia gerente elegível para doação.');
+    }
+
+    return of({
+      mensagem: `Gerente ${novoGerente.nome} inserido com sucesso.`,
+      gerente: this.toAdminGerente(novoGerente),
+      detalhes,
+    }).pipe(delay(this.simulatedDelayMs));
+  }
+
+  public atualizarGerenteAdmin(
+    cpf: string,
+    payload: Pick<AdminGerenteFormModel, 'nome' | 'email' | 'senha'>,
+  ): Observable<AdminGerenteMutationResponse> {
+    const gerente = this.buscarGerente(cpf);
+
+    if (!gerente) {
+      return throwError(() => new Error('Gerente não encontrado para alteração.')).pipe(delay(this.simulatedDelayMs));
+    }
+
+    const nome = String(payload.nome ?? '').trim();
+    const email = String(payload.email ?? '').trim().toLowerCase();
+    const senha = String(payload.senha ?? '').trim();
+
+    if (!nome || !email || !senha) {
+      return throwError(() => new Error('Informe nome, e-mail e senha para alterar o gerente.')).pipe(delay(this.simulatedDelayMs));
+    }
+
+    const emailConflitante = this.getAllUsers().some(
+      (user) => user.email.toLowerCase() === email && user.cpf !== gerente.cpf,
+    );
+    if (emailConflitante) {
+      return throwError(() => new Error('Já existe outro usuário com este e-mail.')).pipe(delay(this.simulatedDelayMs));
+    }
+
+    gerente.nome = nome;
+    gerente.email = email;
+    gerente.senha = senha;
+
+    this.clientes
+      .filter((cliente) => cliente.gerente_cpf === gerente.cpf)
+      .forEach((cliente) => {
+        cliente.gerente_nome = gerente.nome;
+        cliente.gerente_email = gerente.email;
+      });
+
+    return of({
+      mensagem: `Gerente ${gerente.nome} atualizado com sucesso.`,
+      gerente: this.toAdminGerente(gerente),
+      detalhes: ['As contas vinculadas tiveram os dados de gerente atualizados no protótipo.'],
+    }).pipe(delay(this.simulatedDelayMs));
+  }
+
+  public removerGerenteAdmin(cpf: string): Observable<AdminGerenteRemocaoResponse> {
+    const gerente = this.buscarGerente(cpf);
+
+    if (!gerente) {
+      return throwError(() => new Error('Gerente não encontrado para remoção.')).pipe(delay(this.simulatedDelayMs));
+    }
+
+    if (this.gerentes.length <= 1) {
+      return throwError(() => new Error('Não é permitido remover o último gerente do banco.')).pipe(delay(this.simulatedDelayMs));
+    }
+
+    const clientesDoGerente = this.clientes.filter((cliente) => cliente.gerente_cpf === gerente.cpf);
+    const gerenteDestino = this.escolherGerenteDestinoRemocao(gerente.cpf);
+
+    if (!gerenteDestino) {
+      return throwError(() => new Error('Não foi possível escolher um gerente para receber as contas.')).pipe(delay(this.simulatedDelayMs));
+    }
+
+    clientesDoGerente.forEach((cliente) => this.reatribuirCliente(cliente, gerenteDestino));
+    const indice = this.gerentes.findIndex((item) => item.cpf === gerente.cpf);
+    this.gerentes.splice(indice, 1);
+
+    return of({
+      mensagem: `Gerente ${gerente.nome} removido com sucesso.`,
+      gerenteRemovido: gerente.nome,
+      gerenteDestino: gerenteDestino.nome,
+      totalContasReatribuidas: clientesDoGerente.length,
+      detalhes: [
+        `${clientesDoGerente.length} conta(s) foram reatribuídas para ${gerenteDestino.nome}.`,
+      ],
+    }).pipe(delay(this.simulatedDelayMs));
+  }
+
+  private gerarExtratoPorPeriodo(numeroConta: string, dataInicio: string, dataFim: string): ExtratoDiaModel[] {
     const todas = this.movimentacoes
       .filter((mov) => this.movimentacaoEnvolveConta(mov, numeroConta))
       .sort((a, b) => a.dataHora.localeCompare(b.dataHora));
@@ -1071,9 +1020,7 @@ export class DemoBantadsStoreService {
       const dia = this.formatDateOnly(dataCursor);
       const movimentosDoDia = todas.filter((mov) => this.onlyDate(mov.dataHora) === dia);
 
-      const movimentacoes = movimentosDoDia.map((mov) =>
-        this.toExtratoMovimentacao(mov, numeroConta),
-      );
+      const movimentacoes = movimentosDoDia.map((mov) => this.toExtratoMovimentacao(mov, numeroConta));
       const deltaDia = movimentacoes.reduce((acc, item) => {
         return acc + (item.natureza === 'ENTRADA' ? item.valor : -item.valor);
       }, 0);
@@ -1095,10 +1042,7 @@ export class DemoBantadsStoreService {
     const cliente = this.buscarClienteInternoPorConta(numeroConta);
     const saldoAtual = cliente?.saldo ?? 0;
 
-    const deltaTotal = movimentacoes.reduce(
-      (acc, mov) => acc + this.getDeltaForConta(mov, numeroConta),
-      0,
-    );
+    const deltaTotal = movimentacoes.reduce((acc, mov) => acc + this.getDeltaForConta(mov, numeroConta), 0);
     return this.normalizarValor(saldoAtual - deltaTotal);
   }
 
@@ -1112,7 +1056,7 @@ export class DemoBantadsStoreService {
       dataHora: mov.dataHora,
       operacao: mov.operacao,
       origem: mov.operacao === 'TRANSFERENCIA' ? mov.clienteOrigem : null,
-      destino: mov.operacao === 'TRANSFERENCIA' ? (mov.clienteDestino ?? null) : null,
+      destino: mov.operacao === 'TRANSFERENCIA' ? mov.clienteDestino ?? null : null,
       valor: mov.valor,
       natureza,
     };
@@ -1152,6 +1096,21 @@ export class DemoBantadsStoreService {
 
   private movimentacaoEnvolveConta(mov: DemoMovimentacao, numeroConta: string): boolean {
     return mov.contaOrigem === numeroConta || mov.contaDestino === numeroConta;
+  }
+
+  private normalizarLogin(login: string): string {
+    const normalizado = login.trim().toLowerCase();
+
+    if ([
+      'adm1@bantas.com.br',
+      'adminadm1@bantas.com.br',
+      'adminadm1@bantads.com.br',
+      'admin1@bantads.com.br',
+    ].includes(normalizado)) {
+      return 'adm1@bantads.com.br';
+    }
+
+    return normalizado;
   }
 
   private getAllUsers(): DemoUser[] {
@@ -1236,6 +1195,90 @@ export class DemoBantadsStoreService {
       gerenteEmail: cliente.gerente_email,
       cep: cliente.cep,
     });
+  }
+
+  private toAdminGerente(gerente: DemoGerente): AdminGerenteModel {
+    const carteira = this.clientes.filter((cliente) => cliente.gerente_cpf === gerente.cpf);
+    const totalSaldoPositivo = carteira
+      .filter((cliente) => (cliente.saldo ?? 0) >= 0)
+      .reduce((acc, cliente) => acc + (cliente.saldo ?? 0), 0);
+    const totalSaldoNegativo = carteira
+      .filter((cliente) => (cliente.saldo ?? 0) < 0)
+      .reduce((acc, cliente) => acc + (cliente.saldo ?? 0), 0);
+
+    return {
+      cpf: gerente.cpf,
+      nome: gerente.nome,
+      email: gerente.email,
+      telefone: gerente.telefone,
+      totalClientes: carteira.length,
+      totalSaldoPositivo: this.normalizarValor(totalSaldoPositivo),
+      totalSaldoNegativo: this.normalizarValor(totalSaldoNegativo),
+    };
+  }
+
+  private escolherGerenteDoadorParaNovoGerente(): DemoGerente | undefined {
+    if (!this.gerentes.length) {
+      return undefined;
+    }
+
+    const candidatos = [...this.gerentes]
+      .map((gerente) => {
+        const resumo = this.toAdminGerente(gerente);
+        return {
+          gerente,
+          totalClientes: resumo.totalClientes,
+          totalSaldoPositivo: resumo.totalSaldoPositivo,
+        };
+      })
+      .sort((a, b) => {
+        if (b.totalClientes !== a.totalClientes) {
+          return b.totalClientes - a.totalClientes;
+        }
+        if (a.totalSaldoPositivo !== b.totalSaldoPositivo) {
+          return a.totalSaldoPositivo - b.totalSaldoPositivo;
+        }
+        return a.gerente.nome.localeCompare(b.gerente.nome, 'pt-BR');
+      });
+
+    const selecionado = candidatos[0];
+    if (!selecionado || selecionado.totalClientes === 0) {
+      return undefined;
+    }
+
+    if (this.gerentes.length === 1 && selecionado.totalClientes === 1) {
+      return undefined;
+    }
+
+    return selecionado.gerente;
+  }
+
+  private escolherContaParaNovoGerente(gerenteCpf: string): DemoCliente | undefined {
+    const carteira = this.clientes
+      .filter((cliente) => cliente.gerente_cpf === gerenteCpf)
+      .sort((a, b) => a.nome.localeCompare(b.nome, 'pt-BR'));
+
+    return carteira[0];
+  }
+
+  private escolherGerenteDestinoRemocao(gerenteExcluidoCpf: string): DemoGerente | undefined {
+    const candidatos = this.gerentes
+      .filter((gerente) => gerente.cpf !== gerenteExcluidoCpf)
+      .map((gerente) => ({ gerente, totalClientes: this.toAdminGerente(gerente).totalClientes }))
+      .sort((a, b) => {
+        if (a.totalClientes !== b.totalClientes) {
+          return a.totalClientes - b.totalClientes;
+        }
+        return a.gerente.nome.localeCompare(b.gerente.nome, 'pt-BR');
+      });
+
+    return candidatos[0]?.gerente;
+  }
+
+  private reatribuirCliente(cliente: DemoCliente, gerente: DemoGerente): void {
+    cliente.gerente_cpf = gerente.cpf;
+    cliente.gerente_nome = gerente.nome;
+    cliente.gerente_email = gerente.email;
   }
 
   private buscarClienteInternoPorConta(numeroConta: string): DemoCliente | undefined {

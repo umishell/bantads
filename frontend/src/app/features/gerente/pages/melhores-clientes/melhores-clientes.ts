@@ -21,10 +21,19 @@ export class GerenteMelhoresClientesComponent implements OnInit {
   public loading = false;
   public errorMessage = '';
   public clientes: ClienteCarteiraModel[] = [];
+  public nomeGerente = 'da carteira';
 
   public ngOnInit(): void {
+    const gerenteCpf = this.authService.getCpf();
+    this.nomeGerente = this.authService.currentUser()?.nome ?? 'da carteira';
+
+    if (!gerenteCpf) {
+      this.errorMessage = 'Não foi possível identificar o gerente logado.';
+      return;
+    }
+
     this.loading = true;
-    this.gerenteService.listarMelhoresClientes().subscribe({
+    this.gerenteService.listarMelhoresClientes(gerenteCpf).subscribe({
       next: (clientes) => {
         this.loading = false;
         this.clientes = clientes;

@@ -24,13 +24,20 @@
     <div class="page-header-row">
       <div>
         <span class="chip">R14 • Consultar 3 melhores clientes</span>
-        <h1>Ranking geral dos maiores saldos do banco</h1>
-        <p>Lista ordenada de forma decrescente por saldo, considerando clientes de qualquer gerente.</p>
+        <h1>Top 3 da sua carteira</h1>
+        <p>
+          Ranking dos maiores saldos apenas entre os clientes vinculados ao gerente {{ nomeGerente }}.
+        </p>
       </div>
     </div>
   </section>
 
   <div *ngIf="errorMessage" class="feedback feedback--error">{{ errorMessage }}</div>
+
+  <div *ngIf="!loading && !clientes.length && !errorMessage" class="empty-state">
+    <strong>Nenhum cliente encontrado.</strong>
+    <span>Quando houver clientes vinculados à sua carteira, o ranking aparecerá aqui.</span>
+  </div>
 
   <section class="summary-grid" *ngIf="clientes.length">
     <article class="summary-card" *ngFor="let cliente of clientes; index as i">

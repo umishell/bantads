@@ -41,7 +41,7 @@ export class GerenteService {
     return this.demoStore.consultarClienteDoGerente(gerenteCpf, cpfCliente);
   }
 
-  public listarMelhoresClientes(): Observable<ClienteCarteiraModel[]> {
-    return this.demoStore.listarMelhoresClientes();
+  public listarMelhoresClientes(gerenteCpf: string): Observable<ClienteCarteiraModel[]> {
+    return this.demoStore.listarMelhoresClientes(gerenteCpf);
   }
 }
