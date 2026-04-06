@@ -1,4 +1,4 @@
-import { Component, inject, signal } from '@angular/core';
+/*import { Component, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router, RouterModule } from '@angular/router';
@@ -46,6 +46,7 @@ export class AutocadastroComponent {
    * Função chamada quando o usuário sai do campo de CEP (evento blur no HTML).
    * Faz uma busca na API pública do ViaCEP para preencher os dados automaticamente.
    */
+/*
   public buscarCep(): void {
     const cepControl = this.cadastroForm.get('endereco.cep');
     if (cepControl?.invalid || !cepControl?.value) return;
@@ -96,3 +97,4 @@ export class AutocadastroComponent {
     });
   }
 }
+*/
