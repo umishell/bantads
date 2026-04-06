@@ -15,10 +15,10 @@ describe('ExtratoComponent', () => {
     contaServiceSpy = jasmine.createSpyObj<ContaService>('ContaService', ['consultarExtrato']);
     contaServiceSpy.consultarExtrato.and.returnValue(
       of({
-        conta: '1234567',
+        conta: '1291',
         saldo: 1200,
         dias: [],
-      })
+      }),
     );
 
     await TestBed.configureTestingModule({
@@ -28,7 +28,7 @@ describe('ExtratoComponent', () => {
         {
           provide: AuthService,
           useValue: {
-            getNumeroConta: () => '1234567',
+            getNumeroConta: () => '1291',
           },
         },
         {
@@ -45,5 +45,9 @@ describe('ExtratoComponent', () => {
 
   it('should create', () => {
     expect(component).toBeTruthy();
+  });
+
+  it('deve consultar o extrato na inicialização', () => {
+    expect(contaServiceSpy.consultarExtrato).toHaveBeenCalled();
   });
 });

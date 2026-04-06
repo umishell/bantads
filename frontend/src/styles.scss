@@ -3,6 +3,9 @@
   --color-primary-strong: #7e0d22;
   --color-primary-soft: #fdf1f4;
   --color-primary-border: #f2c7d1;
+  --color-admin: #7c3aed;
+  --color-admin-strong: #5b21b6;
+  --color-admin-soft: #f5f3ff;
 
   --color-success: #15803d;
   --color-success-soft: #ecfdf3;
@@ -517,4 +520,351 @@ button[type='submit']:hover {
   button {
     width: 100%;
   }
+}
+
+
+.topbar-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.button--outline {
+  color: var(--color-primary-strong);
+  background: #fff;
+  border-color: rgba(179, 19, 51, 0.25);
+}
+
+.button--outline:hover {
+  transform: translateY(-1px);
+  border-color: rgba(179, 19, 51, 0.45);
+}
+
+.table-wrapper {
+  width: 100%;
+  overflow-x: auto;
+}
+
+.data-table {
+  width: 100%;
+  border-collapse: collapse;
+  min-width: 720px;
+}
+
+.data-table th,
+.data-table td {
+  padding: 0.95rem 0.85rem;
+  border-bottom: 1px solid var(--color-border);
+  text-align: left;
+  vertical-align: top;
+}
+
+.data-table th {
+  color: var(--color-text-faint);
+  font-size: 0.82rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+.data-table tr:last-child td {
+  border-bottom: none;
+}
+
+.data-table tr:hover td {
+  background: rgba(179, 19, 51, 0.03);
+}
+
+.search-row,
+.toolbar-row,
+.inline-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.85rem;
+  align-items: center;
+}
+
+.search-row .field,
+.toolbar-row .field {
+  flex: 1 1 280px;
+}
+
+.kpi-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 1rem;
+}
+
+.stack-grid {
+  display: grid;
+  gap: 1rem;
+}
+
+.detail-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1rem;
+}
+
+.detail-list {
+  display: grid;
+  gap: 0.75rem;
+}
+
+.detail-list__item {
+  padding: 0.95rem 1rem;
+  border-radius: 16px;
+  border: 1px solid rgba(148, 163, 184, 0.18);
+  background: rgba(248, 250, 252, 0.92);
+}
+
+.detail-list__item span {
+  display: block;
+  color: var(--color-text-faint);
+  font-size: 0.82rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.detail-list__item strong {
+  display: block;
+  margin-top: 0.35rem;
+  font-size: 1rem;
+}
+
+.badge-rank {
+  display: inline-grid;
+  place-items: center;
+  width: 2rem;
+  height: 2rem;
+  border-radius: 50%;
+  background: rgba(179, 19, 51, 0.12);
+  color: var(--color-primary-strong);
+  font-weight: 800;
+}
+
+.approval-grid {
+  display: grid;
+  grid-template-columns: 1.5fr 1fr;
+  gap: 1rem;
+}
+
+.inline-reject {
+  display: grid;
+  gap: 0.65rem;
+}
+
+.inline-reject textarea {
+  min-height: 5.5rem;
+  resize: vertical;
+}
+
+.text-strong {
+  color: var(--color-neutral-strong);
+  font-weight: 800;
+}
+
+.text-success { color: var(--color-success); }
+.text-danger { color: var(--color-danger); }
+.text-warning { color: var(--color-warning); }
+
+@media (max-width: 1024px) {
+  .kpi-grid,
+  .approval-grid,
+  .detail-grid {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+@media (max-width: 720px) {
+  .kpi-grid,
+  .approval-grid,
+  .detail-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .topbar-actions {
+    width: 100%;
+  }
+}
+
+
+/* ===== AJUSTES VISUAIS CLIENTE X GERENTE ===== */
+:root {
+  --color-blue: #3a5fcd;
+  --color-blue-strong: #00008b;
+  --color-blue-soft: #eef3ff;
+}
+
+body {
+  background:
+    radial-gradient(circle at top left, rgba(179, 19, 51, 0.1), transparent 24%),
+    radial-gradient(circle at top right, rgba(58, 95, 205, 0.1), transparent 24%),
+    radial-gradient(circle at bottom right, rgba(0, 0, 139, 0.08), transparent 20%),
+    linear-gradient(135deg, #f9fbff 0%, #f8f6f8 48%, #ffffff 100%);
+}
+
+.home-page,
+.perfil-page,
+.operation-page,
+.transfer-page,
+.extrato-page,
+.gerente-home-page,
+.gerente-clientes-page,
+.gerente-consulta-page,
+.gerente-top-page {
+  position: relative;
+  isolation: isolate;
+}
+
+.home-page::before,
+.perfil-page::before,
+.operation-page::before,
+.transfer-page::before,
+.extrato-page::before {
+  content: '';
+  position: absolute;
+  inset: -1rem -1.25rem auto -1.25rem;
+  height: 18rem;
+  border-radius: 2rem;
+  background:
+    radial-gradient(circle at left top, rgba(179, 19, 51, 0.12), transparent 44%),
+    linear-gradient(135deg, rgba(255, 248, 250, 0.96), rgba(255, 255, 255, 0.72));
+  z-index: -1;
+  filter: blur(2px);
+}
+
+.gerente-home-page::before,
+.gerente-clientes-page::before,
+.gerente-consulta-page::before,
+.gerente-top-page::before {
+  content: '';
+  position: absolute;
+  inset: -1rem -1.25rem auto -1.25rem;
+  height: 18rem;
+  border-radius: 2rem;
+  background:
+    radial-gradient(circle at right top, rgba(58, 95, 205, 0.16), transparent 42%),
+    radial-gradient(circle at left top, rgba(0, 0, 139, 0.12), transparent 38%),
+    linear-gradient(135deg, rgba(238, 243, 255, 0.94), rgba(255, 255, 255, 0.74));
+  z-index: -1;
+  filter: blur(2px);
+}
+
+.gerente-home-page .bank-brand__mark,
+.gerente-clientes-page .bank-brand__mark,
+.gerente-consulta-page .bank-brand__mark,
+.gerente-top-page .bank-brand__mark {
+  background: linear-gradient(135deg, var(--color-blue) 0%, var(--color-blue-strong) 100%);
+}
+
+.gerente-home-page .page-header-card,
+.gerente-clientes-page .page-header-card,
+.gerente-consulta-page .page-header-card,
+.gerente-top-page .page-header-card {
+  background: linear-gradient(135deg, rgba(239, 246, 255, 0.98) 0%, rgba(255, 255, 255, 0.95) 100%);
+  border-color: rgba(58, 95, 205, 0.18);
+}
+
+.gerente-home-page .page-header-card::after,
+.gerente-clientes-page .page-header-card::after,
+.gerente-consulta-page .page-header-card::after,
+.gerente-top-page .page-header-card::after {
+  background: radial-gradient(circle, rgba(58, 95, 205, 0.2), transparent 70%);
+}
+
+.gerente-home-page .chip,
+.gerente-clientes-page .chip,
+.gerente-consulta-page .chip,
+.gerente-top-page .chip,
+.gerente-home-page .info-chip,
+.gerente-clientes-page .info-chip,
+.gerente-consulta-page .info-chip,
+.gerente-top-page .info-chip {
+  color: var(--color-blue-strong);
+  border-color: rgba(58, 95, 205, 0.18);
+  background: rgba(238, 243, 255, 0.92);
+}
+
+.gerente-home-page .bank-nav__link:hover,
+.gerente-clientes-page .bank-nav__link:hover,
+.gerente-consulta-page .bank-nav__link:hover,
+.gerente-top-page .bank-nav__link:hover {
+  border-color: rgba(58, 95, 205, 0.35);
+  color: var(--color-blue-strong);
+}
+
+.gerente-home-page .button--primary,
+.gerente-clientes-page .button--primary,
+.gerente-consulta-page .button--primary,
+.gerente-top-page .button--primary,
+.gerente-home-page button[type='submit'],
+.gerente-clientes-page button[type='submit'],
+.gerente-consulta-page button[type='submit'],
+.gerente-top-page button[type='submit'] {
+  background: linear-gradient(135deg, var(--color-blue) 0%, var(--color-blue-strong) 100%);
+  box-shadow: 0 14px 28px rgba(58, 95, 205, 0.2);
+}
+
+.gerente-home-page .button--secondary,
+.gerente-clientes-page .button--secondary,
+.gerente-consulta-page .button--secondary,
+.gerente-top-page .button--secondary {
+  color: var(--color-blue-strong);
+  background: rgba(58, 95, 205, 0.08);
+  border-color: rgba(58, 95, 205, 0.14);
+}
+
+
+/* ===== ADMIN • GLOBAL MERGE ===== */
+.admin-page {
+  position: relative;
+  isolation: isolate;
+}
+
+.admin-page::before {
+  content: '';
+  position: absolute;
+  inset: -1rem -1.25rem auto -1.25rem;
+  height: 18rem;
+  border-radius: 2rem;
+  background:
+    radial-gradient(circle at right top, rgba(124, 58, 237, 0.16), transparent 42%),
+    radial-gradient(circle at left top, rgba(91, 33, 182, 0.12), transparent 38%),
+    linear-gradient(135deg, rgba(245, 243, 255, 0.96), rgba(255, 255, 255, 0.76));
+  z-index: -1;
+  filter: blur(2px);
+}
+
+.theme--admin .bank-brand__mark {
+  background: linear-gradient(135deg, var(--color-admin) 0%, var(--color-admin-strong) 100%);
+}
+
+.theme--admin .page-header-card {
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.98) 0%, rgba(245, 243, 255, 0.96) 100%);
+  border-color: rgba(109, 40, 217, 0.18);
+}
+
+.theme--admin .page-header-card::after {
+  background: radial-gradient(circle, rgba(124, 58, 237, 0.2), transparent 70%);
+}
+
+.theme--admin .chip,
+.theme--admin .info-chip {
+  color: var(--color-admin-strong);
+  border-color: rgba(109, 40, 217, 0.18);
+  background: rgba(245, 243, 255, 0.92);
+}
+
+.theme--admin .bank-nav__link:hover {
+  border-color: rgba(109, 40, 217, 0.35);
+  color: var(--color-admin-strong);
+}
+
+.theme--admin .button--primary,
+.theme--admin button[type='submit'] {
+  background: linear-gradient(135deg, var(--color-admin) 0%, var(--color-admin-strong) 100%);
+  box-shadow: 0 14px 28px rgba(124, 58, 237, 0.2);
 }

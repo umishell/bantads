@@ -34,16 +34,13 @@ export const routes: Routes = [
   },
 
   // 5. Área do Administrador (Protegida - O "Gerente Especial")
-  // Separamos as rotas para organizar melhor as telas de gestão de gerentes
-  /*
+  // Separamos as rotas para organizar melhor as telas de gestão
   {
     path: 'admin',
-    canActivate: [authGuard, roleGuard],
+    // canActivate: [authGuard, roleGuard],
     data: { roles: ['ADMIN'] },
-    loadChildren: () => 
-      import('./features/admin/admin.routes').then((m) => m.ADMIN_ROUTES),
+    loadChildren: () => import('./features/admin/admin.routes').then((m) => m.ADMIN_ROUTES),
   },
-  */
 
   // 6. Rota Coringa (Wildcard): Qualquer URL inválida volta para o login
   {

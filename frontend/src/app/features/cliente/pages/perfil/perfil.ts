@@ -2,7 +2,7 @@ import { CommonModule } from '@angular/common';
 import { HttpErrorResponse } from '@angular/common/http';
 import { Component, OnInit, inject } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
-import { RouterLink } from '@angular/router';
+import { Router, RouterLink } from '@angular/router';
 import { finalize } from 'rxjs';
 
 import { AuthService } from '../../../../core/services/auth.service';
@@ -26,6 +26,7 @@ export class PerfilComponent implements OnInit {
   private readonly fb = inject(FormBuilder);
   private readonly clienteService = inject(ClienteService);
   private readonly authService = inject(AuthService);
+  private readonly router = inject(Router);
 
   public loading = false;
   public salvando = false;
@@ -35,7 +36,7 @@ export class PerfilComponent implements OnInit {
   public securitySuccessMessage = '';
   public clienteResumo: ClientePerfil | null = null;
 
-  private usandoMock = false;
+  private usandoFallback = false;
   private readonly agenciaPadrao = '0001';
 
   public readonly perfilForm = this.fb.group({
@@ -51,9 +52,9 @@ export class PerfilComponent implements OnInit {
   });
 
   public readonly senhaForm = this.fb.group({
-    senhaAtual: ['', [Validators.required, Validators.minLength(6)]],
-    novaSenha: ['', [Validators.required, Validators.minLength(6)]],
-    confirmarNovaSenha: ['', [Validators.required, Validators.minLength(6)]],
+    senhaAtual: ['', [Validators.required, Validators.minLength(4)]],
+    novaSenha: ['', [Validators.required, Validators.minLength(4)]],
+    confirmarNovaSenha: ['', [Validators.required, Validators.minLength(4)]],
   });
 
   public ngOnInit(): void {
@@ -64,7 +65,7 @@ export class PerfilComponent implements OnInit {
     const cpf = this.authService.getCpf();
 
     if (!cpf) {
-      this.carregarMock();
+      this.carregarFallback();
       return;
     }
 
@@ -76,16 +77,11 @@ export class PerfilComponent implements OnInit {
       .pipe(finalize(() => (this.loading = false)))
       .subscribe({
         next: (cliente: ClienteModel) => {
-          const clienteFormatado = {
-            ...(cliente as ClientePerfil),
-            agencia: (cliente as ClientePerfil).agencia ?? this.agenciaPadrao,
-          };
-          this.clienteResumo = clienteFormatado;
-          this.preencherFormulario(clienteFormatado);
-          this.usandoMock = false;
+          this.aplicarCliente(cliente as ClientePerfil);
+          this.usandoFallback = false;
         },
         error: (_error: HttpErrorResponse) => {
-          this.carregarMock();
+          this.carregarFallback();
         },
       });
   }
@@ -99,38 +95,13 @@ export class PerfilComponent implements OnInit {
       return;
     }
 
-    if (this.usandoMock || !this.authService.getCpf()) {
-      const rawMock = this.perfilForm.getRawValue();
-
-      if (this.clienteResumo) {
-        this.clienteResumo = {
-          ...this.clienteResumo,
-          nome: rawMock.nome ?? '',
-          email: rawMock.email ?? '',
-          telefone: rawMock.telefone ?? '',
-          salario: rawMock.salario ?? 0,
-          endereco: rawMock.endereco ?? '',
-          cidade: rawMock.cidade ?? '',
-          estado: rawMock.estado ?? '',
-          cep: rawMock.cep ?? '',
-        };
-      }
-
-      this.successMessage = 'Dados atualizados em modo visual de desenvolvimento.';
-      return;
-    }
-
     const cpf = this.authService.getCpf();
-
     if (!cpf) {
       this.errorMessage = 'Não foi possível identificar o usuário logado.';
       return;
     }
 
-    this.salvando = true;
-
     const raw = this.perfilForm.getRawValue();
-
     const dadosAtualizados: Partial<ClienteModel> = {
       nome: raw.nome ?? undefined,
       email: raw.email ?? undefined,
@@ -139,33 +110,24 @@ export class PerfilComponent implements OnInit {
       endereco: raw.endereco ?? undefined,
       cidade: raw.cidade ?? undefined,
       estado: raw.estado ?? undefined,
+      cep: raw.cep ?? undefined,
     };
+
+    this.salvando = true;
 
     this.clienteService
       .alterarPerfil(cpf, dadosAtualizados)
       .pipe(finalize(() => (this.salvando = false)))
       .subscribe({
-        next: () => {
-          if (this.clienteResumo) {
-            this.clienteResumo = {
-              ...this.clienteResumo,
-              nome: raw.nome ?? '',
-              email: raw.email ?? '',
-              telefone: raw.telefone ?? '',
-              salario: raw.salario ?? 0,
-              endereco: raw.endereco ?? '',
-              cidade: raw.cidade ?? '',
-              estado: raw.estado ?? '',
-              cep: raw.cep ?? '',
-            };
-          }
-
-          this.successMessage = 'Perfil atualizado com sucesso.';
+        next: (clienteAtualizado) => {
+          this.aplicarCliente(clienteAtualizado as ClientePerfil);
+          this.successMessage = this.usandoFallback
+            ? 'Dados atualizados no cache do protótipo.'
+            : 'Perfil atualizado com sucesso.';
         },
         error: (error: HttpErrorResponse) => {
           const payload = error.error as { message?: string; erro?: string } | null;
           const apiMessage = payload?.message ?? payload?.erro ?? error.message;
-
           this.errorMessage = apiMessage || 'Não foi possível atualizar o perfil.';
         },
       });
@@ -192,9 +154,8 @@ export class PerfilComponent implements OnInit {
       return;
     }
 
-    this.securitySuccessMessage = this.usandoMock
-      ? 'Senha validada em modo visual. Integre este fluxo ao MS-AUTH quando o backend estiver pronto.'
-      : 'Solicitação de troca de senha preparada para integração com o módulo de autenticação.';
+    this.securitySuccessMessage =
+      'Senha validada no fluxo do front-end. Quando o MS-AUTH estiver pronto, ligue este formulário ao endpoint real.';
 
     this.senhaForm.reset();
   }
@@ -227,7 +188,7 @@ export class PerfilComponent implements OnInit {
     if (!control || !control.errors) return '';
 
     if (control.errors['required']) return 'Campo obrigatório.';
-    if (control.errors['minlength']) return 'Use pelo menos 6 caracteres.';
+    if (control.errors['minlength']) return 'Use pelo menos 4 caracteres.';
 
     return 'Valor inválido.';
   }
@@ -291,6 +252,16 @@ export class PerfilComponent implements OnInit {
     return this.clienteResumo?.agencia ?? this.agenciaPadrao;
   }
 
+  private aplicarCliente(cliente: ClientePerfil): void {
+    const clienteFormatado = {
+      ...cliente,
+      agencia: cliente.agencia ?? this.agenciaPadrao,
+    };
+
+    this.clienteResumo = clienteFormatado;
+    this.preencherFormulario(clienteFormatado);
+  }
+
   private preencherFormulario(cliente: ClientePerfil): void {
     this.perfilForm.patchValue({
       nome: cliente.nome ?? '',
@@ -305,7 +276,7 @@ export class PerfilComponent implements OnInit {
     });
   }
 
-  private carregarMock(): void {
+  private carregarFallback(): void {
     const mock: ClientePerfil = {
       cpf: '00000000000',
       nome: 'Cliente Teste',
@@ -315,7 +286,7 @@ export class PerfilComponent implements OnInit {
       cidade: 'Curitiba',
       estado: 'PR',
       salario: 5000,
-      conta: this.authService.getNumeroConta() ?? '12345-6',
+      conta: this.authService.getNumeroConta() ?? '1291',
       saldo: 2450.75,
       limite: 1500,
       gerente_nome: 'Marina Souza',
@@ -325,10 +296,15 @@ export class PerfilComponent implements OnInit {
       agencia: this.agenciaPadrao,
     };
 
-    this.clienteResumo = mock;
-    this.preencherFormulario(mock);
+    this.aplicarCliente(mock);
     this.loading = false;
     this.errorMessage = '';
-    this.usandoMock = true;
+    this.usandoFallback = true;
+  }
+
+
+  public logout(): void {
+    this.authService.logout();
+    void this.router.navigate(['/auth/login']);
   }
 }

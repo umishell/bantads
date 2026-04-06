@@ -1,0 +1,89 @@
+<div class="bank-page gerente-clientes-page">
+  <header class="bank-topbar">
+    <div class="bank-brand">
+      <span class="bank-brand__mark">BT</span>
+      <div>
+        <span class="bank-brand__title">BANTADS</span>
+        <span class="bank-brand__subtitle">Gerente • atendimento e análise da carteira</span>
+      </div>
+    </div>
+
+    <nav class="bank-nav" aria-label="Navegação do gerente">
+      <a class="bank-nav__link" routerLink="/gerente/home">Home</a>
+      <a class="bank-nav__link" routerLink="/gerente/clientes">Clientes</a>
+      <a class="bank-nav__link" routerLink="/gerente/consulta">Consultar cliente</a>
+      <a class="bank-nav__link" routerLink="/gerente/melhores-clientes">Top 3 clientes</a>
+    </nav>
+
+    <div class="topbar-actions">
+      <button type="button" class="button button--ghost" (click)="logout()">Sair</button>
+    </div>
+  </header>
+
+  <section class="page-header-card">
+    <div class="page-header-row">
+      <div>
+        <span class="chip">R12 • Consultar todos os clientes</span>
+        <h1>Pesquise sua carteira e acompanhe saldos em tempo real</h1>
+        <p>Use nome ou CPF para filtrar a tabela. Os valores refletem o mesmo cache usado nas telas do cliente.</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="panel">
+    <div class="search-row">
+      <div class="field">
+        <label for="filtro-cliente">Pesquisar por nome ou CPF</label>
+        <input
+          id="filtro-cliente"
+          type="text"
+          [(ngModel)]="filtro"
+          placeholder="Ex.: Catharyna ou 129"
+        />
+      </div>
+
+      <div class="topbar-actions">
+        <button type="button" class="button button--primary" (click)="carregarClientes()">Pesquisar</button>
+        <button type="button" class="button button--ghost" (click)="limparFiltro()">Limpar</button>
+      </div>
+    </div>
+
+    <div *ngIf="errorMessage" class="feedback feedback--error">{{ errorMessage }}</div>
+
+    <div class="empty-state" *ngIf="!loading && !clientes.length">
+      <strong>Nenhum cliente encontrado.</strong>
+      <span>Ajuste o filtro ou aprove um novo cadastro para aumentar sua carteira.</span>
+    </div>
+
+    <div class="table-wrapper" *ngIf="clientes.length">
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th>CPF</th>
+            <th>Nome</th>
+            <th>Cidade</th>
+            <th>Estado</th>
+            <th>Saldo</th>
+            <th>Limite</th>
+            <th>Ações</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let cliente of clientes">
+            <td>{{ cliente.cpf }}</td>
+            <td>{{ cliente.nome }}</td>
+            <td>{{ cliente.cidade }}</td>
+            <td>{{ cliente.estado }}</td>
+            <td [class.text-danger]="cliente.saldo < 0" [class.text-success]="cliente.saldo >= 0">{{ formatCurrency(cliente.saldo) }}</td>
+            <td>{{ formatCurrency(cliente.limite) }}</td>
+            <td>
+              <button type="button" class="button button--secondary" (click)="abrirCliente(cliente.cpf)">
+                Ver detalhes
+              </button>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+</div>

@@ -10,10 +10,16 @@
 
     <nav class="bank-nav" aria-label="Navegação do cliente">
       <a class="bank-nav__link" routerLink="/cliente/home">Home</a>
-      <a class="bank-nav__link" routerLink="/cliente/extrato">Extrato</a>
+      <a class="bank-nav__link" routerLink="/cliente/deposito">Depósito</a>
+      <a class="bank-nav__link" routerLink="/cliente/saque">Saque</a>
       <a class="bank-nav__link" routerLink="/cliente/transferencia">Transferência</a>
+      <a class="bank-nav__link" routerLink="/cliente/extrato">Extrato</a>
       <a class="bank-nav__link" routerLink="/cliente/perfil">Perfil</a>
     </nav>
+
+    <div class="topbar-actions">
+      <button type="button" class="button button--ghost" (click)="logout()">Sair</button>
+    </div>
   </header>
 
   <section class="page-header-card">
@@ -22,13 +28,14 @@
         <span class="chip">Saque</span>
         <h1>Retire valores da sua conta</h1>
         <p>
-          Tela padronizada para simular saque, testar a experiência do fluxo e manter o visual do
-          módulo do cliente consistente.
+          O protótipo já valida limite, saldo disponível e registra a saída no extrato com impacto
+          imediato na home do cliente.
         </p>
 
         <div class="page-header-meta">
           <span class="info-chip">Agência {{ agencia }}</span>
           <span class="info-chip">Conta {{ numeroConta || 'não identificada' }}</span>
+          <span class="info-chip" *ngIf="nomeTitular">Titular {{ nomeTitular }}</span>
         </div>
       </div>
 
@@ -78,7 +85,7 @@
       <div class="section-title">
         <div>
           <h2>Resumo da operação</h2>
-          <p>Conferência visual para o fluxo do front-end.</p>
+          <p>Conferência visual antes de concluir a retirada.</p>
         </div>
       </div>
 
@@ -89,21 +96,33 @@
       </div>
 
       <div class="info-card">
+        <span class="summary-card__label">Saldo atual</span>
+        <strong>{{ formatCurrency(saldoAtual) }}</strong>
+        <small>Atualizado assim que a operação é confirmada.</small>
+      </div>
+
+      <div class="info-card">
+        <span class="summary-card__label">Disponível total</span>
+        <strong>{{ formatCurrency(getDisponivelTotal()) }}</strong>
+        <small>Saldo atual somado ao limite da conta.</small>
+      </div>
+
+      <div class="info-card">
         <span class="summary-card__label">Valor informado</span>
         <strong>{{ formatCurrency(valor) }}</strong>
         <small>Prévia antes da confirmação.</small>
       </div>
 
       <div class="info-card" *ngIf="ultimoSaque !== null">
-        <span class="summary-card__label">Último saque visual</span>
+        <span class="summary-card__label">Último saque</span>
         <strong>{{ formatCurrency(ultimoSaque) }}</strong>
-        <small>Registro local para conferência da interface.</small>
+        <small>Já refletido no saldo e no extrato.</small>
       </div>
 
       <ul class="security-list security-list--compact">
-        <li>Confirme valor e conta antes de concluir o saque.</li>
-        <li>Quando o backend estiver pronto, valide a movimentação no extrato.</li>
-        <li>O mesmo padrão visual foi mantido para todas as páginas do cliente.</li>
+        <li>O saque só é permitido se houver saldo suficiente contando o limite.</li>
+        <li>A saída aparece em vermelho no extrato por período.</li>
+        <li>Use a home para conferir imediatamente o novo saldo após a retirada.</li>
       </ul>
     </aside>
   </div>

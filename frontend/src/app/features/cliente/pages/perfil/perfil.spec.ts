@@ -17,25 +17,32 @@ describe('PerfilComponent', () => {
       'alterarPerfil',
     ]);
 
-    clienteServiceSpy.buscarPorCpf.and.returnValue(
-      of({
-        cpf: '12345678901',
-        nome: 'Pedro Eduardo',
-        telefone: '41999999999',
-        email: 'pedro@email.com',
-        endereco: 'Rua Exemplo, 100',
-        cidade: 'Curitiba',
-        estado: 'PR',
-        salario: 5000,
-        conta: '1234567',
-        saldo: 1500,
-        limite: 1000,
-        gerente_nome: 'Gerente Teste',
-        situacao: 'APROVADO',
-      })
-    );
+    const clienteBase = {
+      cpf: '12912861012',
+      nome: 'Catharyna',
+      telefone: '41999990001',
+      email: 'cli1@bantads.com.br',
+      endereco: 'Rua Exemplo, 100',
+      cidade: 'Curitiba',
+      estado: 'PR',
+      salario: 10000,
+      conta: '1291',
+      saldo: 800,
+      limite: 5000,
+      gerente_nome: 'Geniéve',
+      situacao: 'APROVADO',
+      agencia: '0001',
+      cep: '80000-100',
+    };
 
-    clienteServiceSpy.alterarPerfil.and.returnValue(of({}));
+    clienteServiceSpy.buscarPorCpf.and.returnValue(of(clienteBase));
+    clienteServiceSpy.alterarPerfil.and.returnValue(
+      of({
+        ...clienteBase,
+        nome: 'Catharyna Atualizada',
+        email: 'atualizada@bantads.com.br',
+      }),
+    );
 
     await TestBed.configureTestingModule({
       imports: [PerfilComponent],
@@ -44,8 +51,8 @@ describe('PerfilComponent', () => {
         {
           provide: AuthService,
           useValue: {
-            getCpf: () => '12345678901',
-            getNumeroConta: () => '1234567',
+            getCpf: () => '12912861012',
+            getNumeroConta: () => '1291',
           },
         },
         {
@@ -65,17 +72,16 @@ describe('PerfilComponent', () => {
   });
 
   it('deve preencher o formulario ao carregar os dados', () => {
-    expect(clienteServiceSpy.buscarPorCpf).toHaveBeenCalledWith('12345678901');
-    expect(component.perfilForm.get('nome')?.value).toBe('Pedro Eduardo');
-    expect(component.perfilForm.get('email')?.value).toBe('pedro@email.com');
+    expect(clienteServiceSpy.buscarPorCpf).toHaveBeenCalledWith('12912861012');
+    expect(component.perfilForm.get('nome')?.value).toBe('Catharyna');
   });
 
   it('deve enviar os dados atualizados ao salvar', () => {
     component.perfilForm.patchValue({
-      nome: 'Pedro Atualizado',
-      email: 'pedro.atualizado@email.com',
+      nome: 'Catharyna Atualizada',
+      email: 'atualizada@bantads.com.br',
       telefone: '41988887777',
-      salario: 6500,
+      salario: 12000,
       endereco: 'Rua Nova, 200',
       cep: '80000-000',
       cidade: 'Curitiba',

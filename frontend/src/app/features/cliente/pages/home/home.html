@@ -10,10 +10,16 @@
 
     <nav class="bank-nav" aria-label="Navegação do cliente">
       <a class="bank-nav__link" routerLink="/cliente/home">Home</a>
-      <a class="bank-nav__link" routerLink="/cliente/extrato">Extrato</a>
+      <a class="bank-nav__link" routerLink="/cliente/deposito">Depósito</a>
+      <a class="bank-nav__link" routerLink="/cliente/saque">Saque</a>
       <a class="bank-nav__link" routerLink="/cliente/transferencia">Transferência</a>
+      <a class="bank-nav__link" routerLink="/cliente/extrato">Extrato</a>
       <a class="bank-nav__link" routerLink="/cliente/perfil">Perfil</a>
     </nav>
+
+    <div class="topbar-actions">
+      <button type="button" class="button button--ghost" (click)="logout()">Sair</button>
+    </div>
   </header>
 
   <div *ngIf="errorMessage" class="feedback feedback--error">
@@ -149,7 +155,7 @@
             <a class="action-card" routerLink="/cliente/saque">
               <span class="action-card__eyebrow">Movimentar saldo</span>
               <strong class="action-card__title">Saque</strong>
-              <small>Retirada simulada com feedback imediato.</small>
+              <small>Retirada com atualização imediata da conta.</small>
             </a>
 
             <a class="action-card" routerLink="/cliente/transferencia">
@@ -161,7 +167,7 @@
             <a class="action-card" routerLink="/cliente/extrato">
               <span class="action-card__eyebrow">Histórico financeiro</span>
               <strong class="action-card__title">Extrato</strong>
-              <small>Consulta por período com agrupamento das movimentações.</small>
+              <small>Consulta por período com exportação em PDF.</small>
             </a>
 
             <a class="action-card action-card--wide" routerLink="/cliente/perfil">
