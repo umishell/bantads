@@ -1,5 +1,4 @@
 /*
-===== CONTEÚDO ORIGINAL (comentado para preservação) =====
 import { Component, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
@@ -153,7 +152,6 @@ export class AutocadastroComponent implements OnInit {
     }),
   });
 
-
   public readonly gerenteSelecionado = computed(() => {
     const gerenteCpf = this.cadastroForm.getRawValue().gerenteCpf ?? '';
     return this.gerentes().find((gerente) => gerente.cpf === gerenteCpf) ?? null;
@@ -216,7 +214,9 @@ export class AutocadastroComponent implements OnInit {
     const enderecoForm = raw.endereco ?? {};
     const novoCliente: ClienteAutocadastro = {
       nome: String(raw.nome ?? '').trim(),
-      email: String(raw.email ?? '').trim().toLowerCase(),
+      email: String(raw.email ?? '')
+        .trim()
+        .toLowerCase(),
       cpf: String(raw.cpf ?? '').replace(/\D/g, ''),
       telefone: String(raw.telefone ?? '').trim(),
       salario: Number(raw.salario ?? 0),
@@ -227,7 +227,9 @@ export class AutocadastroComponent implements OnInit {
         complemento: String(enderecoForm.complemento ?? '').trim(),
         bairro: String(enderecoForm.bairro ?? '').trim(),
         cidade: String(enderecoForm.cidade ?? '').trim(),
-        estado: String(enderecoForm.estado ?? '').trim().toUpperCase(),
+        estado: String(enderecoForm.estado ?? '')
+          .trim()
+          .toUpperCase(),
       },
     };
 

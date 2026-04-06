@@ -24,7 +24,7 @@
     <div class="page-header-row">
       <div>
         <span class="chip chip--admin">R15 • Tela inicial do administrador</span>
-        <h1>Controle geral do desempenho dos gerentes</h1>
+        <h1>Controle geral do desempenho dos gerentes:</h1>
         <p>
           Acompanhe a quantidade de clientes por gerente, totalizações de saldos positivos e negativos
           e identifique rapidamente os destaques da operação.
@@ -93,7 +93,8 @@
           <div class="metric-line">
             <span class="metric-line__label">Saldo positivo</span>
             <div class="metric-line__track metric-line__track--positive">
-              <span class="metric-line__fill metric-line__fill--positive" [style.width.%]="percentualPositivo(gerente.totalSaldoPositivo)"></span>
+              <span class="metric-line__fill metric-line__fill--positive"
+                [style.width.%]="percentualPositivo(gerente.totalSaldoPositivo)"></span>
             </div>
             <strong class="text-info">{{ formatCurrency(gerente.totalSaldoPositivo) }}</strong>
           </div>
@@ -101,7 +102,8 @@
           <div class="metric-line">
             <span class="metric-line__label">Saldo negativo</span>
             <div class="metric-line__track metric-line__track--negative">
-              <span class="metric-line__fill metric-line__fill--negative" [style.width.%]="percentualNegativo(gerente.totalSaldoNegativo)"></span>
+              <span class="metric-line__fill metric-line__fill--negative"
+                [style.width.%]="percentualNegativo(gerente.totalSaldoNegativo)"></span>
             </div>
             <strong class="text-danger">{{ formatCurrency(gerente.totalSaldoNegativo) }}</strong>
           </div>

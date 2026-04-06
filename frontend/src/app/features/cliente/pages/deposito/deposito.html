@@ -28,7 +28,7 @@
         <span class="chip">Depósito</span>
         <h1>Adicione saldo à sua conta</h1>
         <p>
-          Registre um depósito no cache do protótipo e veja a atualização refletida na home,
+          Registre um depósito e veja a atualização refletida na home,
           extrato e demais telas do cliente.
         </p>
 
@@ -57,14 +57,8 @@
       </div>
 
       <label for="valor-deposito">Valor</label>
-      <input
-        id="valor-deposito"
-        type="number"
-        [(ngModel)]="valor"
-        min="0.01"
-        step="0.01"
-        placeholder="Digite o valor do depósito"
-      />
+      <input id="valor-deposito" type="number" [(ngModel)]="valor" min="0.01" step="0.01"
+        placeholder="Digite o valor do depósito" />
 
       <div class="suggestions-row">
         <button type="button" class="button button--secondary" (click)="selecionarValor(50)">R$ 50</button>
@@ -117,7 +111,6 @@
 
       <ul class="security-list security-list--compact">
         <li>O depósito afeta imediatamente a home e o extrato do cliente.</li>
-        <li>Use as contas pré-cadastradas para demonstrar o fluxo completo no vídeo.</li>
         <li>Consulte o extrato após a confirmação para validar a entrada em azul.</li>
       </ul>
     </aside>
