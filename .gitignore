@@ -17,6 +17,9 @@ build/
 # --- Dados locais (PostgreSQL/Mongo em bind mount via Docker; nunca versionar) ---
 data/
 
+# --- Tutor (local, raiz do repositório) ---
+/tutor/
+
 # --- Ambiente e segredos ---
 .env
 .env.*
