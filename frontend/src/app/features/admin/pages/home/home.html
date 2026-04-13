@@ -1,0 +1,142 @@
+<div class="bank-page admin-page theme--admin">
+  <header class="bank-topbar print-hidden">
+    <div class="bank-brand">
+      <span class="bank-brand__mark">BT</span>
+      <div>
+        <span class="bank-brand__title">BANTADS</span>
+        <span class="bank-brand__subtitle">Administrador • visão estratégica do banco</span>
+      </div>
+    </div>
+
+    <nav class="bank-nav" aria-label="Navegação do administrador">
+      <a class="bank-nav__link" routerLink="/admin/home">Dashboard</a>
+      <a class="bank-nav__link" routerLink="/admin/relatorio-clientes">Relatório de clientes</a>
+      <a class="bank-nav__link" routerLink="/admin/gerentes">Gerentes</a>
+    </nav>
+
+    <div class="topbar-actions">
+      <button type="button" class="button button--ghost" (click)="imprimirDashboard()">Gerar PDF</button>
+      <button type="button" class="button button--ghost" (click)="logout()">Sair</button>
+    </div>
+  </header>
+
+  <section class="page-header-card admin-accent-card">
+    <div class="page-header-row">
+      <div>
+        <span class="chip chip--admin">R15 • Tela inicial do administrador</span>
+        <h1>Controle geral do desempenho dos gerentes:</h1>
+        <p>
+          Acompanhe a quantidade de clientes por gerente, totalizações de saldos positivos e negativos
+          e identifique rapidamente os destaques da operação.
+        </p>
+      </div>
+      <div class="chip-row print-hidden">
+        <a class="button button--ghost" routerLink="/admin/relatorio-clientes">Ver relatório de clientes</a>
+        <a class="button button--primary" routerLink="/admin/gerentes">Gerenciar gerentes</a>
+      </div>
+    </div>
+  </section>
+
+  <div *ngIf="errorMessage()" class="feedback feedback--error">{{ errorMessage() }}</div>
+
+  <section class="summary-grid" *ngIf="dashboard() as data">
+    <article class="summary-card summary-card--admin">
+      <span class="summary-card__label">Gerentes ativos</span>
+      <strong>{{ data.totalGerentes }}</strong>
+      <small>Total de gerentes cadastrados no banco.</small>
+    </article>
+
+    <article class="summary-card summary-card--admin">
+      <span class="summary-card__label">Clientes do banco</span>
+      <strong>{{ data.totalClientes }}</strong>
+      <small>Contas correntes atualmente distribuídas.</small>
+    </article>
+
+    <article class="summary-card summary-card--admin">
+      <span class="summary-card__label">Saldos positivos</span>
+      <strong class="text-info">{{ formatCurrency(data.totalSaldoPositivo) }}</strong>
+      <small>Soma de todos os saldos positivos e zerados.</small>
+    </article>
+
+    <article class="summary-card summary-card--admin">
+      <span class="summary-card__label">Saldos negativos</span>
+      <strong class="text-danger">{{ formatCurrency(data.totalSaldoNegativo) }}</strong>
+      <small>Total consolidado dos saldos negativos do banco.</small>
+    </article>
+  </section>
+
+  <section class="panel" *ngIf="dashboard() as data">
+    <div class="section-title">
+      <div>
+        <h2>Ranking de gerentes por saldo positivo</h2>
+        <p>Ordenado do maior total positivo para o menor, conforme o requisito.</p>
+      </div>
+      <span class="info-chip">{{ data.gerentes.length }} gerente(s)</span>
+    </div>
+
+    <div class="empty-state" *ngIf="!data.gerentes.length">
+      <strong>Nenhum gerente cadastrado.</strong>
+      <span>Cadastre um gerente para visualizar os indicadores administrativos.</span>
+    </div>
+
+    <div class="admin-chart-list" *ngIf="data.gerentes.length">
+      <article class="chart-row" *ngFor="let gerente of data.gerentes; let i = index">
+        <div class="chart-row__meta">
+          <div>
+            <strong>{{ i + 1 }}. {{ gerente.nome }}</strong>
+            <span>{{ gerente.email }}</span>
+          </div>
+          <span class="status-pill status--neutral">{{ gerente.totalClientes }} cliente(s)</span>
+        </div>
+
+        <div class="chart-row__bars">
+          <div class="metric-line">
+            <span class="metric-line__label">Saldo positivo</span>
+            <div class="metric-line__track metric-line__track--positive">
+              <span class="metric-line__fill metric-line__fill--positive"
+                [style.width.%]="percentualPositivo(gerente.totalSaldoPositivo)"></span>
+            </div>
+            <strong class="text-info">{{ formatCurrency(gerente.totalSaldoPositivo) }}</strong>
+          </div>
+
+          <div class="metric-line">
+            <span class="metric-line__label">Saldo negativo</span>
+            <div class="metric-line__track metric-line__track--negative">
+              <span class="metric-line__fill metric-line__fill--negative"
+                [style.width.%]="percentualNegativo(gerente.totalSaldoNegativo)"></span>
+            </div>
+            <strong class="text-danger">{{ formatCurrency(gerente.totalSaldoNegativo) }}</strong>
+          </div>
+        </div>
+      </article>
+    </div>
+  </section>
+
+  <section class="panel highlight-panel" *ngIf="melhorGerente() as gerente">
+    <div class="section-title">
+      <div>
+        <h2>Destaque atual da operação</h2>
+        <p>Gerente com maior totalização de saldos positivos neste momento.</p>
+      </div>
+    </div>
+
+    <div class="detail-grid">
+      <div class="detail-list__item">
+        <span>Gerente</span>
+        <strong>{{ gerente.nome }}</strong>
+      </div>
+      <div class="detail-list__item">
+        <span>E-mail</span>
+        <strong>{{ gerente.email }}</strong>
+      </div>
+      <div class="detail-list__item">
+        <span>Clientes</span>
+        <strong>{{ gerente.totalClientes }}</strong>
+      </div>
+      <div class="detail-list__item">
+        <span>Total positivo</span>
+        <strong>{{ formatCurrency(gerente.totalSaldoPositivo) }}</strong>
+      </div>
+    </div>
+  </section>
+</div>

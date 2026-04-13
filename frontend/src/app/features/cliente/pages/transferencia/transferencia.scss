@@ -21,3 +21,23 @@
     grid-template-columns: 1fr;
   }
 }
+
+
+.favorecidos-list {
+  display: grid;
+  gap: 0.85rem;
+  margin-bottom: 1rem;
+}
+
+.favorecido-card {
+  width: 100%;
+  text-align: left;
+  border-radius: 18px;
+  border: 1px solid rgba(179, 19, 51, 0.12);
+  background: rgba(253, 241, 244, 0.55);
+}
+
+.favorecido-card:hover {
+  transform: translateY(-1px);
+  border-color: rgba(179, 19, 51, 0.28);
+}

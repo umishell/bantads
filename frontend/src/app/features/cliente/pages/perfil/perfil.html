@@ -12,8 +12,14 @@
       <a class="bank-nav__link" routerLink="/cliente/home">Home</a>
       <a class="bank-nav__link" routerLink="/cliente/deposito">Depósito</a>
       <a class="bank-nav__link" routerLink="/cliente/saque">Saque</a>
+      <a class="bank-nav__link" routerLink="/cliente/transferencia">Transferência</a>
       <a class="bank-nav__link" routerLink="/cliente/extrato">Extrato</a>
+      <a class="bank-nav__link" routerLink="/cliente/perfil">Perfil</a>
     </nav>
+
+    <div class="topbar-actions">
+      <button type="button" class="button button--ghost" (click)="logout()">Sair</button>
+    </div>
   </header>
 
   <section class="page-header-card">
@@ -67,7 +73,7 @@
       <article class="summary-card">
         <span class="summary-card__label">Limite atual</span>
         <strong>{{ formatCurrency(clienteResumo.limite) }}</strong>
-        <small>Faixa disponível para uso emergencial.</small>
+        <small>Faixa disponível para uso emergencial. O limite é recalculado quando o salário muda.</small>
       </article>
     </section>
 

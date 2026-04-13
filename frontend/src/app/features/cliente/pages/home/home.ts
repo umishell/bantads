@@ -31,23 +31,19 @@ export class HomeComponent implements OnInit {
   public cliente: ClienteDashboard | null = null;
   public readonly numeroConta = this.authService.getNumeroConta();
 
-  private usandoMock = false;
+  private usandoFallback = false;
   private readonly agenciaPadrao = '0001';
+  private readonly modoDemonstracao = true;
 
   public ngOnInit(): void {
     this.carregarDashboard();
-  }
-
-  public sair(): void {
-    this.authService.logout();
-    void this.router.navigate(['/auth/login']);
   }
 
   public carregarDashboard(): void {
     const cpf = this.authService.getCpf();
 
     if (!cpf) {
-      this.carregarMock();
+      this.carregarFallback();
       return;
     }
 
@@ -63,10 +59,10 @@ export class HomeComponent implements OnInit {
             ...(response as ClienteDashboard),
             agencia: (response as ClienteDashboard).agencia ?? this.agenciaPadrao,
           };
-          this.usandoMock = false;
+          this.usandoFallback = false;
         },
         error: (_error: HttpErrorResponse) => {
-          this.carregarMock();
+          this.carregarFallback();
         },
       });
   }
@@ -152,7 +148,6 @@ export class HomeComponent implements OnInit {
 
   public getLimiteUtilizado(): number {
     const saldo = this.cliente?.saldo ?? 0;
-
     return saldo < 0 ? Math.abs(saldo) : 0;
   }
 
@@ -162,7 +157,6 @@ export class HomeComponent implements OnInit {
     if (limite <= 0) return 0;
 
     const percentual = (this.getLimiteUtilizado() / limite) * 100;
-
     return Math.max(0, Math.min(100, percentual));
   }
 
@@ -171,10 +165,14 @@ export class HomeComponent implements OnInit {
   }
 
   public getModoVisualLabel(): string {
-    return this.usandoMock ? 'Modo visual ativo' : 'Dados sincronizados';
+    if (this.usandoFallback) {
+      return 'Sem sessão ativa';
+    }
+
+    return this.modoDemonstracao ? 'Cache em memória do protótipo' : 'Dados sincronizados';
   }
 
-  private carregarMock(): void {
+  private carregarFallback(): void {
     this.cliente = {
       cpf: '00000000000',
       nome: 'Cliente Teste',
@@ -184,7 +182,7 @@ export class HomeComponent implements OnInit {
       cidade: 'Curitiba',
       estado: 'PR',
       salario: 5000,
-      conta: this.numeroConta ?? '12345-6',
+      conta: this.numeroConta ?? '1291',
       saldo: 2450.75,
       limite: 1500,
       gerente_nome: 'Marina Souza',
@@ -194,8 +192,14 @@ export class HomeComponent implements OnInit {
       agencia: this.agenciaPadrao,
     };
 
-    this.usandoMock = true;
+    this.usandoFallback = true;
     this.loading = false;
     this.errorMessage = '';
+  }
+
+
+  public logout(): void {
+    this.authService.logout();
+    void this.router.navigate(['/auth/login']);
   }
 }

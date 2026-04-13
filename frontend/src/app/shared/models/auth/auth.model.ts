@@ -15,21 +15,8 @@ export interface LoginRequest {
   senha: string;
 }
 
-/** Formato interno após mapear a resposta do ms-auth. */
 export interface LoginResponse {
+  // Obrigatórios: Se a resposta é 200 OK, esses campos devem vir preenchidos
   token: string;
   usuario: UsuarioLogado;
-}
-
-/** Payload real do POST /auth/login (ms-auth, estilo OAuth2). */
-export interface LoginApiResponse {
-  access_token: string;
-  token_type: string;
-  tipo: string;
-  usuario: {
-    cpf: string;
-    nome: string;
-    email: string;
-    tipo: string;
-  };
 }

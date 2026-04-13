@@ -40,6 +40,3 @@ testem.log
 # System files
 .DS_Store
 Thumbs.db
-
-# Export local para colar em chats (LLM); nao versionar
-CODIGO_FRONTEND_PARA_GEMINI.txt

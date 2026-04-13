@@ -11,6 +11,7 @@ export interface ClienteModel {
   saldo?: number;
   limite?: number;
   gerente_nome: string;
+  cep: string;
   situacao: 'PENDENTE' | 'APROVADO' | 'REJEITADO';
 }
 export type Cliente = ClienteModel;
@@ -31,20 +32,4 @@ export interface ClienteAutocadastro {
   telefone: string;
   salario: number;
   endereco: Endereco;
-}
-
-/**
- * Corpo JSON de POST /api/clientes (ms-cliente AutocadastroRequest).
- * Campo CEP em maiúsculo por @JsonProperty no backend.
- */
-export interface AutocadastroApiRequest {
-  cpf: string;
-  email: string;
-  nome: string;
-  telefone: string;
-  salario: number;
-  endereco: string;
-  CEP: string;
-  cidade: string;
-  estado: string;
 }

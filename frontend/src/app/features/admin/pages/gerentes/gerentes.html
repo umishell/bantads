@@ -1,0 +1,146 @@
+<div class="bank-page admin-page theme--admin">
+  <header class="bank-topbar">
+    <div class="bank-brand">
+      <span class="bank-brand__mark">BT</span>
+      <div>
+        <span class="bank-brand__title">BANTADS</span>
+        <span class="bank-brand__subtitle">Administrador • CRUD de gerentes</span>
+      </div>
+    </div>
+
+    <nav class="bank-nav" aria-label="Navegação do administrador">
+      <a class="bank-nav__link" routerLink="/admin/home">Dashboard</a>
+      <a class="bank-nav__link" routerLink="/admin/relatorio-clientes">Relatório de clientes</a>
+      <a class="bank-nav__link" routerLink="/admin/gerentes">Gerentes</a>
+    </nav>
+
+    <div class="topbar-actions">
+      <button type="button" class="button button--ghost" (click)="logout()">Sair</button>
+    </div>
+  </header>
+
+  <section class="page-header-card admin-accent-card">
+    <div class="page-header-row">
+      <div>
+        <span class="chip chip--admin">R17 • R18 • R19 • R20</span>
+        <h1>Cadastre, liste, altere e remova gerentes com redistribuição automática.</h1>
+        <p>
+          A inserção e remoção já aplicam a redistribuição de contas no cache do protótipo para
+          simular a regra de negócio dos requisitos administrativos.
+        </p>
+      </div>
+      <div class="chip-row">
+        <button type="button" class="button button--primary" (click)="iniciarCadastro()">Novo gerente</button>
+      </div>
+    </div>
+  </section>
+
+  <div *ngIf="errorMessage()" class="feedback feedback--error">{{ errorMessage() }}</div>
+  <div *ngIf="successMessage()" class="feedback feedback--success">{{ successMessage() }}</div>
+
+  <section class="admin-layout">
+    <article class="panel form-panel" id="gerente-form-card">
+      <div class="section-title">
+        <div>
+          <h2>{{ modoEdicao() ? 'Alterar gerente' : 'Inserir gerente' }}</h2>
+          <p *ngIf="modoEdicao(); else textoInsercao">
+            No modo de alteração, apenas nome, e-mail e senha ficam disponíveis, conforme o requisito.
+          </p>
+          <ng-template #textoInsercao>
+            <p>Preencha os dados do novo gerente. A senha é informada no próprio formulário.</p>
+          </ng-template>
+        </div>
+      </div>
+
+      <form class="form-grid" [formGroup]="gerenteForm" (ngSubmit)="salvar()">
+        <label class="field-group">
+          <span>CPF</span>
+          <input type="text" formControlName="cpf" placeholder="Somente números" />
+          <small class="error-text" *ngIf="isInvalid('cpf')">{{ getErrorMessage('cpf') }}</small>
+        </label>
+
+        <label class="field-group">
+          <span>Nome</span>
+          <input type="text" formControlName="nome" placeholder="Nome completo do gerente" />
+          <small class="error-text" *ngIf="isInvalid('nome')">{{ getErrorMessage('nome') }}</small>
+        </label>
+
+        <label class="field-group">
+          <span>E-mail</span>
+          <input type="email" formControlName="email" placeholder="gerente@bantads.com.br" />
+          <small class="error-text" *ngIf="isInvalid('email')">{{ getErrorMessage('email') }}</small>
+        </label>
+
+        <label class="field-group">
+          <span>Telefone</span>
+          <input type="text" formControlName="telefone" placeholder="(41) 99999-9999" />
+          <small class="error-text" *ngIf="isInvalid('telefone')">{{ getErrorMessage('telefone') }}</small>
+        </label>
+
+        <label class="field-group field-group--full">
+          <span>Senha</span>
+          <input type="text" formControlName="senha" placeholder="Senha do gerente" />
+          <small class="error-text" *ngIf="isInvalid('senha')">{{ getErrorMessage('senha') }}</small>
+        </label>
+
+        <div class="inline-actions field-group--full">
+          <button type="submit" class="button button--primary" [disabled]="salvando()">
+            {{ modoEdicao() ? 'Salvar alterações' : 'Cadastrar gerente' }}
+          </button>
+          <button type="button" class="button button--ghost" (click)="cancelarEdicao()">Limpar</button>
+        </div>
+      </form>
+    </article>
+
+    <article class="panel list-panel">
+      <div class="section-title">
+        <div>
+          <h2>Lista de gerentes</h2>
+          <p>Ordenação crescente por nome, com indicadores de carteira e desempenho.</p>
+        </div>
+        <span class="info-chip">{{ gerentes().length }} gerente(s)</span>
+      </div>
+
+      <div class="empty-state" *ngIf="!gerentes().length">
+        <strong>Nenhum gerente disponível.</strong>
+        <span>Cadastre um gerente para iniciar o gerenciamento administrativo.</span>
+      </div>
+
+      <div class="stack-grid" *ngIf="gerentes().length">
+        <article class="bank-card manager-card" *ngFor="let gerente of gerentes()">
+          <div class="manager-card__header">
+            <div>
+              <strong>{{ gerente.nome }}</strong>
+              <span>{{ gerente.email }}</span>
+            </div>
+            <span class="status-pill status--neutral">{{ gerente.totalClientes }} cliente(s)</span>
+          </div>
+
+          <div class="detail-grid">
+            <div class="detail-list__item">
+              <span>CPF</span>
+              <strong>{{ gerente.cpf }}</strong>
+            </div>
+            <div class="detail-list__item">
+              <span>Telefone</span>
+              <strong>{{ gerente.telefone }}</strong>
+            </div>
+            <div class="detail-list__item">
+              <span>Total positivo</span>
+              <strong class="text-info">{{ formatCurrency(gerente.totalSaldoPositivo) }}</strong>
+            </div>
+            <div class="detail-list__item">
+              <span>Total negativo</span>
+              <strong class="text-danger">{{ formatCurrency(gerente.totalSaldoNegativo) }}</strong>
+            </div>
+          </div>
+
+          <div class="inline-actions">
+            <button type="button" class="button button--ghost" (click)="editarGerente(gerente)">Editar gerente</button>
+            <button type="button" class="button button--danger" (click)="removerGerente(gerente)">Remover</button>
+          </div>
+        </article>
+      </div>
+    </article>
+  </section>
+</div>

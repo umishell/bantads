@@ -1,124 +1,228 @@
+<!--
 <div class="autocadastro-container">
     <div class="autocadastro-card">
       
       @if (cadastroSucesso()) {
         <div class="sucesso-view">
-          <h2 class="text-success">Solicitação recebida</h2>
-          <p>Seu pedido de cadastro foi registrado com sucesso. Aguarde a análise e a aprovação de um gerente.</p>
-          <p>
-            Você ainda <strong>não</strong> possui senha de acesso: após a aprovação, o login e a senha
-            provisória serão enviados ao e-mail informado no formulário.
-          </p>
-          <button routerLink="/auth/login" class="btn-primary">Voltar para o Login</button>
+          <h2 class="text-success">Cadastro Enviado!</h2>
+          <p>Seus dados foram enviados para análise. Um dos nossos gerentes avaliará seu perfil em breve.</p>
+          <button routerLink="/login" class="btn-primary">Voltar para o Login</button>
         </div>
       } 
       @else {
         <div class="header">
           <h2>Abra sua conta BANTADS</h2>
           <p>Preencha os dados abaixo para solicitar sua conta.</p>
-          <p class="hint-text">
-            Use CPF e e-mail que ainda não estejam no sistema (ex.: não reutilize
-            <code>12912861012</code> nem <code>cli1@bantads.com.br</code> dos mocks de login).
-          </p>
         </div>
   
         <form [formGroup]="cadastroForm" (ngSubmit)="onSubmit()">
-          
-          <fieldset>
-            <legend>Dados Pessoais</legend>
-            
-            <div class="form-row">
-              <div class="form-group col">
-                <label>Nome Completo</label>
-                <input type="text" formControlName="nome" placeholder="Seu nome">
-                @if (cadastroForm.get('nome')?.invalid && cadastroForm.get('nome')?.touched) {
-                  <small class="error-text">Nome é obrigatório e deve ter no mínimo 3 letras.</small>
-                }
-              </div>
-              
-              <div class="form-group col">
-                <label>CPF (Apenas números)</label>
-                <input type="text" formControlName="cpf" placeholder="00000000000" maxlength="11">
-                @if (cadastroForm.get('cpf')?.invalid && cadastroForm.get('cpf')?.touched) {
-                  <small class="error-text">Informe um CPF válido com 11 dígitos.</small>
-                }
-              </div>
-            </div>
-  
-            <div class="form-row">
-              <div class="form-group col">
-                <label>E-mail</label>
-                <input type="email" formControlName="email" placeholder="email@exemplo.com">
-              </div>
-              
-              <div class="form-group col">
-                <label>Telefone</label>
-                <input type="text" formControlName="telefone" placeholder="(00) 00000-0000">
-              </div>
-            </div>
-  
-            <div class="form-group">
-              <label>Salário Mensal (R$)</label>
-              <input type="number" formControlName="salario" placeholder="0.00" min="0.01" step="0.01">
-            </div>
-          </fieldset>
-  
-          <fieldset formGroupName="endereco">
-            <legend>Endereço</legend>
-  
-            <div class="form-group">
-              <label>CEP (Apenas números)</label>
-              <input type="text" formControlName="cep" placeholder="00000000" maxlength="8" (blur)="buscarCep()">
-              <small class="hint-text">Digite o CEP para preencher o endereço automaticamente.</small>
-            </div>
-  
-            <div class="form-row">
-              <div class="form-group col-8">
-                <label>Logradouro (Rua, Av, etc.)</label>
-                <input type="text" formControlName="logradouro">
-              </div>
-              <div class="form-group col-4">
-                <label>Número</label>
-                <input type="number" formControlName="numero">
-              </div>
-            </div>
-  
-            <div class="form-row">
-              <div class="form-group col">
-                <label>Complemento</label>
-                <input type="text" formControlName="complemento" placeholder="Apto, Bloco...">
-              </div>
-              <div class="form-group col">
-                <label>Bairro</label>
-                <input type="text" formControlName="bairro">
-              </div>
-            </div>
-  
-            <div class="form-row">
-              <div class="form-group col-8">
-                <label>Cidade</label>
-                <input type="text" formControlName="cidade">
-              </div>
-              <div class="form-group col-4">
-                <label>Estado (UF)</label>
-                <input type="text" formControlName="estado" placeholder="PR" maxlength="2">
-              </div>
-            </div>
-          </fieldset>
-  
-          @if (mensagemErro()) {
-            <div class="alert alert-danger">{{ mensagemErro() }}</div>
-          }
-  
-          <div class="form-actions">
-            <a routerLink="/auth/login" class="btn-link">Voltar para o Login</a>
-            <button type="submit" [disabled]="cadastroForm.invalid || isLoading()" class="btn-primary">
-              @if (isLoading()) { <span>Enviando...</span> } 
-              @else { <span>Solicitar Abertura de Conta</span> }
-            </button>
-          </div>
-  
+          ...
         </form>
       }
     </div>
   </div>
+-->
+
+<div class="auth-shell cadastro-shell">
+  <div class="auth-panel auth-panel--brand">
+    <div class="brand-badge">BANTADS</div>
+    <h1>Abra sua conta já!</h1>
+    <p>
+      Escolha um gerente responsável, envie sua solicitação e ela aparecerá imediatamente nas pendências do gerente
+      selecionado.
+    </p>
+
+    <div class="info-card">
+      <h3>Como funciona agora?</h3>
+      <ul>
+        <li>O pedido fica salvo no cache do protótipo;</li>
+        <li>O gerente escolhido visualiza a pendência sem recarregar a aplicação;</li>
+        <li>Após a aprovação, o novo cliente pode entrar com a senha padrão <strong>tads</strong>.</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="auth-panel auth-panel--form">
+    <div class="autocadastro-card">
+      @if (cadastroSucesso()) {
+      <div class="sucesso-view">
+        <span class="eyebrow">Solicitação registrada!</span>
+        <h2>Cadastro enviado com sucesso</h2>
+        <p>
+          Seu pedido foi encaminhado para <strong>{{ resultadoCadastro()?.gerenteNome }}</strong>.
+        </p>
+
+        <div class="success-summary">
+          <div>
+            <span>Senha inicial</span>
+            <strong>tads</strong>
+          </div>
+          <div>
+            <span>CPF</span>
+            <strong>{{ resultadoCadastro()?.cpf }}</strong>
+          </div>
+          <div>
+            <span>Gerente</span>
+            <strong>{{ resultadoCadastro()?.gerenteNome }}</strong>
+          </div>
+          <div>
+            <span>E-mail do gerente</span>
+            <strong>{{ resultadoCadastro()?.gerenteEmail }}</strong>
+          </div>
+        </div>
+
+        <div class="form-actions form-actions--success">
+          <button type="button" class="btn-secondary" (click)="novoCadastro()">Novo cadastro</button>
+          <button type="button" class="btn-primary" (click)="voltarLogin()">Voltar para o login</button>
+        </div>
+      </div>
+      } @else {
+      <div class="header">
+        <span class="eyebrow">Abertura de conta</span>
+        <h2>Solicitar análise do seu cadastro</h2>
+        <p>Preencha os dados abaixo e escolha o gerente que fará a avaliação inicial.</p>
+      </div>
+
+      <form [formGroup]="cadastroForm" (ngSubmit)="onSubmit()" novalidate>
+        <fieldset>
+          <legend>Dados pessoais</legend>
+
+          <div class="form-row form-row--two">
+            <div class="form-group">
+              <label for="nome">Nome completo</label>
+              <input id="nome" type="text" formControlName="nome" placeholder="Seu nome completo" />
+              @if (isInvalid('nome')) {
+              <small class="error-text">Nome é obrigatório e deve ter no mínimo 3 letras.</small>
+              }
+            </div>
+
+            <div class="form-group">
+              <label for="cpf">CPF</label>
+              <input id="cpf" type="text" formControlName="cpf" placeholder="00000000000" maxlength="11" />
+              @if (isInvalid('cpf')) {
+              <small class="error-text">Informe um CPF válido com 11 dígitos.</small>
+              }
+            </div>
+          </div>
+
+          <div class="form-row form-row--two">
+            <div class="form-group">
+              <label for="email">E-mail</label>
+              <input id="email" type="email" formControlName="email" placeholder="email@exemplo.com" />
+              @if (isInvalid('email')) {
+              <small class="error-text">Informe um e-mail válido.</small>
+              }
+            </div>
+
+            <div class="form-group">
+              <label for="telefone">Telefone</label>
+              <input id="telefone" type="text" formControlName="telefone" placeholder="(41) 99999-9999" />
+              @if (isInvalid('telefone')) {
+              <small class="error-text">Informe um telefone válido.</small>
+              }
+            </div>
+          </div>
+
+          <div class="form-row form-row--two">
+            <div class="form-group">
+              <label for="salario">Salário mensal (R$)</label>
+              <input id="salario" type="number" formControlName="salario" placeholder="0,00" min="0" />
+              @if (isInvalid('salario')) {
+              <small class="error-text">Informe um salário válido.</small>
+              }
+            </div>
+
+            <div class="form-group">
+              <label for="gerenteCpf">Gerente responsável</label>
+              <select id="gerenteCpf" formControlName="gerenteCpf">
+                <option value="">Selecione um gerente</option>
+                @for (gerente of gerentes(); track gerente.cpf) {
+                <option [value]="gerente.cpf">{{ gerente.nome }} · {{ gerente.email }}</option>
+                }
+              </select>
+              @if (isInvalid('gerenteCpf')) {
+              <small class="error-text">Selecione um gerente para análise.</small>
+              }
+            </div>
+          </div>
+        </fieldset>
+
+        <fieldset formGroupName="endereco">
+          <legend>Endereço</legend>
+
+          <div class="form-row form-row--two">
+            <div class="form-group">
+              <label for="cep">CEP</label>
+              <input id="cep" type="text" formControlName="cep" placeholder="00000000" maxlength="8"
+                (blur)="buscarCep()" />
+              <small class="hint-text">
+                @if (buscandoCep()) { Buscando CEP... } @else { Digite o CEP para preencher endereço automaticamente. }
+              </small>
+            </div>
+
+            <div class="form-group form-group--manager">
+              <label>Gerente selecionado</label>
+              <div class="manager-chip">
+                @if (gerenteSelecionado()) {
+                <strong>{{ gerenteSelecionado()?.nome }}</strong>
+                <span>{{ gerenteSelecionado()?.email }}</span>
+                } @else {
+                <span>Escolha um gerente na etapa anterior.</span>
+                }
+              </div>
+            </div>
+          </div>
+
+          <div class="form-row form-row--logradouro">
+            <div class="form-group form-group--grow">
+              <label for="logradouro">Logradouro</label>
+              <input id="logradouro" type="text" formControlName="logradouro" placeholder="Rua, avenida, travessa..." />
+            </div>
+            <div class="form-group form-group--number">
+              <label for="numero">Número</label>
+              <input id="numero" type="number" formControlName="numero" placeholder="123" />
+            </div>
+          </div>
+
+          <div class="form-row form-row--two">
+            <div class="form-group">
+              <label for="complemento">Complemento</label>
+              <input id="complemento" type="text" formControlName="complemento" placeholder="Apto, bloco, sala..." />
+            </div>
+            <div class="form-group">
+              <label for="bairro">Bairro</label>
+              <input id="bairro" type="text" formControlName="bairro" placeholder="Seu bairro" />
+            </div>
+          </div>
+
+          <div class="form-row form-row--two">
+            <div class="form-group">
+              <label for="cidade">Cidade</label>
+              <input id="cidade" type="text" formControlName="cidade" placeholder="Cidade" />
+            </div>
+            <div class="form-group">
+              <label for="estado">Estado (UF)</label>
+              <input id="estado" type="text" formControlName="estado" placeholder="PR" maxlength="2" />
+            </div>
+          </div>
+        </fieldset>
+
+        @if (mensagemErro()) {
+        <div class="alert alert-danger">{{ mensagemErro() }}</div>
+        }
+
+        <div class="form-actions">
+          <button type="button" class="btn-secondary" (click)="voltarLogin()">Voltar para o login</button>
+          <button type="submit" [disabled]="cadastroForm.invalid || isLoading()" class="btn-primary">
+            @if (isLoading()) {
+            <span>Enviando...</span>
+            } @else {
+            <span>Solicitar abertura de conta</span>
+            }
+          </button>
+        </div>
+      </form>
+      }
+    </div>
+  </div>
+</div>

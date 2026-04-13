@@ -1,0 +1,99 @@
+<div class="bank-page admin-page theme--admin">
+  <header class="bank-topbar print-hidden">
+    <div class="bank-brand">
+      <span class="bank-brand__mark">BT</span>
+      <div>
+        <span class="bank-brand__title">BANTADS</span>
+        <span class="bank-brand__subtitle">Administrador • relatório global de clientes</span>
+      </div>
+    </div>
+
+    <nav class="bank-nav" aria-label="Navegação do administrador">
+      <a class="bank-nav__link" routerLink="/admin/home">Dashboard</a>
+      <a class="bank-nav__link" routerLink="/admin/relatorio-clientes">Relatório de clientes</a>
+      <a class="bank-nav__link" routerLink="/admin/gerentes">Gerentes</a>
+    </nav>
+
+    <div class="topbar-actions">
+      <button type="button" class="button button--ghost" (click)="imprimirRelatorio()">Gerar PDF</button>
+      <button type="button" class="button button--ghost" (click)="logout()">Sair</button>
+    </div>
+  </header>
+
+  <section class="page-header-card admin-accent-card">
+    <div class="page-header-row">
+      <div>
+        <span class="chip chip--admin">R16 • Relatório de clientes</span>
+        <h1>Visualize todos os clientes do banco com dados da conta e do gerente</h1>
+        <p>
+          A listagem está ordenada por nome do cliente e reúne CPF, e-mail, salário, conta, saldo,
+          limite e vínculo gerencial para a demonstração administrativa.
+        </p>
+      </div>
+    </div>
+  </section>
+
+  <div *ngIf="errorMessage()" class="feedback feedback--error">{{ errorMessage() }}</div>
+
+  <section class="panel print-hidden">
+    <div class="filters-grid">
+      <label class="field-group field-group--full">
+        <span>Pesquisar por cliente, gerente, CPF, e-mail ou conta</span>
+        <input type="text" [ngModel]="filtro()" (ngModelChange)="filtro.set($event)" placeholder="Ex.: Catharyna, ger1, 1291" />
+      </label>
+
+      <div class="inline-actions inline-actions--right">
+        <button type="button" class="button button--ghost" (click)="limparFiltro()">Limpar</button>
+      </div>
+    </div>
+  </section>
+
+  <section class="panel report-panel">
+    <div class="section-title">
+      <div>
+        <h2>Lista consolidada de clientes</h2>
+        <p>{{ filtrados().length }} registro(s) exibido(s) para o relatório administrativo.</p>
+      </div>
+    </div>
+
+    <div class="table-wrapper" *ngIf="filtrados().length; else semClientes">
+      <table class="data-table data-table--compact">
+        <thead>
+          <tr>
+            <th>CPF cliente</th>
+            <th>Nome</th>
+            <th>E-mail</th>
+            <th>Salário</th>
+            <th>Conta</th>
+            <th>Saldo</th>
+            <th>Limite</th>
+            <th>CPF gerente</th>
+            <th>Nome gerente</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let cliente of filtrados()">
+            <td>{{ cliente.cpfCliente }}</td>
+            <td>{{ cliente.nomeCliente }}</td>
+            <td>{{ cliente.emailCliente }}</td>
+            <td>{{ formatCurrency(cliente.salario) }}</td>
+            <td>{{ cliente.numeroConta }}</td>
+            <td [class.text-danger]="cliente.saldo < 0" [class.text-info]="cliente.saldo >= 0">
+              {{ formatCurrency(cliente.saldo) }}
+            </td>
+            <td>{{ formatCurrency(cliente.limite) }}</td>
+            <td>{{ cliente.cpfGerente }}</td>
+            <td>{{ cliente.nomeGerente }}</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <ng-template #semClientes>
+    <div class="empty-state">
+      <strong>Nenhum cliente encontrado.</strong>
+      <span>Ajuste os filtros ou verifique se existem clientes cadastrados no banco.</span>
+    </div>
+  </ng-template>
+</div>
