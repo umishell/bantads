@@ -1,6 +1,6 @@
 package bantads.auth.dto
 
-/** Payload recebido na fila RabbitMQ para criação de usuário (SAGA). */
+// (autocadastro/saga) Payload recebido na fila RabbitMQ para criação de usuário
 data class UserDTO(
     val email: String,
     val senha: String,
