@@ -94,6 +94,16 @@ class EmailCommandListener(
         msg.text = "Olá, $nome.\nInfelizmente seu cadastro não foi aprovado.\nMotivo informado: $motivo"
         mailSender.send(msg)
         log.info("E-mail de rejeição enviado sagaId={} destino={}", sagaId, to)
+        responses.publish(
+            "resp.email",
+            mapOf(
+                "correlationId" to correlationId,
+                "sagaId" to sagaId,
+                "success" to true,
+                "source" to "EMAIL",
+                "intent" to "REJEICAO",
+            ),
+        )
     }
 
     /** R1: falha em processo interno após aprovação do gerente — solicitação não efetivada; cliente volta à fila pendente. */
@@ -124,5 +134,15 @@ class EmailCommandListener(
         }
         mailSender.send(msg)
         log.info("E-mail de falha na saga de aprovação enviado sagaId={} destino={}", sagaId, to)
+        responses.publish(
+            "resp.email",
+            mapOf(
+                "correlationId" to correlationId,
+                "sagaId" to sagaId,
+                "success" to true,
+                "source" to "EMAIL",
+                "intent" to "FALHA_APROVACAO",
+            ),
+        )
     }
 }

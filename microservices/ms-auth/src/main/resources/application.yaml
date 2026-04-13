@@ -9,19 +9,18 @@ spring:
   application:
     name: ms-auth
 
-  # Conexão: Spring Boot 4 usa spring.mongodb.* (spring.data.mongodb.uri não alimenta mais o cliente).
   mongodb:
-    uri: ${SPRING_MONGODB_URI:${SPRING_DATA_MONGODB_URI:mongodb://${MONGO_HOST:localhost}:27017/auth_db}}
+    uri: ${SPRING_DATA_MONGODB_URI:mongodb://localhost:27017/auth_db}
 
   data:
     mongodb:
       auto-index-creation: true
 
   rabbitmq:
-    host: ${RABBIT_HOST:localhost}
+    host: ${SPRING_RABBITMQ_HOST:localhost}
     port: 5672
-    username: ${RABBIT_USER:guest}
-    password: ${RABBIT_PASSWORD:guest}
+    username: ${SPRING_RABBITMQ_USERNAME:guest}
+    password: ${SPRING_RABBITMQ_PASSWORD:guest}
     template:
       retry:
         enabled: true

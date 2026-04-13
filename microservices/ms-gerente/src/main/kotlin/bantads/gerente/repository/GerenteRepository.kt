@@ -6,4 +6,5 @@ import java.util.UUID
 
 interface GerenteRepository : JpaRepository<Gerente, UUID> {
     fun findAllByAtivoTrueOrderByCpfAsc(): List<Gerente>
+    fun findAllByAtivoTrueAndTipoOrderByCpfAsc(tipo: String): List<Gerente>
 }

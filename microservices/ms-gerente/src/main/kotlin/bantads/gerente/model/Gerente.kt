@@ -24,6 +24,13 @@ class Gerente(
     @Column(nullable = false, length = 200)
     var email: String,
 
+    @Column(nullable = false, length = 20)
+    var telefone: String = "",
+
+    /** GERENTE | ADMINISTRADOR */
+    @Column(nullable = false, length = 20)
+    var tipo: String = "GERENTE",
+
     @Column(nullable = false)
     var ativo: Boolean = true,
 )
