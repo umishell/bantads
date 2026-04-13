@@ -24,11 +24,13 @@ class GerenteCommandListener(
         try {
             when (cmd) {
                 "GERENTE_LIST_ATIVOS" -> {
-                    val list = repository.findAllByAtivoTrueOrderByCpfAsc().map { g ->
+                    val list = repository.findAllByAtivoTrueAndTipoOrderByCpfAsc("GERENTE").map { g ->
                         mapOf(
                             "id" to (g.id?.toString() ?: ""),
                             "cpf" to g.cpf,
                             "nome" to g.nome,
+                            "email" to g.email,
+                            "tipo" to g.tipo,
                         )
                     }
                     responses.publish(

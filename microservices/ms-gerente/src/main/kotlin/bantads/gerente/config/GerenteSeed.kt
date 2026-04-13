@@ -16,10 +16,11 @@ class GerenteSeed {
     fun seedGerentes(repo: GerenteRepository) = ApplicationRunner {
         if (repo.count() > 0) return@ApplicationRunner
         listOf(
-            Gerente(cpf = "11111111111", nome = "Gerente Um", email = "g1@bantads.local"),
-            Gerente(cpf = "22222222222", nome = "Gerente Dois", email = "g2@bantads.local"),
-            Gerente(cpf = "33333333333", nome = "Gerente Três", email = "g3@bantads.local"),
+            Gerente(cpf = "98574307084", nome = "Geniéve", email = "ger1@bantads.com.br", tipo = "GERENTE"),
+            Gerente(cpf = "64065268052", nome = "Godophredo", email = "ger2@bantads.com.br", tipo = "GERENTE"),
+            Gerente(cpf = "23862179060", nome = "Gyândula", email = "ger3@bantads.com.br", tipo = "GERENTE"),
+            Gerente(cpf = "40501740066", nome = "Adamântio", email = "adm1@bantads.com.br", tipo = "ADMINISTRADOR"),
         ).forEach { repo.save(it) }
-        log.info("Seed: {} gerentes criados", repo.count())
+        log.info("Seed: {} gerentes/admin criados", repo.count())
     }
 }

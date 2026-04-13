@@ -7,6 +7,7 @@ import jakarta.persistence.GenerationType
 import jakarta.persistence.Id
 import jakarta.persistence.Table
 import java.math.BigDecimal
+import java.time.Instant
 import java.util.UUID
 
 @Entity
@@ -36,4 +37,7 @@ class Conta(
 
     @Column(nullable = false)
     var ativa: Boolean = true,
+
+    @Column(nullable = false)
+    var dataCriacao: Instant = Instant.now(),
 )
