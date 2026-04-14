@@ -59,25 +59,38 @@ class AuthCommandListener(
                 "AUTH_DELETE_USER" -> {
                     val login = root.path("login").asText()
                     authService.removerUsuarioPorLogin(login)
+                    responses.publish(
+                        "resp.auth",
+                        mapOf(
+                            "correlationId" to correlationId,
+                            "sagaId" to sagaId,
+                            "success" to true,
+                            "source" to "AUTH",
+                            "intent" to "DELETE",
+                        ),
+                    )
                 }
 
                 else -> log.warn("Comando auth desconhecido: {}", cmd)
             }
         } catch (ex: Exception) {
             log.warn("Erro no comando auth: {}", ex.message)
-            if (cmd == "AUTH_CREATE_CLIENTE") {
-                responses.publish(
-                    "resp.auth",
-                    mapOf(
-                        "correlationId" to correlationId,
-                        "sagaId" to sagaId,
-                        "success" to false,
-                        "source" to "AUTH",
-                        "intent" to "CREATE",
-                        "error" to (ex.message ?: "erro"),
-                    ),
-                )
+            val intent = when (cmd) {
+                "AUTH_CREATE_CLIENTE" -> "CREATE"
+                "AUTH_DELETE_USER" -> "DELETE"
+                else -> "UNKNOWN"
             }
+            responses.publish(
+                "resp.auth",
+                mapOf(
+                    "correlationId" to correlationId,
+                    "sagaId" to sagaId,
+                    "success" to false,
+                    "source" to "AUTH",
+                    "intent" to intent,
+                    "error" to (ex.message ?: "erro"),
+                ),
+            )
         }
     }
 }

@@ -9,16 +9,18 @@ spring:
   application:
     name: ms-auth
 
+  mongodb:
+    uri: ${SPRING_DATA_MONGODB_URI:mongodb://localhost:27017/auth_db}
+
   data:
     mongodb:
-      uri: ${SPRING_DATA_MONGODB_URI:mongodb://${MONGO_HOST:localhost}:27017/auth_db}
       auto-index-creation: true
 
   rabbitmq:
-    host: ${RABBIT_HOST:localhost}
+    host: ${SPRING_RABBITMQ_HOST:localhost}
     port: 5672
-    username: ${RABBIT_USER:guest}
-    password: ${RABBIT_PASSWORD:guest}
+    username: ${SPRING_RABBITMQ_USERNAME:guest}
+    password: ${SPRING_RABBITMQ_PASSWORD:guest}
     template:
       retry:
         enabled: true

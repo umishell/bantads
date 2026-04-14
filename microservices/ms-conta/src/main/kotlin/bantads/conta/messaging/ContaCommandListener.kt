@@ -126,6 +126,7 @@ class ContaCommandListener(
                 "intent" to "CREATE",
                 "contaId" to sid.toString(),
                 "numero" to saved.numero,
+                "dataCriacao" to saved.dataCriacao.toString(),
             ),
         )
     }

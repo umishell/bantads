@@ -13,6 +13,7 @@ import bantads.cliente.model.StatusCliente
 import bantads.cliente.repository.ClienteRepository
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
+import java.time.Instant
 import java.util.UUID
 
 @Service
@@ -101,6 +102,7 @@ class ClienteService(
         when (c.status) {
             StatusCliente.PENDENTE_APROVACAO -> {
                 c.status = StatusCliente.PROCESSANDO_APROVACAO
+                c.decisaoGerenteEm = Instant.now()
                 repository.save(c)
             }
             StatusCliente.PROCESSANDO_APROVACAO ->
@@ -141,6 +143,7 @@ class ClienteService(
         }
         c.status = StatusCliente.REJEITADO
         c.motivoRejeicao = body.motivo.trim()
+        c.decisaoGerenteEm = Instant.now()
         repository.save(c)
 
         val sagaId = UUID.randomUUID().toString()

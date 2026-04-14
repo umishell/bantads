@@ -1,3 +1,5 @@
+# syntax=docker/dockerfile:1
+# BuildKit: cache do Gradle entre builds (senão bootJar parece “travar” minutos baixando deps + compilando).
 FROM eclipse-temurin:24-jdk-noble AS build
 WORKDIR /app
 
@@ -5,11 +7,17 @@ COPY gradlew .
 COPY gradle gradle
 COPY build.gradle.kts .
 COPY settings.gradle.kts .
+COPY gradle.properties .
 
-RUN chmod +x gradlew && ./gradlew dependencies --no-daemon
+RUN sed -i 's/\r$//' gradlew && chmod +x gradlew
+
+RUN --mount=type=cache,target=/root/.gradle \
+    ./gradlew dependencies --no-daemon
 
 COPY src src
-RUN ./gradlew bootJar --no-daemon
+
+RUN --mount=type=cache,target=/root/.gradle \
+    ./gradlew bootJar --no-daemon -x test
 
 FROM eclipse-temurin:24-jre-noble
 WORKDIR /app
