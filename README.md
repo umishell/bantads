@@ -632,6 +632,105 @@ Mensagens entre microsserviços de negócio passam pela **saga** (filas `cmd.*` 
 
 ---
 
+## 📝 Notas adicionais de desenvolvimento
+
+Este projeto foi desenvolvido com foco em organização, clareza de código e separação de responsabilidades entre os componentes.
+
+Durante a implementação, buscou-se manter uma estrutura limpa e de fácil entendimento, permitindo que novos desenvolvedores consigam compreender rapidamente o funcionamento geral da aplicação.
+
+Além disso, foram consideradas boas práticas de desenvolvimento, como padronização de nomenclatura, modularização de funcionalidades e reutilização de código sempre que possível.
+
+---
+
+## 🔍 Observações técnicas
+
+- O sistema foi estruturado visando facilitar manutenção futura
+- As funcionalidades foram separadas em módulos independentes
+- O código foi organizado para melhorar legibilidade
+- Foram utilizados padrões comuns de desenvolvimento
+- A estrutura permite fácil expansão do sistema
+
+---
+
+## 📌 Considerações sobre o projeto
+
+Este projeto tem caráter acadêmico e foi desenvolvido com o objetivo de aplicar conceitos estudados em sala de aula.
+
+As decisões de arquitetura e implementação foram tomadas considerando o escopo proposto e o tempo disponível para desenvolvimento.
+
+---
+
+## ⚙️ Organização geral
+
+A organização do projeto segue uma lógica simples e eficiente:
+
+- Separação entre lógica de negócio e interface
+- Estrutura modular
+- Componentes reutilizáveis
+- Código dividido por responsabilidade
+
+---
+
+## 💡 Sobre o desenvolvimento
+
+Durante o desenvolvimento, foram enfrentados desafios relacionados à integração entre diferentes partes do sistema.
+
+Esses desafios contribuíram para o aprendizado prático de conceitos importantes, como:
+
+- Comunicação entre componentes
+- Tratamento de erros
+- Estruturação de projetos maiores
+
+---
+
+## 📚 Objetivo educacional
+
+O principal objetivo deste projeto é consolidar conhecimentos adquiridos ao longo da disciplina.
+
+Entre os principais tópicos trabalhados estão:
+
+- Estruturação de sistemas
+- Organização de código
+- Boas práticas de desenvolvimento
+- Versionamento com Git
+
+---
+
+## 🧩 Expansão futura
+
+O projeto pode ser expandido futuramente com novas funcionalidades e melhorias, como:
+
+- Interface mais elaborada
+- Novos módulos
+- Melhor tratamento de erros
+- Otimizações de desempenho
+
+---
+
+## 🔄 Manutenção
+
+A manutenção do sistema pode ser realizada de forma simples devido à sua estrutura organizada.
+
+Alterações podem ser feitas sem impactar significativamente outras partes do sistema.
+
+---
+
+## 📈 Evolução do projeto
+
+Este projeto pode evoluir com o tempo, recebendo melhorias contínuas conforme novas necessidades surgirem.
+
+A base atual permite crescimento progressivo sem necessidade de reestruturações complexas.
+
+---
+
+## 🧠 Aprendizado contínuo
+
+O desenvolvimento deste projeto reforça a importância da prática no processo de aprendizado.
+
+A experiência adquirida aqui pode ser aplicada em projetos futuros de maior complexidade.
+
+---
+
 ## Autores
 
 Gabriela Harres Rodrigues           - GRR20246215 -         gabrielahrodrigus101@gmail.com
