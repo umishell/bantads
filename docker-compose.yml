@@ -6,6 +6,9 @@ services:
     ports:
       - "5672:5672"
       - "15672:15672"
+    environment:
+      RABBITMQ_DEFAULT_USER: ${RABBITMQ_USER:-guest}
+      RABBITMQ_DEFAULT_PASS: ${RABBITMQ_PASSWORD:-guest}
     healthcheck:
       test: ["CMD", "rabbitmq-diagnostics", "-q", "ping"]
       interval: 5s
@@ -38,12 +41,12 @@ services:
       - "5433:5432"
     environment:
       POSTGRES_DB: cliente_db
-      POSTGRES_USER: user
-      POSTGRES_PASSWORD: password
+      POSTGRES_USER: ${POSTGRES_USER:-user}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-password}
     volumes:
       - ./data/cliente:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U user -d cliente_db"]
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-user} -d cliente_db"]
       interval: 5s
       timeout: 5s
       retries: 10
@@ -57,12 +60,12 @@ services:
       - "5434:5432"
     environment:
       POSTGRES_DB: conta_db
-      POSTGRES_USER: user
-      POSTGRES_PASSWORD: password
+      POSTGRES_USER: ${POSTGRES_USER:-user}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-password}
     volumes:
       - ./data/conta:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U user -d conta_db"]
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-user} -d conta_db"]
       interval: 5s
       timeout: 5s
       retries: 10
@@ -76,12 +79,12 @@ services:
       - "5435:5432"
     environment:
       POSTGRES_DB: gerente_db
-      POSTGRES_USER: user
-      POSTGRES_PASSWORD: password
+      POSTGRES_USER: ${POSTGRES_USER:-user}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-password}
     volumes:
       - ./data/gerente:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U user -d gerente_db"]
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-user} -d gerente_db"]
       interval: 5s
       timeout: 5s
       retries: 10
@@ -97,7 +100,11 @@ services:
     environment:
       SPRING_DATA_MONGODB_URI: mongodb://mongo-auth:27017/auth_db
       SPRING_RABBITMQ_HOST: rabbitmq
+      SPRING_RABBITMQ_PORT: 5672
+      SPRING_RABBITMQ_USERNAME: ${RABBITMQ_USER:-guest}
+      SPRING_RABBITMQ_PASSWORD: ${RABBITMQ_PASSWORD:-guest}
       JWT_SECRET: ${JWT_SECRET:-7a56403163745262704573315a6b3164746b386153646c7a4d31354a726e3230}
+      JWT_EXPIRATION_MS: ${JWT_EXPIRATION_MS:-3600000}
     depends_on:
       mongo-auth:
         condition: service_healthy
@@ -112,7 +119,12 @@ services:
       - "8082:8082"
     environment:
       SPRING_DATASOURCE_URL: jdbc:postgresql://db-cliente:5432/cliente_db
+      SPRING_DATASOURCE_USERNAME: ${POSTGRES_USER:-user}
+      SPRING_DATASOURCE_PASSWORD: ${POSTGRES_PASSWORD:-password}
       SPRING_RABBITMQ_HOST: rabbitmq
+      SPRING_RABBITMQ_PORT: 5672
+      SPRING_RABBITMQ_USERNAME: ${RABBITMQ_USER:-guest}
+      SPRING_RABBITMQ_PASSWORD: ${RABBITMQ_PASSWORD:-guest}
     depends_on:
       db-cliente:
         condition: service_healthy
@@ -127,7 +139,12 @@ services:
       - "8083:8083"
     environment:
       SPRING_DATASOURCE_URL: jdbc:postgresql://db-conta:5432/conta_db
+      SPRING_DATASOURCE_USERNAME: ${POSTGRES_USER:-user}
+      SPRING_DATASOURCE_PASSWORD: ${POSTGRES_PASSWORD:-password}
       SPRING_RABBITMQ_HOST: rabbitmq
+      SPRING_RABBITMQ_PORT: 5672
+      SPRING_RABBITMQ_USERNAME: ${RABBITMQ_USER:-guest}
+      SPRING_RABBITMQ_PASSWORD: ${RABBITMQ_PASSWORD:-guest}
     depends_on:
       db-conta:
         condition: service_healthy
@@ -142,7 +159,12 @@ services:
       - "8084:8084"
     environment:
       SPRING_DATASOURCE_URL: jdbc:postgresql://db-gerente:5432/gerente_db
+      SPRING_DATASOURCE_USERNAME: ${POSTGRES_USER:-user}
+      SPRING_DATASOURCE_PASSWORD: ${POSTGRES_PASSWORD:-password}
       SPRING_RABBITMQ_HOST: rabbitmq
+      SPRING_RABBITMQ_PORT: 5672
+      SPRING_RABBITMQ_USERNAME: ${RABBITMQ_USER:-guest}
+      SPRING_RABBITMQ_PASSWORD: ${RABBITMQ_PASSWORD:-guest}
     depends_on:
       db-gerente:
         condition: service_healthy
@@ -157,6 +179,10 @@ services:
       - "8085:8085"
     environment:
       SPRING_RABBITMQ_HOST: rabbitmq
+      SPRING_RABBITMQ_PORT: 5672
+      SPRING_RABBITMQ_USERNAME: ${RABBITMQ_USER:-guest}
+      SPRING_RABBITMQ_PASSWORD: ${RABBITMQ_PASSWORD:-guest}
+      SAGA_EMAIL_MAX_ATTEMPTS: ${SAGA_EMAIL_MAX_ATTEMPTS:-3}
     depends_on:
       rabbitmq:
         condition: service_healthy
@@ -177,9 +203,12 @@ services:
       - "8086:8086"
     environment:
       SPRING_RABBITMQ_HOST: rabbitmq
+      SPRING_RABBITMQ_PORT: 5672
+      SPRING_RABBITMQ_USERNAME: ${RABBITMQ_USER:-guest}
+      SPRING_RABBITMQ_PASSWORD: ${RABBITMQ_PASSWORD:-guest}
       SPRING_MAIL_HOST: mailhog
       SPRING_MAIL_PORT: 1025
-      BANTADS_MAIL_FROM: noreply@bantads.local
+      BANTADS_MAIL_FROM: ${BANTADS_MAIL_FROM:-noreply@bantads.local}
     depends_on:
       rabbitmq:
         condition: service_healthy
@@ -210,6 +239,8 @@ services:
       UPSTREAM_GERENTE: http://ms-gerente:8084
       UPSTREAM_SAGA: http://ms-saga:8085
       UPSTREAM_FRONTEND: http://frontend:4200
+      LOGIN_RATE_LIMIT_MAX: ${LOGIN_RATE_LIMIT_MAX:-10}
+      LOGIN_RATE_LIMIT_WINDOW_MS: ${LOGIN_RATE_LIMIT_WINDOW_MS:-60000}
     depends_on:
       - ms-auth
       - ms-cliente

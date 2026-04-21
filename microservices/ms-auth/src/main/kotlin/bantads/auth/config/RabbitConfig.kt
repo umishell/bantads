@@ -1,6 +1,7 @@
 package bantads.auth.config
 
 import org.springframework.amqp.core.Queue
+import org.springframework.amqp.core.QueueBuilder
 import org.springframework.amqp.core.TopicExchange
 import org.springframework.amqp.rabbit.config.SimpleRabbitListenerContainerFactory
 import org.springframework.amqp.rabbit.connection.ConnectionFactory
@@ -15,10 +16,15 @@ class RabbitConfig {
     companion object {
         const val QUEUE_CMD = "cmd.auth"
         const val RESPONSE_EXCHANGE = "saga-response-exchange"
+        const val DLX_EXCHANGE = "bantads.dlx"
     }
 
     @Bean
-    fun cmdAuthQueue(): Queue = Queue(QUEUE_CMD, true)
+    fun cmdAuthQueue(): Queue =
+        QueueBuilder.durable(QUEUE_CMD)
+            .withArgument("x-dead-letter-exchange", DLX_EXCHANGE)
+            .withArgument("x-dead-letter-routing-key", "dlq.$QUEUE_CMD")
+            .build()
 
     @Bean
     fun sagaResponseExchange(): TopicExchange =

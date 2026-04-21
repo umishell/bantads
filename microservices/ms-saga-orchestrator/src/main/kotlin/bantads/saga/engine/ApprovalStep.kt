@@ -6,7 +6,6 @@ internal enum class ApprovalStep {
     AWAIT_CONTA_CREATE,
     AWAIT_AUTH,
     AWAIT_EMAIL,
-    COMPENSATING_DELETE_AUTH,
-    COMPENSATING_DELETE_CONTA,
+    COMPENSATING,
     DONE,
 }

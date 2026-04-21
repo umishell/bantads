@@ -5,7 +5,10 @@ import com.fasterxml.jackson.databind.JsonNode
 import com.fasterxml.jackson.databind.ObjectMapper
 import org.slf4j.LoggerFactory
 import org.springframework.amqp.rabbit.core.RabbitTemplate
+import org.springframework.scheduling.annotation.Scheduled
 import org.springframework.stereotype.Service
+import java.time.Duration
+import java.time.Instant
 import java.util.UUID
 import java.util.concurrent.ConcurrentHashMap
 
@@ -18,6 +21,9 @@ class SagaOrchestrator(
     private val log = LoggerFactory.getLogger(javaClass)
     private val sessions = ConcurrentHashMap<String, ApprovalSagaContext>()
     private val locks = ConcurrentHashMap<String, Any>()
+
+    /** Timeout máximo para aguardar respostas de compensação antes de forçar limpeza. */
+    private val compensationTimeout = Duration.ofSeconds(30)
 
     private fun lock(sagaId: String): Any = locks.computeIfAbsent(sagaId) { Any() }
 
@@ -47,6 +53,12 @@ class SagaOrchestrator(
                 return
             }
             val corr = root.path("correlationId").asText()
+
+            if (ctx.step == ApprovalStep.COMPENSATING) {
+                onCompensationResponse(ctx, root, corr)
+                return
+            }
+
             if (ctx.pendingCorrelationId != null && corr != ctx.pendingCorrelationId) {
                 log.warn("Correlation mismatch sagaId={} esperado={} recebido={}", sagaId, ctx.pendingCorrelationId, corr)
                 return
@@ -78,6 +90,21 @@ class SagaOrchestrator(
 
                 else -> log.warn("Source desconhecida: {}", source)
             }
+        }
+    }
+
+    private fun onCompensationResponse(ctx: ApprovalSagaContext, root: JsonNode, corr: String) {
+        val desc = ctx.pendingCompensations.remove(corr)
+        if (desc == null) {
+            log.debug("Correlação de compensação desconhecida sagaId={} corr={}", ctx.sagaId, corr)
+        } else {
+            val ok = root.path("success").asBoolean()
+            log.info("Compensação respondida sagaId={} passo={} success={}", ctx.sagaId, desc, ok)
+        }
+        if (ctx.pendingCompensations.isEmpty()) {
+            sessions.remove(ctx.sagaId)
+            locks.remove(ctx.sagaId)
+            log.info("Compensação concluída e sessão removida sagaId={}", ctx.sagaId)
         }
     }
 
@@ -294,13 +321,18 @@ class SagaOrchestrator(
     }
 
     private fun compensateAndResetCliente(ctx: ApprovalSagaContext) {
-        val corrBase = UUID.randomUUID().toString()
+        ctx.step = ApprovalStep.COMPENSATING
+        ctx.compensationStartedAt = Instant.now()
+        ctx.pendingCompensations.clear()
+
         if (ctx.usuarioCriado) {
+            val corr = UUID.randomUUID().toString()
+            ctx.pendingCompensations[corr] = "AUTH_DELETE_USER"
             send(
                 "cmd.auth",
                 mapOf(
                     "command" to "AUTH_DELETE_USER",
-                    "correlationId" to "$corrBase-auth",
+                    "correlationId" to corr,
                     "sagaId" to ctx.sagaId,
                     "login" to ctx.email,
                 ),
@@ -309,42 +341,77 @@ class SagaOrchestrator(
         if (ctx.contaCriada) {
             val contaId = ctx.contaId
             if (!contaId.isNullOrBlank()) {
+                val corr = UUID.randomUUID().toString()
+                ctx.pendingCompensations[corr] = "CONTA_DELETE"
                 send(
                     "cmd.conta",
                     mapOf(
                         "command" to "CONTA_DELETE",
-                        "correlationId" to "$corrBase-conta",
+                        "correlationId" to corr,
                         "sagaId" to ctx.sagaId,
                         "contaId" to contaId,
                     ),
                 )
             }
         }
-        send(
-            "cmd.cliente",
-            mapOf(
-                "command" to "CLIENTE_MARCAR_PENDENTE",
-                "correlationId" to "$corrBase-cliente",
-                "sagaId" to ctx.sagaId,
-                "clienteId" to ctx.clienteId,
-                "motivo" to "Falha no fluxo de aprovação; reabra a aprovação.",
-            ),
-        )
-        send(
-            "cmd.email",
-            mapOf(
-                "command" to "EMAIL_FALHA_APROVACAO_SAGA",
-                "correlationId" to "$corrBase-email-falha",
-                "sagaId" to ctx.sagaId,
-                "email" to ctx.email,
-                "nome" to ctx.nome,
-            ),
-        )
-        sessions.remove(ctx.sagaId)
+        run {
+            val corr = UUID.randomUUID().toString()
+            ctx.pendingCompensations[corr] = "CLIENTE_MARCAR_PENDENTE"
+            send(
+                "cmd.cliente",
+                mapOf(
+                    "command" to "CLIENTE_MARCAR_PENDENTE",
+                    "correlationId" to corr,
+                    "sagaId" to ctx.sagaId,
+                    "clienteId" to ctx.clienteId,
+                    "motivo" to "Falha no fluxo de aprovação; reabra a aprovação.",
+                ),
+            )
+        }
+        run {
+            val corr = UUID.randomUUID().toString()
+            ctx.pendingCompensations[corr] = "EMAIL_FALHA_APROVACAO_SAGA"
+            send(
+                "cmd.email",
+                mapOf(
+                    "command" to "EMAIL_FALHA_APROVACAO_SAGA",
+                    "correlationId" to corr,
+                    "sagaId" to ctx.sagaId,
+                    "email" to ctx.email,
+                    "nome" to ctx.nome,
+                ),
+            )
+        }
         log.info(
-            "Compensação enfileirada, cliente revertido para pendente e e-mail de falha notificado sagaId={}",
+            "Compensação enfileirada aguardando {} respostas sagaId={}",
+            ctx.pendingCompensations.size,
             ctx.sagaId,
         )
+    }
+
+    /** Limpa sessões presas em COMPENSATING que excederam o timeout. */
+    @Scheduled(fixedDelay = 15_000)
+    fun reapCompensationTimeouts() {
+        val agora = Instant.now()
+        val afetados = mutableListOf<String>()
+        for ((sagaId, ctx) in sessions) {
+            if (ctx.step != ApprovalStep.COMPENSATING) continue
+            val iniciado = ctx.compensationStartedAt ?: continue
+            if (Duration.between(iniciado, agora) > compensationTimeout) {
+                log.warn(
+                    "Compensação expirou sagaId={} pendentes={}",
+                    sagaId,
+                    ctx.pendingCompensations.values,
+                )
+                afetados += sagaId
+            }
+        }
+        for (sagaId in afetados) {
+            synchronized(lock(sagaId)) {
+                sessions.remove(sagaId)
+                locks.remove(sagaId)
+            }
+        }
     }
 
     private fun send(queue: String, body: Map<String, Any?>) {

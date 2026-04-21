@@ -1,6 +1,7 @@
 package bantads.cliente.config
 
 import org.springframework.amqp.core.Queue
+import org.springframework.amqp.core.QueueBuilder
 import org.springframework.amqp.core.TopicExchange
 import org.springframework.amqp.rabbit.config.SimpleRabbitListenerContainerFactory
 import org.springframework.amqp.rabbit.connection.ConnectionFactory
@@ -14,6 +15,7 @@ class RabbitConfig(private val sagaProperties: SagaProperties) {
 
     companion object {
         const val QUEUE_CMD = "cmd.cliente"
+        const val DLX_EXCHANGE = "bantads.dlx"
     }
 
     @Bean
@@ -21,7 +23,11 @@ class RabbitConfig(private val sagaProperties: SagaProperties) {
         TopicExchange(sagaProperties.exchange, true, false)
 
     @Bean
-    fun cmdClienteQueue(): Queue = Queue(QUEUE_CMD, true)
+    fun cmdClienteQueue(): Queue =
+        QueueBuilder.durable(QUEUE_CMD)
+            .withArgument("x-dead-letter-exchange", DLX_EXCHANGE)
+            .withArgument("x-dead-letter-routing-key", "dlq.$QUEUE_CMD")
+            .build()
 
     @Bean
     fun jacksonMessageConverter(): Jackson2JsonMessageConverter =

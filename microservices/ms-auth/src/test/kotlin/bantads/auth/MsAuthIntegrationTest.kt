@@ -56,7 +56,7 @@ class MsAuthIntegrationTest {
         @JvmStatic
         @DynamicPropertySource
         fun properties(registry: DynamicPropertyRegistry) {
-            registry.add("spring.mongodb.uri") {
+            registry.add("spring.data.mongodb.uri") {
                 "mongodb://${mongo.host}:${mongo.getMappedPort(27017)}/auth_it"
             }
             registry.add("spring.rabbitmq.host") { rabbit.host }

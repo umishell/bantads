@@ -8,11 +8,11 @@ spring:
     name: ms-cliente
   datasource:
     url: ${SPRING_DATASOURCE_URL:jdbc:postgresql://localhost:5432/cliente_db}
-    username: user
-    password: password
+    username: ${SPRING_DATASOURCE_USERNAME:user}
+    password: ${SPRING_DATASOURCE_PASSWORD:password}
   jpa:
     hibernate:
-      ddl-auto: update
+      ddl-auto: ${SPRING_JPA_HIBERNATE_DDL_AUTO:update}
     open-in-view: false
     properties:
       hibernate:
@@ -20,9 +20,9 @@ spring:
           time_zone: UTC
   rabbitmq:
     host: ${SPRING_RABBITMQ_HOST:localhost}
-    port: 5672
-    username: guest
-    password: guest
+    port: ${SPRING_RABBITMQ_PORT:5672}
+    username: ${SPRING_RABBITMQ_USERNAME:guest}
+    password: ${SPRING_RABBITMQ_PASSWORD:guest}
 
 management:
   endpoints:
