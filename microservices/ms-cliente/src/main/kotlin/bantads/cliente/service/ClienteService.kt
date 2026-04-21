@@ -11,6 +11,7 @@ import bantads.cliente.messaging.ClienteSagaPublisher
 import bantads.cliente.model.Cliente
 import bantads.cliente.model.StatusCliente
 import bantads.cliente.repository.ClienteRepository
+import bantads.cliente.util.Cpf
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import java.time.Instant
@@ -24,8 +25,7 @@ class ClienteService(
 
     @Transactional
     fun autocadastro(req: AutocadastroRequest): AutocadastroResponse {
-        val cpf = req.cpf.filter { it.isDigit() }
-        require(cpf.length == 11) { "CPF deve conter 11 dígitos" }
+        val cpf = Cpf.require(req.cpf)
         val cepDigits = req.cep.filter { it.isDigit() }
         require(cepDigits.length == 8) { "CEP deve conter 8 dígitos" }
         if (repository.existsByCpf(cpf)) {

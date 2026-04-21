@@ -1,6 +1,7 @@
 package bantads.saga.engine
 
 import com.fasterxml.jackson.databind.JsonNode
+import java.time.Instant
 
 /**
  * Estado volátil da saga de aprovação (memória do orquestrador).
@@ -30,6 +31,9 @@ internal data class ApprovalSagaContext(
     var contaCriada: Boolean = false,
     var usuarioCriado: Boolean = false,
     val idempotencyKeys: MutableSet<String> = mutableSetOf(),
+    /** Correlação -> descrição do passo de compensação ainda pendente. */
+    val pendingCompensations: MutableMap<String, String> = mutableMapOf(),
+    var compensationStartedAt: Instant? = null,
 )
 
 internal fun ApprovalSagaContext.touchIdempotency(key: String): Boolean =

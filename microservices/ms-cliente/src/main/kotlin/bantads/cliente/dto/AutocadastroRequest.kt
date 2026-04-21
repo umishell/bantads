@@ -1,5 +1,6 @@
 package bantads.cliente.dto
 
+import bantads.cliente.util.CpfValido
 import com.fasterxml.jackson.annotation.JsonProperty
 import jakarta.validation.constraints.DecimalMin
 import jakarta.validation.constraints.Email
@@ -12,6 +13,7 @@ import java.math.BigDecimal
 data class AutocadastroRequest(
     @field:NotBlank(message = "CPF é obrigatório")
     @field:Size(min = 11, max = 14, message = "CPF inválido")
+    @field:CpfValido
     val cpf: String,
 
     @field:NotBlank

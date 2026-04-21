@@ -8,9 +8,9 @@ spring:
     name: ms-saga-orchestrator
   rabbitmq:
     host: ${SPRING_RABBITMQ_HOST:localhost}
-    port: 5672
-    username: guest
-    password: guest
+    port: ${SPRING_RABBITMQ_PORT:5672}
+    username: ${SPRING_RABBITMQ_USERNAME:guest}
+    password: ${SPRING_RABBITMQ_PASSWORD:guest}
 
 management:
   endpoints:
@@ -22,7 +22,7 @@ bantads:
   saga:
     exchange: bantads.saga
     response-exchange: saga-response-exchange
-    email-max-attempts: 3
+    email-max-attempts: ${SAGA_EMAIL_MAX_ATTEMPTS:3}
 
 logging:
   level:

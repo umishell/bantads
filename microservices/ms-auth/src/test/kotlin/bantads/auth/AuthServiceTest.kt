@@ -5,6 +5,7 @@ import bantads.auth.model.User
 import bantads.auth.repository.UserRepository
 import bantads.auth.security.JwtService
 import bantads.auth.security.Sha256SaltPasswordHasher
+import bantads.auth.security.TokenBlacklist
 import bantads.auth.service.AuthService
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertThrows
@@ -29,11 +30,14 @@ class AuthServiceTest {
     @Mock
     private lateinit var jwtService: JwtService
 
+    @Mock
+    private lateinit var tokenBlacklist: TokenBlacklist
+
     private lateinit var authService: AuthService
 
     @BeforeEach
     fun setup() {
-        authService = AuthService(userRepository, passwordHasher, jwtService)
+        authService = AuthService(userRepository, passwordHasher, jwtService, tokenBlacklist)
     }
 
     @Test

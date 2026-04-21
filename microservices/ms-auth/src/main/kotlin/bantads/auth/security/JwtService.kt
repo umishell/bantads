@@ -11,7 +11,9 @@ import java.util.Date
 import javax.crypto.SecretKey
 
 @Service
-class JwtService {
+class JwtService(
+    private val tokenBlacklist: TokenBlacklist,
+) {
 
     // Sênior: Nunca deixe segredos hardcoded. Use o application.properties
     @Value("\${jwt.secret}")
@@ -53,9 +55,10 @@ class JwtService {
     }
 
     /**
-     * Valida se o token ainda é válido (não expirou)
+     * Valida se o token ainda é válido (não expirou e não está revogado).
      */
     fun isTokenValido(token: String): Boolean {
+        if (tokenBlacklist.isRevogado(token)) return false
         return try {
             val claims = getClaims(token)
             val dataExpiracao = claims.expiration
