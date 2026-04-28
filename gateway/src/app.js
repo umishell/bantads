@@ -26,7 +26,6 @@ const fastify = Fastify({
 
 fastify.get('/health', async () => ({ status: 'up', service: 'bantads-gateway' }))
 
-/** Landing com links para o Swagger UI de cada microsserviço (testes locais). */
 fastify.get('/docs', async (_request, reply) => {
   reply.type('text/html').send(`<!doctype html>
 <html lang="pt-br">
@@ -46,16 +45,16 @@ fastify.get('/docs', async (_request, reply) => {
   </style>
 </head>
 <body>
-  <h1>BANTADS — Swagger UIs</h1>
-  <p class="lead">Cada microsserviço expõe seu próprio OpenAPI. Use o botão <b>Authorize</b> do Swagger para colar o <code>access_token</code> obtido em <code>POST /auth/login</code>.</p>
+  <h1>BANTADS — API Gateway</h1>
+  <p class="lead">Rotas externas alinhadas ao Swagger oficial, com prefixo local <code>/api</code>.</p>
   <ul>
-    <li><a href="http://localhost:8081/auth/swagger-ui.html" target="_blank">ms-auth</a><small>Login, logout, introspect e reboot (MongoDB). Porta 8081, context-path <code>/auth</code>.</small></li>
-    <li><a href="http://localhost:8082/clientes/swagger-ui.html" target="_blank">ms-cliente</a><small>Autocadastro (R1), pendentes (R9), aprovar (R10) / rejeitar (R11). Porta 8082.</small></li>
-    <li><a href="http://localhost:8083/contas/swagger-ui.html" target="_blank">ms-conta</a><small>Operações de conta (R3), extrato (R5), saldo (R6), consulta (R7), top 3 (R14), agregados (R15). Porta 8083.</small></li>
-    <li><a href="http://localhost:8084/gerentes/swagger-ui.html" target="_blank">ms-gerente</a><small>CRUD de gerentes (R17-R20) e dashboard do administrador (R15). Porta 8084.</small></li>
+    <li><b>Auth</b><small><code>POST /api/login</code>, <code>POST /api/logout</code>, <code>GET /api/reboot</code></small></li>
+    <li><b>Clientes</b><small><code>/api/clientes</code>, <code>/api/clientes/{cpf}</code>, filtros via query string</small></li>
+    <li><b>Contas</b><small><code>/api/contas/{numero}/saldo</code>, depositar, sacar, transferir, extrato</small></li>
+    <li><b>Gerentes</b><small><code>/api/gerentes</code>, <code>/api/gerentes?numero=dashboard</code>, CRUD por CPF</small></li>
   </ul>
-  <p><small>Dica: os endpoints <code>/api/*</code> que você vê no gateway (<code>http://localhost/api/…</code>) passam pelo middleware de JWT. Os Swagger UIs acima vão direto no serviço, sem o gateway, para facilitar debug. Em ambos os casos, chame <code>POST http://localhost/api/auth/login</code> primeiro para obter o token e cole em "Authorize".</small></p>
-  <p><small>RabbitMQ UI: <a href="http://localhost:15672" target="_blank">http://localhost:15672</a> (usuário/senha <code>guest/guest</code> por padrão) · MailHog: <a href="http://localhost:8025" target="_blank">http://localhost:8025</a></small></p>
+  <p><small>Swagger direto dos microsserviços em desenvolvimento: <a href="http://localhost:8081/auth/swagger-ui.html" target="_blank">ms-auth</a> · <a href="http://localhost:8082/clientes/swagger-ui.html" target="_blank">ms-cliente</a> · <a href="http://localhost:8083/contas/swagger-ui.html" target="_blank">ms-conta</a> · <a href="http://localhost:8084/gerentes/swagger-ui.html" target="_blank">ms-gerente</a></small></p>
+  <p><small>RabbitMQ UI: <a href="http://localhost:15672" target="_blank">http://localhost:15672</a> · MailHog: <a href="http://localhost:8025" target="_blank">http://localhost:8025</a></small></p>
 </body>
 </html>`)
 })
@@ -70,15 +69,16 @@ await fastify.register(fastifyRateLimit, {
   }),
 })
 
-/** R2: brute-force protection para /api/auth/login antes do proxy. */
 const loginRateLimit = {
   max: Number(process.env.LOGIN_RATE_LIMIT_MAX || 10),
   timeWindow: Number(process.env.LOGIN_RATE_LIMIT_WINDOW_MS || 60_000),
 }
 
 fastify.addHook('onRequest', async (request, reply) => {
-  const url = request.url.split('?')[0]
-  if (request.method === 'POST' && url === '/api/auth/login') {
+  const path = request.url.split('?')[0]
+  const isLogin = request.method === 'POST' && (path === '/api/login' || path === '/api/auth/login')
+
+  if (isLogin) {
     await fastify.rateLimit({
       max: loginRateLimit.max,
       timeWindow: loginRateLimit.timeWindow,
@@ -86,12 +86,11 @@ fastify.addHook('onRequest', async (request, reply) => {
   }
 })
 
-/** R2: exige JWT nas rotas /api protegidas */
 fastify.addHook('onRequest', async (request, reply) => {
-  const url = request.url.split('?')[0]
-  if (!url.startsWith('/api')) return
+  const path = request.url.split('?')[0]
+  if (!path.startsWith('/api')) return
 
-  if (isPublicApiRoute(request.method, url)) return
+  if (isPublicApiRoute(request.method, request.url)) return
 
   const auth = request.headers.authorization
   if (!auth || !auth.toLowerCase().startsWith('bearer ')) {
@@ -115,12 +114,12 @@ fastify.addHook('onRequest', async (request, reply) => {
   request.gatewayUser = {
     sub: payload.sub,
     tipo: payload.tipo ?? payload.perfil,
-    perfil: payload.perfil,
+    perfil: payload.perfil ?? payload.tipo,
   }
 
   const perfil = payload.perfil ?? payload.tipo
 
-  if (requiresAdminProfile(request.method, url) && perfil !== 'ADMINISTRADOR') {
+  if (requiresAdminProfile(request.method, request.url) && !['ADMIN', 'ADMINISTRADOR'].includes(perfil)) {
     return reply.code(403).send({
       status: 403,
       error: 'Forbidden',
@@ -128,7 +127,7 @@ fastify.addHook('onRequest', async (request, reply) => {
     })
   }
 
-  if (requiresGerenteProfile(request.method, url) && perfil !== 'GERENTE') {
+  if (requiresGerenteProfile(request.method, request.url) && perfil !== 'GERENTE') {
     return reply.code(403).send({
       status: 403,
       error: 'Forbidden',
@@ -136,7 +135,7 @@ fastify.addHook('onRequest', async (request, reply) => {
     })
   }
 
-  if (requiresClienteProfile(request.method, url) && perfil !== 'CLIENTE') {
+  if (requiresClienteProfile(request.method, request.url) && perfil !== 'CLIENTE') {
     return reply.code(403).send({
       status: 403,
       error: 'Forbidden',
@@ -145,10 +144,23 @@ fastify.addHook('onRequest', async (request, reply) => {
   }
 })
 
+// --- Rotas oficiais externas, alinhadas ao Swagger com prefixo local /api ---
 await fastify.register(fastifyHttpProxy, {
   upstream: upstreams.auth,
-  prefix: '/api/auth',
-  rewritePrefix: '/auth',
+  prefix: '/api/login',
+  rewritePrefix: '/auth/login',
+})
+
+await fastify.register(fastifyHttpProxy, {
+  upstream: upstreams.auth,
+  prefix: '/api/logout',
+  rewritePrefix: '/auth/logout',
+})
+
+await fastify.register(fastifyHttpProxy, {
+  upstream: upstreams.auth,
+  prefix: '/api/reboot',
+  rewritePrefix: '/auth/reboot',
 })
 
 await fastify.register(fastifyHttpProxy, {
@@ -169,19 +181,26 @@ await fastify.register(fastifyHttpProxy, {
   rewritePrefix: '/gerentes',
 })
 
+// Compatibilidade com rotas antigas já existentes no projeto.
+await fastify.register(fastifyHttpProxy, {
+  upstream: upstreams.auth,
+  prefix: '/api/auth',
+  rewritePrefix: '/auth',
+})
+
 await fastify.register(fastifyHttpProxy, {
   upstream: upstreams.saga,
   prefix: '/api/saga',
   rewritePrefix: '/saga',
 })
 
-/** Frontend Angular — tudo que não começa com /api */
+// Frontend Angular — tudo que não começa com /api.
 await fastify.register(fastifyHttpProxy, {
   upstream: upstreams.frontend,
   prefix: '/',
   rewritePrefix: '/',
   replyOptions: {
-    rewriteRequestHeaders: (request, headers) => {
+    rewriteRequestHeaders: (_request, headers) => {
       headers.host = new URL(upstreams.frontend).host
       return headers
     },

@@ -1,16 +1,25 @@
 /**
- * Rotas públicas (sem Authorization) — alinhado ao Swagger / R1 autocadastro.
- * Demais /api/* exigem Bearer válido.
+ * Rotas públicas sem Authorization.
+ *
+ * Formato externo oficial, usado pelo frontend:
+ * - POST /api/login
+ * - GET  /api/reboot
+ * - POST /api/clientes
+ *
+ * Mantemos também /api/auth/login e /api/auth/reboot por compatibilidade local.
  */
-export function isPublicApiRoute(method, pathname) {
-  const p = pathname.replace(/\/$/, '') || '/'
+export function isPublicApiRoute(method, rawPathname) {
+  const { p } = parsePath(rawPathname)
+
+  if (method === 'POST' && p === '/api/login') return true
+  if (method === 'GET' && p === '/api/reboot') return true
 
   if (method === 'POST' && p === '/api/auth/login') return true
   if (method === 'GET' && p === '/api/auth/reboot') return true
-  // R1 autocadastro — POST /clientes sem autenticação
+
+  // R1 autocadastro público.
   if (method === 'POST' && p === '/api/clientes') return true
 
-  // Swagger UI e specs de cada microsserviço (testes locais sem JWT obrigatório)
   if (method === 'GET' && isSwaggerPath(p)) return true
 
   return false
@@ -26,4 +35,9 @@ function isSwaggerPath(p) {
     if (p.startsWith(`${prefix}/webjars/`)) return true
   }
   return false
+}
+
+function parsePath(rawPathname) {
+  const [path] = String(rawPathname || '').split('?')
+  return { p: path.replace(/\/$/, '') || '/' }
 }

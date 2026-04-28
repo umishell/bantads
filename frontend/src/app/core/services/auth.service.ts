@@ -1,9 +1,17 @@
 import { Injectable, computed, inject, signal } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { Observable, tap } from 'rxjs';
+import { Observable, map, tap } from 'rxjs';
 
 import { DemoBantadsStoreService } from '../../shared/services/demo-bantads-store.service';
-import { UsuarioLogado, LoginRequest, LoginResponse } from '../../shared/models/auth/auth.model';
+import {
+  LoginApiResponse,
+  LoginRequest,
+  LoginResponse,
+  Perfil,
+  PerfilApi,
+  UsuarioLogado,
+} from '../../shared/models/auth/auth.model';
+import { API_ENDPOINTS } from '../../shared/services/api.config';
 
 @Injectable({
   providedIn: 'root',
@@ -12,14 +20,18 @@ export class AuthService {
   private readonly tokenKey = 'bantads_token';
   private readonly userKey = 'bantads_user';
 
-  private readonly apiUrl = 'http://localhost:3000';
-  private readonly demoMode = true;
+  /**
+   * Etapa atual:
+   * - true  = mantém o frontend funcionando com dados em memória.
+   * - false = passa a usar o API Gateway no contrato oficial do Swagger.
+   */
+  private readonly useDemoMode = true;
 
   private readonly http = inject(HttpClient);
   private readonly demoStore = inject(DemoBantadsStoreService);
 
-  private _token = signal<string | null>(sessionStorage.getItem(this.tokenKey));
-  private _usuario = signal<UsuarioLogado | null>(this.getUsuarioDoStorage());
+  private readonly _token = signal<string | null>(sessionStorage.getItem(this.tokenKey));
+  private readonly _usuario = signal<UsuarioLogado | null>(this.getUsuarioDoStorage());
 
   public readonly token = this._token.asReadonly();
   public readonly currentUser = this._usuario.asReadonly();
@@ -50,15 +62,28 @@ export class AuthService {
   }
 
   public login(credenciais: LoginRequest): Observable<LoginResponse> {
-    const request$ = this.demoMode
+    const request$ = this.useDemoMode
       ? this.demoStore.autenticar(credenciais)
-      : this.http.post<LoginResponse>(`${this.apiUrl}/login`, credenciais);
+      : this.http.post<LoginApiResponse>(API_ENDPOINTS.login, credenciais).pipe(
+          map((response) => this.mapLoginApiResponse(response)),
+        );
 
     return request$.pipe(
       tap((res: LoginResponse) => {
         this.saveSession(res.usuario, res.token);
       }),
     );
+  }
+
+  /**
+   * Logout local. Quando o backend real estiver ligado, podemos criar também um logout remoto
+   * chamando POST /api/logout antes de limpar a sessão.
+   */
+  public logout(): void {
+    sessionStorage.removeItem(this.tokenKey);
+    sessionStorage.removeItem(this.userKey);
+    this._token.set(null);
+    this._usuario.set(null);
   }
 
   public saveSession(usuario: UsuarioLogado, token: string): void {
@@ -69,11 +94,36 @@ export class AuthService {
     this._usuario.set(usuario);
   }
 
-  public logout(): void {
-    sessionStorage.removeItem(this.tokenKey);
-    sessionStorage.removeItem(this.userKey);
-    this._token.set(null);
-    this._usuario.set(null);
+  private mapLoginApiResponse(response: LoginApiResponse): LoginResponse {
+    const perfil = this.mapPerfil(response.usuario.tipo ?? response.tipo);
+    const cpf = response.usuario.cpf;
+
+    return {
+      token: response.access_token,
+      tokenType: response.token_type,
+      usuario: {
+        id: cpf,
+        cpf,
+        nome: response.usuario.nome,
+        email: response.usuario.email,
+        perfil,
+        numeroConta: response.usuario.numeroConta ?? response.usuario.conta,
+      },
+    };
+  }
+
+  private mapPerfil(perfilApi: PerfilApi | string | undefined): Perfil {
+    const normalizado = String(perfilApi ?? '').trim().toUpperCase();
+
+    if (normalizado === 'ADMINISTRADOR' || normalizado === 'ADMIN') {
+      return 'ADMIN';
+    }
+
+    if (normalizado === 'GERENTE') {
+      return 'GERENTE';
+    }
+
+    return 'CLIENTE';
   }
 
   private getUsuarioDoStorage(): UsuarioLogado | null {
