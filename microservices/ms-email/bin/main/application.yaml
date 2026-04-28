@@ -1,0 +1,32 @@
+server:
+  port: 8086
+  servlet:
+    context-path: /email
+
+spring:
+  application:
+    name: ms-email
+  rabbitmq:
+    host: ${SPRING_RABBITMQ_HOST:localhost}
+    port: ${SPRING_RABBITMQ_PORT:5672}
+    username: ${SPRING_RABBITMQ_USERNAME:guest}
+    password: ${SPRING_RABBITMQ_PASSWORD:guest}
+  mail:
+    host: ${SPRING_MAIL_HOST:localhost}
+    port: ${SPRING_MAIL_PORT:1025}
+    properties:
+      mail:
+        smtp:
+          auth: false
+          starttls:
+            enable: false
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health, info
+
+bantads:
+  mail:
+    from: ${BANTADS_MAIL_FROM:noreply@bantads.local}

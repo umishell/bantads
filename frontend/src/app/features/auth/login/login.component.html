@@ -1,0 +1,154 @@
+<!--
+<div class="login-container">
+  <div class="login-card">
+    <div class="login-header">
+      <h2>BANTADS</h2>
+      <p>Acesse sua conta ou cadastre-se</p>
+      <small class="bank-muted">Para os mocks de demonstração, use as senhas pré-cadastradas do protótipo.</small>
+    </div>
+
+    <form [formGroup]="loginForm" (ngSubmit)="onSubmit()">
+      <div class="form-group">
+        <label for="login">E-mail</label>
+        <input
+          id="login"
+          type="email"
+          formControlName="login"
+          placeholder="exemplo@bantads.com"
+          [class.is-invalid]="loginForm.get('login')?.invalid && loginForm.get('login')?.touched"
+        />
+        @if (loginForm.get('login')?.hasError('required') && loginForm.get('login')?.touched) {
+          <small class="error-text">O e-mail é obrigatório.</small>
+        }
+        @if (loginForm.get('login')?.hasError('email') && loginForm.get('login')?.touched) {
+          <small class="error-text">Digite um e-mail válido.</small>
+        }
+      </div>
+
+      <div class="form-group">
+        <label for="senha">Senha</label>
+        <input
+          id="senha"
+          type="password"
+          formControlName="senha"
+          placeholder="Sua senha de acesso"
+          [class.is-invalid]="loginForm.get('senha')?.invalid && loginForm.get('senha')?.touched"
+        />
+        @if (loginForm.get('senha')?.hasError('required') && loginForm.get('senha')?.touched) {
+          <small class="error-text">A senha é obrigatória.</small>
+        }
+        @if (loginForm.get('senha')?.hasError('minlength') && loginForm.get('senha')?.touched) {
+          <small class="error-text">A senha deve ter no mínimo 4 caracteres.</small>
+        }
+      </div>
+
+      @if (mensagemErro()) {
+        <div class="alert alert-danger">
+          {{ mensagemErro() }}
+        </div>
+      }
+
+      <button type="submit" [disabled]="loginForm.invalid || isLoading()" class="btn-primary">
+        @if (isLoading()) {
+          <span>Aguarde...</span>
+        } @else {
+          <span>Entrar</span>
+        }
+      </button>
+    </form>
+
+    <div class="login-footer">
+      <p>Ainda não é cliente?</p>
+      <a routerLink="/auth/autocadastro" class="btn-link">Abra sua conta agora</a>
+    </div>
+  </div>
+</div>
+-->
+
+<div class="auth-shell login-shell">
+  <div class="auth-panel auth-panel--brand">
+    <div class="brand-badge">BANTADS</div>
+    <h1>Seu banco digital!</h1>
+    <p>
+      Entre com um usuário já cadastrado para navegar pelo fluxo de cliente/gerente/adm sem recarregar a página.
+    </p>
+
+    <div class="demo-grid">
+      <article class="demo-card">
+        <span class="demo-card__tag">Cliente</span>
+        <strong>cli1@bantads.com.br</strong>
+        <small>senha: tads</small>
+      </article>
+      <article class="demo-card">
+        <span class="demo-card__tag">Cliente</span>
+        <strong>cli2@bantads.com.br</strong>
+        <small>senha: tads</small>
+      </article>
+      <article class="demo-card">
+        <span class="demo-card__tag">Gerente</span>
+        <strong>ger1@bantads.com.br</strong>
+        <small>senha: tads</small>
+      </article>
+      <article class="demo-card">
+        <span class="demo-card__tag">Gerente</span>
+        <strong>ger2@bantads.com.br</strong>
+        <small>senha: tads</small>
+      </article>
+    </div>
+  </div>
+
+  <div class="auth-panel auth-panel--form">
+    <div class="login-card">
+      <div class="login-header">
+        <span class="eyebrow">Acesso seguro</span>
+        <h2>Entrar na sua conta</h2>
+        <p>Acesse cliente, gerente ou conta de demonstração.</p>
+      </div>
+
+      <form [formGroup]="loginForm" (ngSubmit)="onSubmit()" novalidate>
+        <div class="form-group">
+          <label for="login">E-mail</label>
+          <input id="login" type="email" formControlName="login" placeholder="exemplo@bantads.com"
+            [class.is-invalid]="loginForm.get('login')?.invalid && loginForm.get('login')?.touched" />
+          @if (loginForm.get('login')?.hasError('required') && loginForm.get('login')?.touched) {
+          <small class="error-text">O e-mail é obrigatório.</small>
+          }
+          @if (loginForm.get('login')?.hasError('email') && loginForm.get('login')?.touched) {
+          <small class="error-text">Digite um e-mail válido.</small>
+          }
+        </div>
+
+        <div class="form-group">
+          <label for="senha">Senha</label>
+          <input id="senha" type="password" formControlName="senha" placeholder="Sua senha de acesso"
+            [class.is-invalid]="loginForm.get('senha')?.invalid && loginForm.get('senha')?.touched" />
+          @if (loginForm.get('senha')?.hasError('required') && loginForm.get('senha')?.touched) {
+          <small class="error-text">A senha é obrigatória.</small>
+          }
+          @if (loginForm.get('senha')?.hasError('minlength') && loginForm.get('senha')?.touched) {
+          <small class="error-text">A senha deve ter no mínimo 4 caracteres.</small>
+          }
+        </div>
+
+        @if (mensagemErro()) {
+        <div class="alert alert-danger">
+          {{ mensagemErro() }}
+        </div>
+        }
+
+        <button type="submit" [disabled]="loginForm.invalid || isLoading()" class="btn-primary btn-primary--full">
+          @if (isLoading()) {
+          <span>Aguarde...</span>
+          } @else {
+          <span>Entrar</span>
+          }
+        </button>
+      </form>
+
+      <div class="login-footer">
+        <p>Ainda não é cliente?</p>
+        <a routerLink="/auth/autocadastro" class="btn-link">Solicitar abertura de conta</a>
+      </div>
+    </div>
+  </div>
+</div>
