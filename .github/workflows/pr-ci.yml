@@ -1,0 +1,142 @@
+name: PR CI
+
+# Dispara o pipeline em qualquer Pull Request cujo destino seja
+# 'main' ou 'legacyMain' (PRs vindos de qualquer outra branch).
+on:
+  pull_request:
+    branches:
+      - main
+      - legacyMain
+
+    # Descomente para limitar a execução a mudanças relevantes:
+    # paths:
+    #   - 'frontend/**'
+    #   - 'gateway/**'
+    #   - 'microservices/**'
+    #   - '.github/workflows/**'
+
+jobs:
+  # ---------------------------------------------------------------------------
+  # FRONTEND (Angular 20 + Karma/Jasmine)
+  # ---------------------------------------------------------------------------
+  frontend:
+    name: Frontend (Angular) - Lint, Test & Build
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: frontend
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: 'npm'
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: Install Dependencies
+        run: npm ci
+
+      # Roda 'lint' apenas se o script existir no package.json
+      # (atualmente o frontend usa Prettier; ESLint pode ser adicionado depois)
+      - name: Run Lint
+        run: npm run lint --if-present
+
+      # Verificação de formatação via Prettier (já configurado no package.json)
+      - name: Prettier Format Check
+        run: npx prettier --check "src/**/*.{ts,html,scss,json}"
+        continue-on-error: true
+
+      # Karma em modo headless: sem watch e usando o Chrome do runner Ubuntu
+      - name: Run Unit Tests (Karma headless)
+        run: npx ng test --watch=false --browsers=ChromeHeadless --code-coverage=false
+
+      - name: Run Build
+        run: npm run build
+
+  # ---------------------------------------------------------------------------
+  # API GATEWAY (Fastify + Node 20)
+  # ---------------------------------------------------------------------------
+  gateway:
+    name: API Gateway (Fastify) - Lint & Validate
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: gateway
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: 'npm'
+          cache-dependency-path: gateway/package-lock.json
+
+      - name: Install Dependencies
+        run: npm ci
+
+      - name: Run Lint
+        run: npm run lint --if-present
+
+      - name: Run Unit Tests
+        run: npm test --if-present
+
+      # O gateway ainda não possui testes; ao menos validamos que o
+      # entry-point é JS sintaticamente válido (smoke check)
+      - name: Syntax Check (entry-point)
+        run: node --check src/app.js
+
+  # ---------------------------------------------------------------------------
+  # MICROSERVIÇOS (Spring Boot 4 + Kotlin 2.2 + JDK 24)
+  # ---------------------------------------------------------------------------
+  microservices:
+    name: ${{ matrix.service }} (Spring Boot/Kotlin) - Test & Build
+    runs-on: ubuntu-latest
+
+    strategy:
+      fail-fast: false
+      matrix:
+        service:
+          - ms-auth
+          - ms-cliente
+          - ms-conta
+          - ms-gerente
+          - ms-email
+          - ms-saga-orchestrator
+
+    defaults:
+      run:
+        working-directory: microservices/${{ matrix.service }}
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Set up JDK 24 (Temurin)
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '24'
+
+      - name: Setup Gradle (com cache)
+        uses: gradle/actions/setup-gradle@v4
+        with:
+          build-root-directory: microservices/${{ matrix.service }}
+
+      # gradlew pode ter sido commitado sem bit de execução em ambientes Windows
+      - name: Grant execute permission for gradlew
+        run: chmod +x ./gradlew
+
+      # 'check' executa os testes JUnit + qualquer task de verificação registrada
+      # (detekt/ktlint, se forem adicionados depois, entram aqui automaticamente).
+      - name: Run Lint & Unit Tests (gradle check)
+        run: ./gradlew check --no-daemon --stacktrace
+
+      - name: Run Build (sem repetir testes)
+        run: ./gradlew build -x test --no-daemon
