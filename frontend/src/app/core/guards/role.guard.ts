@@ -6,22 +6,11 @@ import { AuthService } from '../services/auth.service';
 export const roleGuard: CanActivateFn = (route: ActivatedRouteSnapshot) => {
   const authService = inject(AuthService);
   const router = inject(Router);
+  const expectedRole = String(route.data?.['role'] ?? '').toUpperCase();
 
-  const role = route.data?.['role'];
-  const roles = route.data?.['roles'];
-
-  const expectedRoles = Array.isArray(roles)
-    ? roles.map((item) => String(item).toUpperCase())
-    : role
-      ? [String(role).toUpperCase()]
-      : [];
-
-  if (expectedRoles.length === 0) {
+  if (!expectedRole) {
     return true;
   }
 
-  const currentRole = authService.userRole()?.toUpperCase();
-  return currentRole && expectedRoles.includes(currentRole)
-    ? true
-    : router.createUrlTree(['/auth/login']);
+  return authService.hasRole(expectedRole) ? true : router.createUrlTree(['/auth/login']);
 };
