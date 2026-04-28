@@ -1,0 +1,9 @@
+dist/
+.angular/
+node_modules/
+coverage/
+
+# Arquivos de backup/legado mantidos no repositório:
+# o Prettier não consegue parsear esses templates (HTML quebrado)
+**/Old_*.*
+**/old_*.*

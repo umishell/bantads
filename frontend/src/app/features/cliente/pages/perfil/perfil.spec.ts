@@ -3,6 +3,7 @@ import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { of } from 'rxjs';
 
 import { AuthService } from '../../../../core/services/auth.service';
+import { ClienteModel } from '../../../../shared/models/cliente/cliente.model';
 import { ClienteService } from '../../../../shared/services/cliente.service';
 import { PerfilComponent } from './perfil';
 
@@ -17,7 +18,7 @@ describe('PerfilComponent', () => {
       'alterarPerfil',
     ]);
 
-    const clienteBase = {
+    const clienteBase: ClienteModel = {
       cpf: '12912861012',
       nome: 'Catharyna',
       telefone: '41999990001',
@@ -31,7 +32,6 @@ describe('PerfilComponent', () => {
       limite: 5000,
       gerente_nome: 'Geniéve',
       situacao: 'APROVADO',
-      agencia: '0001',
       cep: '80000-100',
     };
 

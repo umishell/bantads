@@ -70,5 +70,14 @@ kotlin {
 }
 
 tasks.withType<Test> {
-    useJUnitPlatform()
+    useJUnitPlatform {
+        // No CI (ou via -PexcludeIntegration) pulamos os testes de integração que
+        // dependem de Docker/Testcontainers (MongoDB, RabbitMQ). Esses testes
+        // continuam rodando localmente quando 'gradlew test' é chamado direto.
+        val skipIntegration = project.hasProperty("excludeIntegration") ||
+            System.getenv("CI") == "true"
+        if (skipIntegration) {
+            excludeTags("integration")
+        }
+    }
 }

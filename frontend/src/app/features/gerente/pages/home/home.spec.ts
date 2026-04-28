@@ -1,4 +1,6 @@
+import { provideHttpClient } from '@angular/common/http';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { provideRouter } from '@angular/router';
 
 import { GerenteHomeComponent } from './home';
 
@@ -9,6 +11,7 @@ describe('GerenteHomeComponent', () => {
   beforeEach(async () => {
     await TestBed.configureTestingModule({
       imports: [GerenteHomeComponent],
+      providers: [provideHttpClient(), provideRouter([])],
     }).compileComponents();
 
     fixture = TestBed.createComponent(GerenteHomeComponent);

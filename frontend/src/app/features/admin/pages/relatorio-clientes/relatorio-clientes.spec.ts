@@ -1,4 +1,6 @@
+import { provideHttpClient } from '@angular/common/http';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { provideRouter } from '@angular/router';
 
 import { AdminRelatorioClientesComponent } from './relatorio-clientes';
 
@@ -9,6 +11,7 @@ describe('AdminRelatorioClientesComponent', () => {
   beforeEach(async () => {
     await TestBed.configureTestingModule({
       imports: [AdminRelatorioClientesComponent],
+      providers: [provideHttpClient(), provideRouter([])],
     }).compileComponents();
 
     fixture = TestBed.createComponent(AdminRelatorioClientesComponent);

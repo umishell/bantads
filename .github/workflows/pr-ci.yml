@@ -135,8 +135,10 @@ jobs:
 
       # 'check' executa os testes JUnit + qualquer task de verificação registrada
       # (detekt/ktlint, se forem adicionados depois, entram aqui automaticamente).
+      # Os build.gradle.kts excluem automaticamente a tag 'integration' quando
+      # detectam CI=true, evitando dependência de Docker/Testcontainers no runner.
       - name: Run Lint & Unit Tests (gradle check)
-        run: ./gradlew check --no-daemon --stacktrace
+        run: ./gradlew check --no-daemon --stacktrace -PexcludeIntegration
 
       - name: Run Build (sem repetir testes)
         run: ./gradlew build -x test --no-daemon
