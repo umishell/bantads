@@ -98,7 +98,8 @@ services:
     ports:
       - "8081:8081"
     environment:
-      SPRING_DATA_MONGODB_URI: mongodb://mongo-auth:27017/auth_db
+      # Spring Boot 4: usar spring.mongodb.uri → SPRING_MONGODB_URI (spring.data.mongodb.uri é ignorado)
+      SPRING_MONGODB_URI: mongodb://mongo-auth:27017/auth_db
       SPRING_RABBITMQ_HOST: rabbitmq
       SPRING_RABBITMQ_PORT: 5672
       SPRING_RABBITMQ_USERNAME: ${RABBITMQ_USER:-guest}
