@@ -9,9 +9,14 @@ spring:
   application:
     name: ms-auth
 
+  # Spring Boot 4: URI de conexão em spring.mongodb (não spring.data.mongodb).
+  # Compose: SPRING_MONGODB_URI=mongodb://mongo-auth:27017/auth_db
+  mongodb:
+    uri: ${SPRING_MONGODB_URI:mongodb://localhost:27017/auth_db}
+
+  # Propriedades que ainda vivem sob spring.data.mongodb (migration guide Boot 4).
   data:
     mongodb:
-      uri: ${SPRING_DATA_MONGODB_URI:mongodb://localhost:27017/auth_db}
       auto-index-creation: true
 
   rabbitmq:

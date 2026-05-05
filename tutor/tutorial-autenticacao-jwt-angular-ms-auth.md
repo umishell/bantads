@@ -71,7 +71,7 @@ provideHttpClient(withInterceptors([authInterceptor])),
 
 **Login via gateway:**
 
-- `POST` relativo: `'/api/auth/login'` — mesma origem quando o Angular é servido pelo gateway (ex.: `http://localhost:3000`).
+- `POST` relativo: `'/api/auth/login'` — mesma origem quando o browser fala com o gateway (Compose: **`http://localhost`** na porta **80**; desenvolvimento local direto ao Angular pode ser **`http://localhost:4200`**, mas aí o caminho da API depende do proxy do `ng serve`).
 - Tipagem da resposta: `HttpClient.post<LoginApiResponse>(...)`.
 - `tap`: ao receber resposta, chama `saveSession(usuario, raw.access_token)`.
 - `map`: converte para `LoginResponse` com `token: raw.access_token`.

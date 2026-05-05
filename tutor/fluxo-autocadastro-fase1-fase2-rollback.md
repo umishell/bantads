@@ -43,7 +43,7 @@ Transições válidas:
 1. Validar payload e normalizar CPF/CEP.
 2. Verificar duplicidade de CPF (estados bloqueantes).
 3. Se duplicado: HTTP `409`.
-4. Persistir cliente em PostgreSQL (`cliente_db`) com `PENDENTE_APROVACAO`.
+4. Persistir cliente em PostgreSQL (`cliente_db`, serviço Docker **`db-cliente`**, tabela **`cliente`**) com `PENDENTE_APROVACAO`.
 5. Publicar evento para saga (somente saga consome), com `sagaId` e `correlationId`.
 
 Evento sugerido:
@@ -141,13 +141,13 @@ Regras:
 
 ## 6.3 Compensação por microserviço e banco
 
-### ms-conta (PostgreSQL conta_db)
+### ms-conta (PostgreSQL `conta_db`, serviço Docker `db-conta`)
 
 - Comando compensatório: `CONTA_DELETE`.
 - Estratégia recomendada: **inativação lógica** (`ativa=false`) para preservar trilha.
 - Idempotência: repetir `CONTA_DELETE` não deve falhar.
 
-### ms-auth (MongoDB auth_db)
+### ms-auth (MongoDB `auth_db`, serviço Docker `mongo-auth`)
 
 - Comando compensatório: `AUTH_DELETE_USER`.
 - Remover usuário por login (e-mail) criado pela saga.
@@ -158,7 +158,7 @@ Regras:
 - Não possui compensação de "desenvio".
 - Apenas retry de envio (`N=3`) e resposta de falha para saga ao esgotar.
 
-### ms-cliente (PostgreSQL cliente_db)
+### ms-cliente (PostgreSQL `cliente_db`, serviço Docker `db-cliente`)
 
 - Comando de rollback: `CLIENTE_MARCAR_PENDENTE`.
 - Regra: só aplicar se estado atual for `PROCESSANDO_APROVACAO`.
