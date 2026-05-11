@@ -48,3 +48,9 @@ Desktop.ini
 # --- Testes / cobertura ---
 coverage/
 .nyc_output/
+
+# --- GitNexus / agentes (gerados localmente; regeneram com `gitnexus analyze`) ---
+AGENTS.md
+CLAUDE.md
+.claude/
+.gitnexus/

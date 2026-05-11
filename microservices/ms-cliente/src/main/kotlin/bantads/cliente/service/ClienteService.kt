@@ -1,5 +1,6 @@
 package bantads.cliente.service
 
+import bantads.cliente.dto.AlterarPerfilClienteRequest
 import bantads.cliente.dto.AprovarClienteRequest
 import bantads.cliente.dto.AutocadastroRequest
 import bantads.cliente.dto.AutocadastroResponse
@@ -76,6 +77,25 @@ class ClienteService(
             clienteId = id,
             cpf = cpf,
         )
+    }
+
+    @Transactional
+    fun alterarPerfil(cpfRaw: String, req: AlterarPerfilClienteRequest) {
+        val cpf = Cpf.require(cpfRaw)
+        val c = repository.findByCpf(cpf) ?: throw EstadoClienteInvalidoException("Cliente não encontrado")
+        req.nome?.let { c.nome = it.trim() }
+        req.email?.let { c.email = it.trim().lowercase() }
+        req.telefone?.let { c.telefone = it.trim() }
+        req.salario?.let { c.salario = it }
+        req.endereco?.let { c.endereco = it.trim() }
+        req.cidade?.let { c.cidade = it.trim() }
+        req.estado?.let { c.estado = it.trim().uppercase() }
+        req.cep?.let { raw ->
+            val digits = raw.filter { it.isDigit() }
+            require(digits.length == 8) { "CEP deve conter 8 dígitos" }
+            c.cep = digits
+        }
+        repository.save(c)
     }
 
     @Transactional(readOnly = true)

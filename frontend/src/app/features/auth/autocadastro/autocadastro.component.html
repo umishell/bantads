@@ -1,0 +1,66 @@
+<div class="auth-page bank-page">
+  <header class="auth-header">
+    <span class="auth-mark">BT</span>
+    <div>
+      <strong>BANTADS</strong>
+      <span class="auth-sub">Autocadastro de cliente (R1)</span>
+    </div>
+  </header>
+
+  <section class="auth-card auth-card--wide">
+    <h1>Novo cadastro</h1>
+    <p class="auth-lead">
+      Os dados são enviados para <code>POST /api/clientes</code>. Após aprovação de um gerente, a
+      senha será enviada por e-mail.
+    </p>
+
+    <div *ngIf="erro" class="feedback feedback--error">{{ erro }}</div>
+    <div *ngIf="sucesso" class="feedback feedback--success">{{ sucesso }}</div>
+
+    <form [formGroup]="form" (ngSubmit)="enviar()" class="autocadastro-grid">
+      <label>
+        <span>Nome completo</span>
+        <input type="text" formControlName="nome" />
+      </label>
+      <label>
+        <span>E-mail</span>
+        <input type="email" formControlName="email" />
+      </label>
+      <label>
+        <span>CPF (11 dígitos)</span>
+        <input type="text" formControlName="cpf" placeholder="00000000000" />
+      </label>
+      <label>
+        <span>Telefone</span>
+        <input type="text" formControlName="telefone" />
+      </label>
+      <label>
+        <span>Salário (mensal)</span>
+        <input type="number" step="0.01" formControlName="salario" />
+      </label>
+      <label class="span-2">
+        <span>Endereço (logradouro e número)</span>
+        <input type="text" formControlName="endereco" />
+      </label>
+      <label>
+        <span>CEP</span>
+        <input type="text" formControlName="cep" placeholder="80010000 ou 80010-000" />
+      </label>
+      <label>
+        <span>Cidade</span>
+        <input type="text" formControlName="cidade" />
+      </label>
+      <label>
+        <span>UF (2 letras)</span>
+        <input type="text" formControlName="estado" maxlength="2" />
+      </label>
+
+      <div class="span-2 autocadastro-actions">
+        <button type="submit" class="button button--primary" [disabled]="carregando || form.invalid">
+          {{ carregando ? 'Enviando…' : 'Enviar solicitação' }}
+        </button>
+        <a routerLink="/auth/login" class="button button--ghost">Voltar ao login</a>
+      </div>
+    </form>
+  </section>
+</div>

@@ -2,7 +2,7 @@
 
 Este documento explica o fluxo de autenticação do projeto **BANTADS**: do login no Angular até a emissão e validação do JWT no **ms-auth** e no **API Gateway** (Node.js). Referências apontam para arquivos e trechos do repositório.
 
-> **Nota:** O arquivo `docs/CODIGO_FRONTEND_PARA_GEMINI.txt` é um export que pode estar desatualizado (ex.: modo demo em memória). O fluxo descrito aqui segue o **código versionado** em `frontend/`, `gateway/` e `microservices/ms-auth/`.
+> **Nota:** O arquivo `docs/CODIGO_FRONTEND_PARA_GEMINI.txt` é um export que pode estar desatualizado. O fluxo descrito aqui segue o **código versionado** em `frontend/`, `gateway/` e `microservices/ms-auth/`.
 
 ---
 

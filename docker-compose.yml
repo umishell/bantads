@@ -126,11 +126,17 @@ services:
       SPRING_RABBITMQ_PORT: 5672
       SPRING_RABBITMQ_USERNAME: ${RABBITMQ_USER:-guest}
       SPRING_RABBITMQ_PASSWORD: ${RABBITMQ_PASSWORD:-guest}
+      BANTADS_MS_CONTA_BASE_URL: http://ms-conta:8083/contas
+      BANTADS_MS_GERENTE_BASE_URL: http://ms-gerente:8084/gerentes
     depends_on:
       db-cliente:
         condition: service_healthy
       rabbitmq:
         condition: service_healthy
+      ms-conta:
+        condition: service_started
+      ms-gerente:
+        condition: service_started
     networks:
       - bantads-net
 

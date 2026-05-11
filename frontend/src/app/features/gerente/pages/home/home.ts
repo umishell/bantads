@@ -68,15 +68,20 @@ export class GerenteHomeComponent implements OnInit {
     });
   }
 
-  public aprovar(cpf: string): void {
+  public aprovar(solicitacao: SolicitacaoClienteModel): void {
     this.errorMessage = '';
     this.successMessage = '';
     this.aprovacaoRecente = null;
 
-    this.gerenteService.aprovarCliente(cpf).subscribe({
+    this.gerenteService.aprovarCliente(solicitacao.id).subscribe({
       next: (response) => {
-        this.aprovacaoRecente = response;
-        this.successMessage = `Cliente ${response.nome} aprovado com sucesso. Conta ${response.numeroConta} criada.`;
+        this.aprovacaoRecente = {
+          ...response,
+          nome: solicitacao.nome,
+          cpf: solicitacao.cpf,
+          email: solicitacao.email,
+        };
+        this.successMessage = `Solicitação de ${solicitacao.nome} enviada para aprovação. A conta será criada de forma assíncrona; a senha provisória será enviada por e-mail quando concluída.`;
         this.carregarTela();
       },
       error: (error) => {
@@ -85,26 +90,28 @@ export class GerenteHomeComponent implements OnInit {
     });
   }
 
-  public recusar(cpf: string): void {
+  public recusar(solicitacao: SolicitacaoClienteModel): void {
     this.errorMessage = '';
     this.successMessage = '';
-    const motivo = (this.motivosRecusa[cpf] ?? '').trim();
+    const motivo = (this.motivosRecusa[solicitacao.cpf] ?? '').trim();
 
     if (!motivo) {
       this.errorMessage = 'Informe um motivo para recusar a solicitação.';
       return;
     }
 
-    this.gerenteService.rejeitarCliente(cpf, motivo).subscribe({
-      next: (response) => {
-        this.successMessage = `Solicitação de ${response.nome} recusada em ${this.formatDateTime(response.dataHora)}.`;
-        delete this.motivosRecusa[cpf];
-        this.carregarTela();
-      },
-      error: (error) => {
-        this.errorMessage = error?.message || 'Não foi possível recusar a solicitação.';
-      },
-    });
+    this.gerenteService
+      .rejeitarCliente(solicitacao.id, motivo, { cpf: solicitacao.cpf, nome: solicitacao.nome })
+      .subscribe({
+        next: (response) => {
+          this.successMessage = `Solicitação de ${response.nome} recusada em ${this.formatDateTime(response.dataHora)}.`;
+          delete this.motivosRecusa[solicitacao.cpf];
+          this.carregarTela();
+        },
+        error: (error) => {
+          this.errorMessage = error?.message || 'Não foi possível recusar a solicitação.';
+        },
+      });
   }
 
   public formatCurrency(value: number | undefined): string {

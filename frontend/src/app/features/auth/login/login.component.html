@@ -1,0 +1,48 @@
+<div class="auth-page bank-page">
+  <header class="auth-header">
+    <span class="auth-mark">BT</span>
+    <div>
+      <strong>BANTADS</strong>
+      <span class="auth-sub">Acesso ao internet banking</span>
+    </div>
+  </header>
+
+  <section class="auth-card">
+    <h1>Entrar</h1>
+    <p class="auth-lead">Use o e-mail cadastrado e a senha do ms-auth (via gateway).</p>
+
+    <div *ngIf="erro" class="feedback feedback--error">{{ erro }}</div>
+
+    <form (ngSubmit)="enviar()" #f="ngForm" class="auth-form">
+      <label>
+        <span>E-mail (login)</span>
+        <input
+          type="email"
+          name="login"
+          [(ngModel)]="credenciais.login"
+          autocomplete="username"
+          required
+        />
+      </label>
+      <label>
+        <span>Senha</span>
+        <input
+          type="password"
+          name="senha"
+          [(ngModel)]="credenciais.senha"
+          autocomplete="current-password"
+          required
+          minlength="4"
+        />
+      </label>
+      <button type="submit" class="button button--primary" [disabled]="carregando || f.invalid">
+        {{ carregando ? 'Entrando…' : 'Entrar' }}
+      </button>
+    </form>
+
+    <p class="auth-footer">
+      Não tem cadastro?
+      <a routerLink="/auth/autocadastro">Autocadastro</a>
+    </p>
+  </section>
+</div>

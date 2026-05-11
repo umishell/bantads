@@ -31,9 +31,7 @@ export class HomeComponent implements OnInit {
   public cliente: ClienteDashboard | null = null;
   public readonly numeroConta = this.authService.getNumeroConta();
 
-  private usandoFallback = false;
   private readonly agenciaPadrao = '0001';
-  private readonly modoDemonstracao = true;
 
   public ngOnInit(): void {
     this.carregarDashboard();
@@ -43,7 +41,8 @@ export class HomeComponent implements OnInit {
     const cpf = this.authService.getCpf();
 
     if (!cpf) {
-      this.carregarFallback();
+      this.cliente = null;
+      this.errorMessage = 'Sessão inválida ou CPF ausente. Faça login novamente.';
       return;
     }
 
@@ -59,10 +58,15 @@ export class HomeComponent implements OnInit {
             ...(response as ClienteDashboard),
             agencia: (response as ClienteDashboard).agencia ?? this.agenciaPadrao,
           };
-          this.usandoFallback = false;
         },
-        error: (_error: HttpErrorResponse) => {
-          this.carregarFallback();
+        error: (err: HttpErrorResponse) => {
+          this.cliente = null;
+          const api =
+            (err.error as { message?: string })?.message ??
+            (err.error as { erro?: string })?.erro ??
+            err.message;
+          this.errorMessage =
+            typeof api === 'string' ? api : 'Não foi possível carregar os dados do cliente no servidor.';
         },
       });
   }
@@ -165,38 +169,8 @@ export class HomeComponent implements OnInit {
   }
 
   public getModoVisualLabel(): string {
-    if (this.usandoFallback) {
-      return 'Sem sessão ativa';
-    }
-
-    return this.modoDemonstracao ? 'Cache em memória do protótipo' : 'Dados sincronizados';
+    return 'Dados do servidor (API)';
   }
-
-  private carregarFallback(): void {
-    this.cliente = {
-      cpf: '00000000000',
-      nome: 'Cliente Teste',
-      telefone: '(41) 99999-9999',
-      email: 'cliente@teste.com',
-      endereco: 'Rua Exemplo, 123',
-      cidade: 'Curitiba',
-      estado: 'PR',
-      salario: 5000,
-      conta: this.numeroConta ?? '1291',
-      saldo: 2450.75,
-      limite: 1500,
-      gerente_nome: 'Marina Souza',
-      gerente_email: 'marina@bantads.com',
-      situacao: 'APROVADO',
-      cep: '80000-000',
-      agencia: this.agenciaPadrao,
-    };
-
-    this.usandoFallback = true;
-    this.loading = false;
-    this.errorMessage = '';
-  }
-
 
   public logout(): void {
     this.authService.logout();

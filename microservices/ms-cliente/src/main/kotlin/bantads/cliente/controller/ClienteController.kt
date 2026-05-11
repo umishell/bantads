@@ -1,19 +1,26 @@
 package bantads.cliente.controller
 
+import bantads.cliente.dto.AlterarPerfilClienteRequest
 import bantads.cliente.dto.AprovarClienteRequest
+import bantads.cliente.dto.ClienteDetalheResponse
 import bantads.cliente.dto.AutocadastroRequest
 import bantads.cliente.dto.AutocadastroResponse
 import bantads.cliente.dto.ClientePendenteListItemResponse
 import bantads.cliente.dto.RejeitarClienteRequest
+import bantads.cliente.service.ClienteConsultaService
 import bantads.cliente.service.ClienteService
 import jakarta.validation.Valid
+import org.springframework.http.HttpHeaders
 import org.springframework.http.HttpStatus
 import org.springframework.http.MediaType
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.PostMapping
+import org.springframework.web.bind.annotation.PutMapping
 import org.springframework.web.bind.annotation.RequestBody
+import org.springframework.web.bind.annotation.RequestHeader
 import org.springframework.web.bind.annotation.RequestMapping
+import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.ResponseStatus
 import org.springframework.web.bind.annotation.RestController
 import java.util.UUID
@@ -22,6 +29,7 @@ import java.util.UUID
 @RequestMapping
 class ClienteController(
     private val clienteService: ClienteService,
+    private val clienteConsultaService: ClienteConsultaService,
 ) {
 
     /** R1 — autocadastro público (gateway: POST /api/clientes). */
@@ -33,6 +41,34 @@ class ClienteController(
     /** Lista autocadastros pendentes — gateway exige JWT GERENTE. */
     @GetMapping("/pendentes", produces = [MediaType.APPLICATION_JSON_VALUE])
     fun pendentes(): List<ClientePendenteListItemResponse> = clienteService.listarPendentes()
+
+    /** R16 — relatório administrativo (gateway: GET /api/clientes/report). */
+    @GetMapping("/report", produces = [MediaType.APPLICATION_JSON_VALUE])
+    fun relatorioAdmin(@RequestHeader(HttpHeaders.AUTHORIZATION) authorization: String) =
+        clienteConsultaService.relatorioAdministrador(authorization)
+
+    /** R12/R13 — consulta por CPF (11 dígitos). Gateway: GET /api/clientes/{cpf}. */
+    @GetMapping("/{cpf:\\d{11}}", produces = [MediaType.APPLICATION_JSON_VALUE])
+    fun porCpf(@PathVariable cpf: String) = clienteConsultaService.obterPorCpf(cpf)
+
+    @PutMapping("/{cpf:\\d{11}}", consumes = [MediaType.APPLICATION_JSON_VALUE], produces = [MediaType.APPLICATION_JSON_VALUE])
+    fun alterarPerfil(
+        @PathVariable cpf: String,
+        @Valid @RequestBody body: AlterarPerfilClienteRequest,
+    ): ClienteDetalheResponse {
+        clienteService.alterarPerfil(cpf, body)
+        return clienteConsultaService.obterPorCpf(cpf)
+    }
+
+    /**
+     * Listagens com `filtro` (OpenAPI): `para_aprovar`, `melhores_clientes`, `adm_relatorio_clientes`;
+     * sem parâmetro: carteira (clientes aprovados com conta). Gateway aplica perfil.
+     */
+    @GetMapping(produces = [MediaType.APPLICATION_JSON_VALUE])
+    fun listarComFiltro(
+        @RequestParam(required = false) filtro: String?,
+        @RequestHeader(HttpHeaders.AUTHORIZATION) authorization: String,
+    ) = clienteConsultaService.listarPorFiltroQuery(filtro, authorization)
 
     @PostMapping("/{id}/aprovar", consumes = [MediaType.APPLICATION_JSON_VALUE])
     @ResponseStatus(HttpStatus.ACCEPTED)

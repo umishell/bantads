@@ -286,7 +286,6 @@ C:.
     |                       admin.service.ts
     |                       cliente.service.ts
     |                       conta.service.ts
-    |                       demo-bantads-store.service.ts
     |                       gerente.service.ts
     |
     +---gateway
