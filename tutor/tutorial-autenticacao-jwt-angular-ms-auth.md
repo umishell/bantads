@@ -282,7 +282,7 @@ Chave de assinatura: derivada por **SHA-512** do segredo UTF-8, compatível com 
 - **No JWT:** `sub` = login (e-mail), `perfil`/`tipo`, `iat`, `exp`.
 - **No corpo do login (`usuario`):** `cpf`, `nome`, `email`, `tipo`.
 
-O Angular guarda **CPF** a partir do JSON de login, não do payload do JWT. Se outros microsserviços precisarem só do token, podem usar `sub` e perfil; para CPF, o desenho pode evoluir (claim extra no JWT, ou consulta ao `ms-cliente` com autorização).
+O Angular guarda **CPF** a partir do JSON de login, não do payload do JWT. Se outros microsserviços precisarem só do token, podem usar `sub` e perfil; para CPF, o modelo pode evoluir (claim extra no JWT, ou consulta ao `ms-cliente` com autorização).
 
 ---
 

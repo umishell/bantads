@@ -155,29 +155,31 @@ class ClienteConsultaService(
         )
 
     private fun fetchContas(authorization: String): List<ContaUpstreamDto> =
-        upstreamGet(contaBaseUrl, "/", authorization, listContaType)
+        upstreamGet(contaBaseUrl, "", authorization, listContaType)
 
     private fun fetchContasTop3(authorization: String): List<ContaUpstreamDto> =
-        upstreamGet(contaBaseUrl, "/top3", authorization, listContaType)
+        upstreamGet(contaBaseUrl, "top3", authorization, listContaType)
 
     private fun fetchGerentesPorId(authorization: String): Map<UUID, GerenteUpstreamDto> {
-        val list = upstreamGet(gerenteBaseUrl, "/", authorization, listGerenteType)
+        val list = upstreamGet(gerenteBaseUrl, "", authorization, listGerenteType)
         return list.associateBy { it.id }
     }
 
     private fun <T : Any> upstreamGet(
         baseUrl: String,
-        uri: String,
+        pathSuffix: String,
         authorization: String,
         type: ParameterizedTypeReference<T>,
     ): T {
+        val root = baseUrl.trimEnd('/')
+        val target =
+            if (pathSuffix.isBlank()) root else "$root/${pathSuffix.trimStart('/')}"
         try {
             return RestClient.builder()
-                .baseUrl(baseUrl.trimEnd('/'))
+                .baseUrl(target)
                 .defaultHeader(HttpHeaders.AUTHORIZATION, authorization)
                 .build()
                 .get()
-                .uri(uri)
                 .retrieve()
                 .body(type)
                 ?: throw ResponseStatusException(HttpStatus.BAD_GATEWAY, "Resposta vazia do serviço upstream")

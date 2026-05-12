@@ -83,6 +83,6 @@ export class ClienteService {
       cidade: payload.cidade.trim(),
       estado: payload.estado.trim().toUpperCase().slice(0, 2),
     };
-    return this.http.post<AutocadastroResponseDto>(`${API_BASE}/clientes`, body);
+    return this.http.post<AutocadastroResponseDto>(`${API_BASE}/clientes/`, body);
   }
 }

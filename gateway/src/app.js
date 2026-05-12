@@ -19,6 +19,34 @@ const upstreams = {
   frontend: process.env.UPSTREAM_FRONTEND || 'http://frontend:4200',
 }
 
+/** Location absoluto com hostname Docker quebra clientes no host (getaddrinfo). */
+function rewriteDockerInternalLocation (headers, req) {
+  const loc = headers.location
+  if (typeof loc !== 'string' || (!loc.startsWith('http://') && !loc.startsWith('https://'))) {
+    return headers
+  }
+  const host = req.headers.host || '127.0.0.1'
+  const proto = String(req.headers['x-forwarded-proto'] ?? 'http').split(',')[0].trim() || 'http'
+  const mappings = [
+    [new URL(upstreams.auth).origin + '/auth', `${proto}://${host}/api/auth`],
+    [new URL(upstreams.cliente).origin + '/clientes', `${proto}://${host}/api/clientes`],
+    [new URL(upstreams.conta).origin + '/contas', `${proto}://${host}/api/contas`],
+    [new URL(upstreams.gerente).origin + '/gerentes', `${proto}://${host}/api/gerentes`],
+    [new URL(upstreams.saga).origin + '/saga', `${proto}://${host}/api/saga`],
+  ]
+  for (const [internalPrefix, publicPrefix] of mappings) {
+    if (loc.startsWith(internalPrefix)) {
+      headers.location = publicPrefix + loc.slice(internalPrefix.length)
+      break
+    }
+  }
+  return headers
+}
+
+const apiProxyReplyOptions = {
+  rewriteHeaders: (headers, req) => rewriteDockerInternalLocation(headers, req),
+}
+
 const fastify = Fastify({
   logger: {
     level: process.env.LOG_LEVEL || 'info',
@@ -189,30 +217,35 @@ await fastify.register(fastifyHttpProxy, {
   upstream: upstreams.auth,
   prefix: '/api/auth',
   rewritePrefix: '/auth',
+  replyOptions: apiProxyReplyOptions,
 })
 
 await fastify.register(fastifyHttpProxy, {
   upstream: upstreams.cliente,
   prefix: '/api/clientes',
   rewritePrefix: '/clientes',
+  replyOptions: apiProxyReplyOptions,
 })
 
 await fastify.register(fastifyHttpProxy, {
   upstream: upstreams.conta,
   prefix: '/api/contas',
   rewritePrefix: '/contas',
+  replyOptions: apiProxyReplyOptions,
 })
 
 await fastify.register(fastifyHttpProxy, {
   upstream: upstreams.gerente,
   prefix: '/api/gerentes',
   rewritePrefix: '/gerentes',
+  replyOptions: apiProxyReplyOptions,
 })
 
 await fastify.register(fastifyHttpProxy, {
   upstream: upstreams.saga,
   prefix: '/api/saga',
   rewritePrefix: '/saga',
+  replyOptions: apiProxyReplyOptions,
 })
 
 /** Frontend Angular — tudo que não começa com /api */

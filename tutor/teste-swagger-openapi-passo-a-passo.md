@@ -89,7 +89,7 @@ Tudo abaixo reflete **`docker-compose.yml` na raiz**. Use estes nomes nos comand
 
 #### Conferência rápida após `/reboot` (só Mongo do `ms-auth`)
 
-O **`GET /reboot` não altera Postgres** — só recria utilizadores DAC no Mongo (**coleção `usuarios`**, base **`auth_db`**).
+O **`GET /reboot` não altera Postgres** — só recria usuários DAC no Mongo (**coleção `usuarios`**, base **`auth_db`**).
 
 No Windows / PowerShell, da raiz do repo (stack no ar):
 
@@ -294,7 +294,7 @@ Com Bearer **GERENTE**: `**POST /{id}/rejeitar`** com body contendo `**motivo**`
 
 ### ms-gerente (`/gerentes`)
 
-Listagem, `**stats**`, CRUD — perfis esperados são validados pelo **gateway** nas rotas `/api/gerentes/...`; ver `gateway/src/admin-routes.js` e outros ficheiros de ACL em `gateway/src/`.
+Listagem, `**stats**`, CRUD — perfis esperados são validados pelo **gateway** nas rotas `/api/gerentes/...`; ver `gateway/src/admin-routes.js` e outros arquivos de ACL em `gateway/src/`.
 
 ---
 
@@ -318,7 +318,7 @@ Listagem, `**stats**`, CRUD — perfis esperados são validados pelo **gateway**
 
 - `docker compose up -d` e serviços saudáveis.
 - `GET http://localhost/health` no gateway.
-- `GET http://localhost/api/auth/reboot` (seed dos utilizadores `**tads**`).
+- `GET http://localhost/api/auth/reboot` (seed dos usuários `**tads**`).
 - Swagger **ms-auth** → `**POST /login`** como **cliente** e como **gerente** → `**access_token`** obtido.
 - Swagger **ms-cliente** → `**POST`** autocadastro (CPF válido + e-mail único).
 - Bearer **gerente** → `**GET /pendentes`** e `**POST /{id}/aprovar**`.
@@ -329,9 +329,9 @@ Listagem, `**stats**`, CRUD — perfis esperados são validados pelo **gateway**
 ## Referências no repositório
 
 
-| Ficheiro / pasta                                   | Conteúdo útil                                                    |
+| Arquivo / pasta                                     | Conteúdo útil                                                    |
 | -------------------------------------------------- | ---------------------------------------------------------------- |
-| `microservices/ms-auth/.../AuthSeedService.kt`     | E-mails dos utilizadores seed e senha `**tads**`                 |
+| `microservices/ms-auth/.../AuthSeedService.kt`     | E-mails dos usuários seed e senha `**tads**`                 |
 | `gateway/src/public-routes.js`                     | Rotas públicas: login, reboot, `**POST /api/clientes**`, Swagger |
 | `tutor/fluxo-autocadastro-fase1-fase2-rollback.md` | Fluxo mensagem-a-mensagem da saga                                |
 
@@ -342,31 +342,31 @@ Listagem, `**stats**`, CRUD — perfis esperados são validados pelo **gateway**
 
 Esta seção refere-se ao **HTTPie Desktop** (aplicação com interface visual para Windows/Mac/Linux), disponível em [httpie.io/download](https://httpie.io/download).
 
-Não confundir com o **HTTPie CLI** (`http …` na linha de comandos): o fluxo abaixo é só na app Desktop — embora você possa **exportar como comando HTTPie CLI** a partir de um pedido já montado (painel Preview / menu do pedido), se quiser repetir no terminal da mesma forma.
+Não confundir com o **HTTPie CLI** (`http …` na linha de comando): o fluxo abaixo é só na app Desktop — embora você possa **exportar como comando HTTPie CLI** a partir de uma requisição já montada (painel Preview / menu da requisição), se quiser repetir no terminal da mesma forma.
 
-### 9.1 Instalação e arranque
+### 9.1 Instalação e inicialização
 
 1. Baixe e instale o **HTTPie for Desktop**.
-2. Garanta que o stack está de pé (`docker compose up …`) como no restante deste documento.
+2. Certifique-se de que o stack está de pé (`docker compose up …`) como no restante deste documento.
 
 ### 9.2 Criar um *Space*, uma coleção e um ambiente
 
-1. Abra ou crie um **Space** (ex.: «BANTADS»).
+1. Abra ou crie um **Space** (ex.: "BANTADS").
 2. Crie uma **coleção**, por exemplo `Gateway — desenvolvimento local`.
 3. Crie ou edite um **ambiente** com variáveis reutilizáveis (vá ao menu ou separador onde o HTTPie Desktop gerencia *environments*, conforme a [documentação oficial de variáveis](https://httpie.io/docs/desktop/defining-variables)):
    - `gateway` = `http://localhost` (use na URL: `{{gateway}}/api/...`; se você não usar porta explícita, vale a porta **80** mapeada no `docker-compose`.)
    - `token` (ou `access_token`) = deixe **vazio** no início; depois **cole** aqui o `access_token` retornado pelo login (**sem** o prefixo `Bearer`; no tipo de auth Bearer, o app já manda `Authorization: Bearer …`).
 
-Ao criar cada pedido, onde o HTTPie aceitar variáveis, use a sintaxe `{{nomeDaVariável}}`.
+Ao criar cada requisição, onde o HTTPie aceitar variáveis, use a sintaxe `{{nomeDaVariável}}`.
 
-### 9.3 Autenticação Bearer nos pedidos protegidos
+### 9.3 Autenticação Bearer nas requisições protegidas
 
-Para **pendentes**, **aprovar**, etc., use o painel **Auth** na parte inferior do pedido:
+Para **pendentes**, **aprovar**, etc., use o painel **Auth** na parte inferior da requisição:
 
 - Escolha **Bearer token**.
 - Digite o valor **`{{token}}`** (referência ao ambiente) **ou** cole temporariamente o JWT inteiro se ainda não configurou variável.
 
-Você também pode configurar **auth ao nível da coleção** (herdada pelos pedidos), conforme a [documentação de collection auth](https://httpie.io/docs/desktop/defining-variables#collection-auth), para não repetir em cada endpoint.
+Você também pode configurar **auth no nível da coleção** (herdada pelas requisições), conforme a [documentação de collection auth](https://httpie.io/docs/desktop/defining-variables#collection-auth), para não repetir em cada endpoint.
 
 ---
 
@@ -374,14 +374,14 @@ Você também pode configurar **auth ao nível da coleção** (herdada pelos ped
 
 #### 9.4 Health (`GET`)
 
-- Novo pedido · método **GET** · URL: `{{gateway}}/health`
+- Nova requisição · método **GET** · URL: `{{gateway}}/health`
 - Sem corpo · **Send**.
 - Esperado: `200`, corpo JSON com estado do gateway.
 
 #### 9.5 Seed — reboot (`GET`, público)
 
 - **GET** · `{{gateway}}/api/auth/reboot`
-- **Send** · esperado `200` (recria utilizadores Mongo; todos com senha `tads`; operação **destrói** utilizadores antigos nesta base.)
+- **Send** · esperado `200` (recria usuários Mongo; todos com senha `tads`; operação **destrói** usuários antigos nesta base.)
 
 #### 9.6 Login — gerente ou cliente (`POST`, público)
 
@@ -396,9 +396,9 @@ Você também pode configurar **auth ao nível da coleção** (herdada pelos ped
 ```
 
 - **Send**. Na **resposta**, copie o valor do campo **`access_token`**.
-- Volte ao ambiente e **cole** esse valor na variável **`token`** (ou onde você configurou guardar o JWT). Os próximos pedidos com Bearer `{{token}}` passam a usar esse JWT.
+- Volte ao ambiente e **cole** esse valor na variável **`token`** (ou onde você configurou guardar o JWT). As próximas requisições com Bearer `{{token}}` passam a usar esse JWT.
 
-**Rate limit (`429`):** se o gateway bloquear após vários logins, **faça o mesmo pedido** mudando apenas a URL para `http://localhost:8081/auth/login` — corpo JSON idêntico (endpoint direto no `ms-auth`).
+**Rate limit (`429`):** se o gateway bloquear após vários logins, **faça a mesma requisição** mudando apenas a URL para `http://localhost:8081/auth/login` — corpo JSON idêntico (endpoint direto no `ms-auth`).
 
 #### 9.7 Autocadastro — R1 (`POST`, público)
 
@@ -421,7 +421,7 @@ Você também pode configurar **auth ao nível da coleção** (herdada pelos ped
 
 - **Altere** sempre o campo **`email`** se ele já existir na base (`409`, `400` ou conflito, conforme a API).
 - O campo deve chamar‑se **`CEP`** em maiúsculas (nome JSON esperado pelo backend).
-- **Send** · esperado `201`; anota **`clienteId`** (UUID).
+- **Send** · esperado `201`; anote **`clienteId`** (UUID).
 
 #### 9.8 Pendentes — R9 (`GET`, JWT GERENTE)
 
@@ -432,7 +432,7 @@ Você também pode configurar **auth ao nível da coleção** (herdada pelos ped
 #### 9.9 Aprovar — R10 (`POST`, JWT GERENTE)
 
 - **POST** · `{{gateway}}/api/clientes/<UUID-do-clienteId>/aprovar`
-- Auth: Bearer **`{{token}}`** (mesmo utilizador GERENTE).
+- Auth: Bearer **`{{token}}`** (mesmo usuário GERENTE).
 - Corpo: você pode usar **corpo JSON vazio** `{}` ou deixar vazio conforme o Spring aceitar (o controller permite body opcional). Se aparecer erro por falta de body, **tente** apenas `{}` em JSON.
 - **Send** · esperado `202`; o prosseguimento é **assíncrono** (RabbitMQ / saga).
 
@@ -440,7 +440,7 @@ Para **rejeitar**, use o mesmo padrão: **POST** `{{gateway}}/api/clientes/<UUID
 
 #### 9.10 Logout e introspecção (opcional)
 
-Com Bearer **`{{token}}`** configurado neste mesmo pedido (ou herdado):
+Com Bearer **`{{token}}`** configurado nesta mesma requisição (ou herdado):
 
 - **POST** `{{gateway}}/api/auth/logout`
 - **GET** `{{gateway}}/api/auth/introspect`
@@ -449,7 +449,7 @@ Você também pode repetir o mesmo contra `http://localhost:8081/auth/...` se qu
 
 #### 9.11 Conta direto no microsserviço (opcional)
 
-No HTTPie Desktop, vale criar outra coleção «MS direto» para estes testes.
+No HTTPie Desktop, vale criar outra coleção "MS direto" para estes testes.
 
 - **GET** `http://localhost:8083/contas/<numero-da-conta>/saldo`
 - Sem JWT obrigatório no lado do `ms-auth` porque o próprio **`ms-conta`** expõe hoje segurança **permitAll**; **no gateway** já existem ACL por perfil (ver `gateway/src/cliente-routes.js`).
@@ -461,12 +461,12 @@ No HTTPie Desktop, vale criar outra coleção «MS direto» para estes testes.
 | Objetivo | Onde encontrar na app |
 |----------|-----------------------|
 | Ver corpo bem formatado (JSON na resposta) | Painel de resposta · vista **JSON tree** ou filtro de dados quando disponível |
-| Duplicar um pedido | Menu do pedido ou arrastar na biblioteca lateral |
+| Duplicar uma requisição | Menu da requisição ou arrastar na biblioteca lateral |
 | Compartilhar / backup do projeto | **Export…** de espaço, coleção ou ambiente (formato JSON) |
-| Tirar comando para terminal | Preview do pedido → exportar **[HTTPie CLI](https://httpie.io/docs/desktop/defining-variables#export-httpie-cli)** ou **[cURL](https://httpie.io/docs/desktop/defining-variables#export-curl)** |
+| Tirar comando para terminal | Preview da requisição → exportar **[HTTPie CLI](https://httpie.io/docs/desktop/defining-variables#export-httpie-cli)** ou **[cURL](https://httpie.io/docs/desktop/defining-variables#export-curl)** |
 | Colar rápido `curl` desde o browser · DevTools | **Import…** dentro do **+** da biblioteca, ou tentar **colar cURL diretamente no campo URL** |
 
-**Nota:** no HTTPie Desktop, o token **normalmente atualiza‑se manualmente** no ambiente após cada login (`access_token` copiado da resposta). Não há, na experiência habitual da app Desktop, garantia equivalente aos *tests* dos Postman que escrevem variáveis sozinhos — por isso o passo manual no **9.6** é intencional e fiável para o BANTADS.
+**Nota:** no HTTPie Desktop, o token **normalmente atualiza‑se manualmente** no ambiente após cada login (`access_token` copiado da resposta). Não há, na experiência habitual da app Desktop, garantia equivalente aos *tests* dos Postman que escrevem variáveis sozinhos — por isso o passo manual no **9.6** é intencional e confiável para o BANTADS.
 
 ---
 
