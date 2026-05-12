@@ -31,6 +31,10 @@ management:
         include: health,info
 
 bantads:
+  integration:
+    # Chamadas server-to-server (mesmo Bearer do request). Docker: hostnames dos serviços.
+    conta-base-url: ${BANTADS_MS_CONTA_BASE_URL:http://localhost:8083/contas}
+    gerente-base-url: ${BANTADS_MS_GERENTE_BASE_URL:http://localhost:8084/gerentes}
   saga:
     exchange: bantads.saga
     routing-key-pendente-criado: evt.cliente.pendente.criado

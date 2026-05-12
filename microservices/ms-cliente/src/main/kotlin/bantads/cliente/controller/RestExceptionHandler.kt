@@ -8,6 +8,7 @@ import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.MethodArgumentNotValidException
 import org.springframework.web.bind.annotation.ExceptionHandler
 import org.springframework.web.bind.annotation.RestControllerAdvice
+import org.springframework.web.server.ResponseStatusException
 import java.time.LocalDateTime
 
 data class ErrorResponse(
@@ -64,6 +65,22 @@ class RestExceptionHandler {
                 error = "Bad Request",
                 message = "Dados de entrada inválidos",
                 fieldErrors = fields,
+            ),
+        )
+    }
+
+    @ExceptionHandler(ResponseStatusException::class)
+    fun responseStatus(ex: ResponseStatusException): ResponseEntity<ErrorResponse> {
+        val status = ex.statusCode
+        val code = status.value()
+        if (code >= 500) {
+            logger.warn("ResponseStatusException com status 5xx em ms-cliente", ex)
+        }
+        return ResponseEntity.status(status).body(
+            ErrorResponse(
+                status = code,
+                error = HttpStatus.resolve(code)?.reasonPhrase ?: "Error",
+                message = ex.reason,
             ),
         )
     }

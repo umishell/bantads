@@ -71,8 +71,8 @@
   <section class="panel" *ngIf="aprovacaoRecente">
     <div class="section-title">
       <div>
-        <h2>Aprovação concluída</h2>
-        <p>Dados gerados para demonstrar o fluxo de aprovação no protótipo.</p>
+        <h2>Aprovação enviada</h2>
+        <p>O backend processa a criação da conta de forma assíncrona; os dados abaixo são informativos.</p>
       </div>
     </div>
 
@@ -82,11 +82,11 @@
         <strong>{{ aprovacaoRecente.nome }}</strong>
       </div>
       <div class="detail-list__item">
-        <span>Conta criada</span>
+        <span>Conta (após saga)</span>
         <strong>{{ aprovacaoRecente.agencia }} • {{ aprovacaoRecente.numeroConta }}</strong>
       </div>
       <div class="detail-list__item">
-        <span>Senha temporária</span>
+        <span>Senha provisória</span>
         <strong>{{ aprovacaoRecente.senhaTemporaria }}</strong>
       </div>
       <div class="detail-list__item">
@@ -142,10 +142,10 @@
               ></textarea>
 
               <div class="inline-actions">
-                <button type="button" class="button button--primary" (click)="aprovar(solicitacao.cpf)">
+                <button type="button" class="button button--primary" (click)="aprovar(solicitacao)">
                   Aprovar
                 </button>
-                <button type="button" class="button button--danger" (click)="recusar(solicitacao.cpf)">
+                <button type="button" class="button button--danger" (click)="recusar(solicitacao)">
                   Recusar
                 </button>
               </div>

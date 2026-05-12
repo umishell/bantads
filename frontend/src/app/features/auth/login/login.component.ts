@@ -1,7 +1,8 @@
-import { Component, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
-import { Router, RouterModule } from '@angular/router';
+import { Component, inject } from '@angular/core';
+import { FormsModule } from '@angular/forms';
+import { Router, RouterLink } from '@angular/router';
+import { finalize } from 'rxjs';
 
 import { AuthService } from '../../../core/services/auth.service';
 import { LoginRequest } from '../../../shared/models/auth/auth.model';
@@ -9,63 +10,47 @@ import { LoginRequest } from '../../../shared/models/auth/auth.model';
 @Component({
   selector: 'app-login',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, RouterModule],
+  imports: [CommonModule, FormsModule, RouterLink],
   templateUrl: './login.component.html',
-  styleUrls: ['./login.component.scss'],
+  styleUrl: './login.component.scss',
 })
 export class LoginComponent {
-  private readonly fb = inject(FormBuilder);
-  private readonly authService = inject(AuthService);
+  private readonly auth = inject(AuthService);
   private readonly router = inject(Router);
 
-  public readonly isLoading = signal<boolean>(false);
-  public readonly mensagemErro = signal<string | null>(null);
+  public credenciais: LoginRequest = { login: '', senha: '' };
+  public erro = '';
+  public carregando = false;
 
-  public readonly loginForm: FormGroup = this.fb.group({
-    login: ['', [Validators.required, Validators.email]],
-    senha: ['', [Validators.required, Validators.minLength(4)]],
-  });
-
-  public onSubmit(): void {
-    if (this.loginForm.invalid) {
-      this.loginForm.markAllAsTouched();
+  public enviar(): void {
+    this.erro = '';
+    const login = this.credenciais.login.trim().toLowerCase();
+    const senha = this.credenciais.senha;
+    if (!login || !senha) {
+      this.erro = 'Informe e-mail e senha.';
+      return;
+    }
+    if (senha.length < 4) {
+      this.erro = 'Senha inválida.';
       return;
     }
 
-    this.isLoading.set(true);
-    this.mensagemErro.set(null);
-
-    const credenciais: LoginRequest = this.loginForm.getRawValue();
-
-    this.authService.login(credenciais).subscribe({
-      next: () => {
-        this.isLoading.set(false);
-        this.redirecionarPorPerfil();
-      },
-      error: (err) => {
-        this.isLoading.set(false);
-        this.mensagemErro.set(err?.message || 'Erro ao efetuar login. Tente novamente.');
-      },
-    });
-  }
-
-  private redirecionarPorPerfil(): void {
-    if (this.authService.isCliente()) {
-      void this.router.navigate(['/cliente/home']);
-      return;
-    }
-
-    if (this.authService.isGerente()) {
-      void this.router.navigate(['/gerente/home']);
-      return;
-    }
-
-    if (this.authService.isAdmin()) {
-      void this.router.navigate(['/admin/home']);
-      return;
-    }
-
-    this.mensagemErro.set('Perfil não reconhecido pelo sistema.');
-    this.authService.logout();
+    this.carregando = true;
+    this.auth
+      .login({ login, senha })
+      .pipe(finalize(() => (this.carregando = false)))
+      .subscribe({
+        next: (res) => {
+          void this.router.navigateByUrl(this.auth.getHomeUrl(res.usuario.perfil));
+        },
+        error: (err) => {
+          const msg =
+            err?.error?.message ??
+            err?.error?.erro ??
+            err?.message ??
+            'Não foi possível entrar. Verifique o gateway e as credenciais.';
+          this.erro = typeof msg === 'string' ? msg : 'Falha no login.';
+        },
+      });
   }
 }

@@ -108,7 +108,9 @@ class AuthService(
         val user = userRepository.findByLogin(login)
             ?: throw ResponseStatusException(HttpStatus.UNAUTHORIZED, "Usuário não encontrado")
 
-        tokenBlacklist.revogar(token, claims.expiration.toInstant())
+        val expiraEm = claims.expiration?.toInstant()
+            ?: throw ResponseStatusException(HttpStatus.UNAUTHORIZED, "Token sem expiração")
+        tokenBlacklist.revogar(token, expiraEm)
         logger.info("Logout processado para: $login (token revogado)")
 
         return LogoutResponse(

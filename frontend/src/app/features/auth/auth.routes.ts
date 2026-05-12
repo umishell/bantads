@@ -2,29 +2,13 @@ import { Routes } from '@angular/router';
 
 export const AUTH_ROUTES: Routes = [
   {
-    path: '',
-    children: [
-      {
-        path: '',
-        redirectTo: 'login',
-        pathMatch: 'full',
-      },
-
-      {
-        // 2. Rota de Login: Carregamento sob demanda (Lazy Loading) do componente
-
-        path: 'login',
-        title: 'BANTADS - Login',
-        loadComponent: () => import('./login/login.component').then((m) => m.LoginComponent),
-      },
-
-      {
-        // 3. Rota de Autocadastro
-        path: 'autocadastro',
-        title: 'BANTADS - Abra sua conta',
-        loadComponent: () =>
-          import('./autocadastro/autocadastro.component').then((m) => m.AutocadastroComponent),
-      },
-    ],
+    path: 'login',
+    loadComponent: () => import('./login/login.component').then((m) => m.LoginComponent),
   },
+  {
+    path: 'autocadastro',
+    loadComponent: () =>
+      import('./autocadastro/autocadastro.component').then((m) => m.AutocadastroComponent),
+  },
+  { path: '', pathMatch: 'full', redirectTo: 'login' },
 ];

@@ -1,9 +1,16 @@
 import { Injectable, computed, inject, signal } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { Observable, tap } from 'rxjs';
+import { catchError, map, Observable, of, switchMap, tap } from 'rxjs';
 
-import { DemoBantadsStoreService } from '../../shared/services/demo-bantads-store.service';
-import { UsuarioLogado, LoginRequest, LoginResponse } from '../../shared/models/auth/auth.model';
+import { API_BASE } from '../config/api-base';
+import { ClienteDetalheDto, ContaResponseDto } from '../../shared/models/api/bantads-api.models';
+import {
+  LoginApiResponse,
+  LoginRequest,
+  LoginResponse,
+  Perfil,
+  UsuarioLogado,
+} from '../../shared/models/auth/auth.model';
 
 @Injectable({
   providedIn: 'root',
@@ -12,11 +19,7 @@ export class AuthService {
   private readonly tokenKey = 'bantads_token';
   private readonly userKey = 'bantads_user';
 
-  private readonly apiUrl = 'http://localhost:3000';
-  private readonly demoMode = true;
-
   private readonly http = inject(HttpClient);
-  private readonly demoStore = inject(DemoBantadsStoreService);
 
   private _token = signal<string | null>(sessionStorage.getItem(this.tokenKey));
   private _usuario = signal<UsuarioLogado | null>(this.getUsuarioDoStorage());
@@ -49,16 +52,87 @@ export class AuthService {
     return this._usuario()?.cpf ?? null;
   }
 
-  public login(credenciais: LoginRequest): Observable<LoginResponse> {
-    const request$ = this.demoMode
-      ? this.demoStore.autenticar(credenciais)
-      : this.http.post<LoginResponse>(`${this.apiUrl}/login`, credenciais);
+  /** Rota inicial após login, conforme perfil. */
+  public getHomeUrl(perfil?: Perfil | null): string {
+    const p = perfil ?? this._usuario()?.perfil ?? null;
+    switch (p) {
+      case 'CLIENTE':
+        return '/cliente/home';
+      case 'GERENTE':
+        return '/gerente/home';
+      case 'ADMIN':
+        return '/admin/home';
+      default:
+        return '/auth/login';
+    }
+  }
 
-    return request$.pipe(
-      tap((res: LoginResponse) => {
-        this.saveSession(res.usuario, res.token);
+  public login(credenciais: LoginRequest): Observable<LoginResponse> {
+    return this.http.post<LoginApiResponse>(`${API_BASE}/auth/login`, credenciais).pipe(
+      map((res) => this.mapLoginApiToLoginResponse(res)),
+      switchMap((lr) => this.enriquecerClienteComConta(lr)),
+      tap((lr) => {
+        this.saveSession(lr.usuario, lr.token);
       }),
     );
+  }
+
+  /** Após login, CLIENTE: busca cadastro + conta para preencher `numeroConta` e `clienteId`. */
+  private enriquecerClienteComConta(lr: LoginResponse): Observable<LoginResponse> {
+    if (lr.usuario.perfil !== 'CLIENTE') {
+      return of(lr);
+    }
+    const cpf = lr.usuario.cpf;
+    return this.http.get<ClienteDetalheDto>(`${API_BASE}/clientes/${cpf}`).pipe(
+      switchMap((det) =>
+        this.http.get<ContaResponseDto>(`${API_BASE}/contas/por-cliente/${det.id}`).pipe(
+          map((conta) => ({
+            ...lr,
+            usuario: {
+              ...lr.usuario,
+              clienteId: det.id,
+              numeroConta: conta.numero,
+              telefone: det.telefone,
+            },
+          })),
+          catchError(() =>
+            of({
+              ...lr,
+              usuario: {
+                ...lr.usuario,
+                clienteId: det.id,
+                telefone: det.telefone,
+              },
+            }),
+          ),
+        ),
+      ),
+      catchError(() => of(lr)),
+    );
+  }
+
+  private mapLoginApiToLoginResponse(res: LoginApiResponse): LoginResponse {
+    const tipoRaw = (res.usuario?.tipo ?? res.tipo ?? '').toUpperCase();
+    const perfil = this.normalizarPerfil(tipoRaw);
+    const u = res.usuario;
+    const usuario: UsuarioLogado = {
+      id: u.cpf,
+      cpf: u.cpf,
+      nome: u.nome,
+      email: u.email,
+      perfil,
+    };
+    return { token: res.access_token, usuario };
+  }
+
+  private normalizarPerfil(tipo: string): Perfil {
+    if (tipo === 'ADMINISTRADOR') {
+      return 'ADMIN';
+    }
+    if (tipo === 'GERENTE' || tipo === 'CLIENTE') {
+      return tipo;
+    }
+    return 'CLIENTE';
   }
 
   public saveSession(usuario: UsuarioLogado, token: string): void {

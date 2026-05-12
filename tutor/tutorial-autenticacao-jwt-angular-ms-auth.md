@@ -2,7 +2,7 @@
 
 Este documento explica o fluxo de autenticação do projeto **BANTADS**: do login no Angular até a emissão e validação do JWT no **ms-auth** e no **API Gateway** (Node.js). Referências apontam para arquivos e trechos do repositório.
 
-> **Nota:** O arquivo `docs/CODIGO_FRONTEND_PARA_GEMINI.txt` é um export que pode estar desatualizado (ex.: modo demo em memória). O fluxo descrito aqui segue o **código versionado** em `frontend/`, `gateway/` e `microservices/ms-auth/`.
+> **Nota:** O arquivo `docs/CODIGO_FRONTEND_PARA_GEMINI.txt` é um export que pode estar desatualizado. O fluxo descrito aqui segue o **código versionado** em `frontend/`, `gateway/` e `microservices/ms-auth/`.
 
 ---
 
@@ -282,7 +282,7 @@ Chave de assinatura: derivada por **SHA-512** do segredo UTF-8, compatível com 
 - **No JWT:** `sub` = login (e-mail), `perfil`/`tipo`, `iat`, `exp`.
 - **No corpo do login (`usuario`):** `cpf`, `nome`, `email`, `tipo`.
 
-O Angular guarda **CPF** a partir do JSON de login, não do payload do JWT. Se outros microsserviços precisarem só do token, podem usar `sub` e perfil; para CPF, o desenho pode evoluir (claim extra no JWT, ou consulta ao `ms-cliente` com autorização).
+O Angular guarda **CPF** a partir do JSON de login, não do payload do JWT. Se outros microsserviços precisarem só do token, podem usar `sub` e perfil; para CPF, o modelo pode evoluir (claim extra no JWT, ou consulta ao `ms-cliente` com autorização).
 
 ---
 

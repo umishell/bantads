@@ -6,6 +6,7 @@ import { isPublicApiRoute } from './public-routes.js'
 import { requiresGerenteProfile } from './gerente-routes.js'
 import { requiresAdminProfile } from './admin-routes.js'
 import { requiresClienteProfile } from './cliente-routes.js'
+import { requiresContaListagemOuTop3 } from './conta-routes.js'
 
 const JWT_SECRET = process.env.JWT_SECRET || '7a56403163745262704573315a6b3164746b386153646c7a4d31354a726e3230'
 
@@ -18,10 +19,59 @@ const upstreams = {
   frontend: process.env.UPSTREAM_FRONTEND || 'http://frontend:4200',
 }
 
+/** Location absoluto com hostname Docker quebra clientes no host (getaddrinfo). */
+function rewriteDockerInternalLocation (headers, req) {
+  const loc = headers.location
+  if (typeof loc !== 'string' || (!loc.startsWith('http://') && !loc.startsWith('https://'))) {
+    return headers
+  }
+  const host = req.headers.host || '127.0.0.1'
+  const proto = String(req.headers['x-forwarded-proto'] ?? 'http').split(',')[0].trim() || 'http'
+  const mappings = [
+    [new URL(upstreams.auth).origin + '/auth', `${proto}://${host}/api/auth`],
+    [new URL(upstreams.cliente).origin + '/clientes', `${proto}://${host}/api/clientes`],
+    [new URL(upstreams.conta).origin + '/contas', `${proto}://${host}/api/contas`],
+    [new URL(upstreams.gerente).origin + '/gerentes', `${proto}://${host}/api/gerentes`],
+    [new URL(upstreams.saga).origin + '/saga', `${proto}://${host}/api/saga`],
+  ]
+  for (const [internalPrefix, publicPrefix] of mappings) {
+    if (loc.startsWith(internalPrefix)) {
+      headers.location = publicPrefix + loc.slice(internalPrefix.length)
+      break
+    }
+  }
+  return headers
+}
+
+const apiProxyReplyOptions = {
+  rewriteHeaders: (headers, req) => rewriteDockerInternalLocation(headers, req),
+}
+
 const fastify = Fastify({
   logger: {
     level: process.env.LOG_LEVEL || 'info',
   },
+})
+
+/**
+ * CORS manual: @fastify/cors registra OPTIONS em /* e quebra ao registrar o proxy em /.
+ * Angular em :4200 + API em :80 precisa de preflight sem conflito de rotas.
+ */
+fastify.addHook('onRequest', async (request, reply) => {
+  const origin = request.headers.origin
+  if (origin) {
+    reply.header('Access-Control-Allow-Origin', origin)
+    reply.header('Access-Control-Allow-Credentials', 'true')
+    reply.header('Vary', 'Origin')
+  } else {
+    reply.header('Access-Control-Allow-Origin', '*')
+  }
+  reply.header(
+    'Access-Control-Allow-Methods',
+    'GET, HEAD, POST, PUT, PATCH, DELETE, OPTIONS',
+  )
+  reply.header('Access-Control-Allow-Headers', 'Content-Type, Authorization, Accept')
+  reply.header('Access-Control-Expose-Headers', 'Content-Type')
 })
 
 fastify.get('/health', async () => ({ status: 'up', service: 'bantads-gateway' }))
@@ -91,6 +141,11 @@ fastify.addHook('onRequest', async (request, reply) => {
   const url = request.url.split('?')[0]
   if (!url.startsWith('/api')) return
 
+  /** Preflight CORS: não exigir Bearer (evita 401 sem Access-Control-*). */
+  if (request.method === 'OPTIONS') {
+    return reply.code(204).send()
+  }
+
   if (isPublicApiRoute(request.method, url)) return
 
   const auth = request.headers.authorization
@@ -119,8 +174,9 @@ fastify.addHook('onRequest', async (request, reply) => {
   }
 
   const perfil = payload.perfil ?? payload.tipo
+  const query = request.query ?? {}
 
-  if (requiresAdminProfile(request.method, url) && perfil !== 'ADMINISTRADOR') {
+  if (requiresAdminProfile(request.method, url, query) && perfil !== 'ADMINISTRADOR') {
     return reply.code(403).send({
       status: 403,
       error: 'Forbidden',
@@ -128,11 +184,23 @@ fastify.addHook('onRequest', async (request, reply) => {
     })
   }
 
-  if (requiresGerenteProfile(request.method, url) && perfil !== 'GERENTE') {
+  if (requiresGerenteProfile(request.method, url, query) && perfil !== 'GERENTE') {
     return reply.code(403).send({
       status: 403,
       error: 'Forbidden',
       message: 'Acesso restrito a gerentes',
+    })
+  }
+
+  if (
+    requiresContaListagemOuTop3(request.method, url) &&
+    perfil !== 'GERENTE' &&
+    perfil !== 'ADMINISTRADOR'
+  ) {
+    return reply.code(403).send({
+      status: 403,
+      error: 'Forbidden',
+      message: 'Acesso restrito a gerentes ou administradores',
     })
   }
 
@@ -149,30 +217,35 @@ await fastify.register(fastifyHttpProxy, {
   upstream: upstreams.auth,
   prefix: '/api/auth',
   rewritePrefix: '/auth',
+  replyOptions: apiProxyReplyOptions,
 })
 
 await fastify.register(fastifyHttpProxy, {
   upstream: upstreams.cliente,
   prefix: '/api/clientes',
   rewritePrefix: '/clientes',
+  replyOptions: apiProxyReplyOptions,
 })
 
 await fastify.register(fastifyHttpProxy, {
   upstream: upstreams.conta,
   prefix: '/api/contas',
   rewritePrefix: '/contas',
+  replyOptions: apiProxyReplyOptions,
 })
 
 await fastify.register(fastifyHttpProxy, {
   upstream: upstreams.gerente,
   prefix: '/api/gerentes',
   rewritePrefix: '/gerentes',
+  replyOptions: apiProxyReplyOptions,
 })
 
 await fastify.register(fastifyHttpProxy, {
   upstream: upstreams.saga,
   prefix: '/api/saga',
   rewritePrefix: '/saga',
+  replyOptions: apiProxyReplyOptions,
 })
 
 /** Frontend Angular — tudo que não começa com /api */

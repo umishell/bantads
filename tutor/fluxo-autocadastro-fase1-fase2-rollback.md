@@ -102,7 +102,7 @@ Observação: a Fase 1 de negócio termina no `ms-cliente` (cliente pendente).
 
 ---
 
-## 5) Contrato de mensageria (mínimo)
+## 5) Contrato de mensagens assíncronas (mínimo)
 
 Toda mensagem assíncrona deve carregar:
 
@@ -155,7 +155,7 @@ Regras:
 
 ### ms-email
 
-- Não possui compensação de "desenvio".
+- Não há compensação que desfaça um e-mail já entregue ao SMTP.
 - Apenas retry de envio (`N=3`) e resposta de falha para saga ao esgotar.
 
 ### ms-cliente (PostgreSQL `cliente_db`, serviço Docker `db-cliente`)

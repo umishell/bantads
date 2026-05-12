@@ -7,8 +7,8 @@ export function isPublicApiRoute(method, pathname) {
 
   if (method === 'POST' && p === '/api/auth/login') return true
   if (method === 'GET' && p === '/api/auth/reboot') return true
-  // R1 autocadastro — POST /clientes sem autenticação
-  if (method === 'POST' && p === '/api/clientes') return true
+  // R1 autocadastro — POST /clientes sem autenticação (com e sem barra final; evita 302→GET sem Bearer)
+  if (method === 'POST' && (p === '/api/clientes' || p === '/api/clientes/')) return true
 
   // Swagger UI e specs de cada microsserviço (testes locais sem JWT obrigatório)
   if (method === 'GET' && isSwaggerPath(p)) return true

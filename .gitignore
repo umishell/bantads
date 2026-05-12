@@ -48,3 +48,13 @@ Desktop.ini
 # --- Testes / cobertura ---
 coverage/
 .nyc_output/
+
+# Relatórios gerados localmente (integração Python em scripts/integration)
+testReports/**
+!testReports/README.md
+
+# --- GitNexus / agentes (gerados localmente; regeneram com `gitnexus analyze`) ---
+AGENTS.md
+CLAUDE.md
+.claude/
+.gitnexus/
