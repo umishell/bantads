@@ -50,6 +50,149 @@ Durante a criação do projeto Angular, foram selecionadas as seguintes opções
 
 ---
 
+## 🏗️ Arquitetura da aplicação
+
+O sistema foi estruturado utilizando uma arquitetura baseada em microsserviços, permitindo maior separação de responsabilidades e independência entre os módulos da aplicação.
+
+Cada microsserviço possui uma responsabilidade específica dentro do ecossistema do sistema bancário, facilitando manutenção, escalabilidade e futuras melhorias.
+
+Os principais microsserviços atualmente implementados são:
+
+- ms-auth
+- ms-cliente
+- ms-conta
+- ms-gerente
+- ms-email
+- ms-saga-orchestrator
+
+---
+
+## 🔄 Comunicação entre serviços
+
+A comunicação entre os serviços ocorre de forma assíncrona utilizando RabbitMQ.
+
+Esse modelo foi escolhido para:
+
+- reduzir acoplamento entre serviços
+- melhorar escalabilidade
+- facilitar tratamento de falhas
+- permitir fluxos distribuídos
+
+Além disso, a aplicação utiliza o padrão Saga para controle de operações distribuídas.
+
+---
+
+## 🧠 Padrões utilizados
+
+Durante o desenvolvimento foram utilizados alguns padrões importantes de arquitetura e organização:
+
+- Arquitetura em microsserviços
+- API Gateway
+- Saga Pattern
+- DTO Pattern
+- Repository Pattern
+- Separação por camadas
+- Injeção de dependência
+
+Esses padrões ajudam a tornar o sistema mais organizado e modular.
+
+---
+
+## 🔐 Autenticação e segurança
+
+O sistema possui autenticação baseada em JWT (JSON Web Token).
+
+As permissões são separadas de acordo com os perfis existentes no sistema:
+
+- Cliente
+- Gerente
+- Administrador
+
+Além disso, rotas protegidas utilizam guards e interceptors para validação de autenticação e autorização.
+
+---
+
+## 🗄️ Persistência de dados
+
+O projeto utiliza diferentes bancos de dados de acordo com a necessidade de cada microsserviço.
+
+Tecnologias utilizadas:
+
+- PostgreSQL
+- MongoDB
+
+A separação dos bancos foi planejada considerando características específicas de cada serviço.
+
+---
+
+## 🐳 Docker e containerização
+
+A aplicação foi preparada para execução em containers Docker.
+
+O ambiente conta com:
+
+- Docker Compose
+- Containers independentes
+- Serviços isolados
+- Comunicação em rede interna
+
+Isso facilita execução do projeto em diferentes ambientes de desenvolvimento.
+
+---
+
+## 📡 Gateway da aplicação
+
+O gateway atua como ponto central de entrada das requisições.
+
+Entre suas responsabilidades estão:
+
+- redirecionamento de rotas
+- validação de token JWT
+- controle de acesso
+- integração entre frontend e backend
+
+Essa abordagem ajuda a centralizar regras importantes do sistema.
+
+---
+
+## 🧪 Testes
+
+O projeto também possui estrutura inicial para testes automatizados.
+
+Os testes ajudam a:
+
+- validar regras de negócio
+- evitar regressões
+- garantir estabilidade
+- facilitar manutenção futura
+
+---
+
+## 📁 Organização dos módulos
+
+A estrutura foi separada de maneira modular visando facilitar entendimento do projeto.
+
+Cada módulo contém:
+
+- controllers
+- services
+- repositories
+- DTOs
+- configurações
+- modelos
+
+Essa divisão melhora a legibilidade e manutenção do código.
+
+---
+
+## 🚧 Desenvolvimento contínuo
+
+O sistema continua em desenvolvimento e novas funcionalidades poderão ser adicionadas conforme evolução da disciplina e necessidades do projeto.
+
+A estrutura atual foi pensada para permitir expansão gradual sem necessidade de grandes alterações arquiteturais.
+
+---
+
 ## Como clonar e executar
 
 ### 1. Clonar o repositório
@@ -787,5 +930,3 @@ Gabriela Harres Rodrigues           - GRR20246215 -         gabrielahr
 Michel Abril Marinho                - GRR20223411 -         umi.shell6@gmail.com
 
 Pedro Eduardo Dall Agnol            - GRR20240844 -         pedro.dallagnol.nr515@gmail.com
-
-Thiago Yuuki Yamamura Sakuma        - GRR20244418 -        thiagoyys@gmail.com
