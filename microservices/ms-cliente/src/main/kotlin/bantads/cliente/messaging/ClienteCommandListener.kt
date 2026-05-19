@@ -18,7 +18,11 @@ class ClienteCommandListener(
     private val log = LoggerFactory.getLogger(javaClass)
 
     @Transactional
-    @RabbitListener(queues = [RabbitConfig.QUEUE_CMD], containerFactory = "rawJsonListenerContainerFactory")
+    @RabbitListener(
+        queues = [RabbitConfig.QUEUE_CMD],
+        containerFactory = "rawJsonListenerContainerFactory",
+        autoStartup = "false",
+    )
     fun onMessage(body: String) {
         val root = objectMapper.readTree(body)
         val cmd = root.path("command").asText()
@@ -51,7 +55,7 @@ class ClienteCommandListener(
 
     private fun marcarPendente(clienteId: UUID, sagaId: String, motivo: String) {
         val c = repository.findById(clienteId).orElse(null) ?: return
-        if (c.status != StatusCliente.PROCESSANDO_APROVACAO) {
+        if (c.status != StatusCliente.PROCESSANDO_APROVACAO && c.status != StatusCliente.APROVADO) {
             log.info("Ignorando volta a pendente: cliente {} estado {}", clienteId, c.status)
             return
         }

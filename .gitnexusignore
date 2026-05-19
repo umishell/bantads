@@ -68,7 +68,9 @@ coverage/
 # =============================================================================
 # Logs, temporários & lixo de SO
 # =============================================================================
-logs/
+testReports/logs/
+testReports/issues/
+testReports/working/
 *.log
 *.tmp
 .DS_Store

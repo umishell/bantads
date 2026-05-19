@@ -1,53 +1,50 @@
 """
-Fixtures de sessão + geração de relatórios em ``testReports/working`` e ``testReports/issues``.
+Fixtures de sessão + relatórios em ``testReports/working/`` (resumos) e ``testReports/issues/`` (falhas).
 """
 
 from __future__ import annotations
 
-import json
 import os
 import re
-from datetime import datetime, timezone
 from pathlib import Path
 
 import httpx
 import pytest
 
 from lib.gateway_client import GatewayClient, sugestao_para_falha
-
-# Raiz do repositório (…/bantads)
-ROOT = Path(__file__).resolve().parents[2]
-REPORTS = ROOT / "testReports"
-WORKING = REPORTS / "working"
-ISSUES = REPORTS / "issues"
+from lib.report_names import (
+    ISSUES_DIR,
+    LOGS_DIR,
+    WORKING_DIR,
+    batch_id_from_stamp,
+    batch_id_legivel,
+    report_names,
+    stamp_legivel,
+)
 
 _FAILURES: list[dict] = []
 _PASSED: list[str] = []
 
 
-def _report_stamp_utc() -> str:
-    """Nome de arquivo legível: data + hora UTC (ex.: ``2026-05-12_00-46-54_UTC``)."""
-    return datetime.now(timezone.utc).strftime("%Y-%m-%d_%H-%M-%S_UTC")
-
-
-def _stamp_legivel(stamp: str) -> str:
-    """Converte ``2026-05-12_00-46-54_UTC`` em frase legível (ex.: ``2026-05-12 às 00:46:54 UTC``)."""
-    if stamp == "unknown" or not stamp.endswith("_UTC"):
-        return stamp
-    body = stamp[:-4]
-    try:
-        date_part, time_part = body.split("_", 1)
-        h, minute, sec = time_part.split("-")
-        return f"{date_part} às {h}:{minute}:{sec} UTC"
-    except ValueError:
-        return stamp
+def _resolve_report_ids() -> tuple[str, str]:
+    """Retorna ``(batch_id, stamp)`` da leva atual (env ou geração em BRT)."""
+    stamp = os.environ.get("BANTADS_REPORT_STAMP")
+    batch_id = os.environ.get("BANTADS_REPORT_BATCH_ID")
+    if stamp and not batch_id:
+        batch_id = batch_id_from_stamp(stamp)
+    if stamp and batch_id:
+        return batch_id, stamp
+    names = report_names()
+    return names["batch_id"], names["stamp"]
 
 
 def pytest_configure(config: pytest.Config) -> None:
-    WORKING.mkdir(parents=True, exist_ok=True)
-    ISSUES.mkdir(parents=True, exist_ok=True)
-    # Scripts `run-integration-tests.*` podem exportar o mesmo carimbo que o `junit`.
-    stamp = os.environ.get("BANTADS_REPORT_STAMP") or _report_stamp_utc()
+    LOGS_DIR.mkdir(parents=True, exist_ok=True)
+    ISSUES_DIR.mkdir(parents=True, exist_ok=True)
+    WORKING_DIR.mkdir(parents=True, exist_ok=True)
+    # Scripts `run-integration-tests.*` exportam batch_id + stamp alinhados ao `junit`.
+    batch_id, stamp = _resolve_report_ids()
+    config._bantads_batch_id = batch_id  # type: ignore[attr-defined]
     config._bantads_stamp = stamp  # type: ignore[attr-defined]
 
 
@@ -72,14 +69,26 @@ def pytest_runtest_makereport(item: pytest.Item, call: pytest.CallInfo):
 
 def pytest_sessionfinish(session: pytest.Session, exitstatus: int) -> None:
     stamp = getattr(session.config, "_bantads_stamp", "unknown")
+    batch_id = getattr(session.config, "_bantads_batch_id", "unknown")
+    if batch_id == "unknown" or stamp == "unknown":
+        names = report_names()
+        batch_id = names["batch_id"]
+        stamp = names["stamp"]
+        summary_name = names["passed_summary"]
+        feedback_name = names["agent_feedback"]
+    else:
+        summary_name = f"{batch_id}passed-summary__{stamp}.md"
+        feedback_name = f"{batch_id}agent-feedback__{stamp}.md"
+    batch_leg = batch_id_legivel(batch_id)
     # Resumo do que passou (para auditoria / “partes funcionando”)
-    summary_path = WORKING / f"passed-summary_{stamp}.md"
-    leg = _stamp_legivel(stamp)
+    summary_path = WORKING_DIR / summary_name
+    leg = stamp_legivel(stamp)
     lines = [
         "# Testes integração — o que passou",
         "",
-        f"- **Quando (UTC):** {leg}",
-        f"- **Identificador do arquivo:** `{stamp}`",
+        f"- **Leva (ID):** `{batch_leg}`",
+        f"- **Quando (BRT):** {leg}",
+        f"- **Identificador do arquivo:** `{summary_name}`",
         f"- **Exit status pytest:** `{exitstatus}`",
         "",
         "## Casos OK",
@@ -91,16 +100,17 @@ def pytest_sessionfinish(session: pytest.Session, exitstatus: int) -> None:
     summary_path.write_text("\n".join(lines), encoding="utf-8")
 
     # Relatório só de problemas + sugestões (para realimentar agente)
-    issues_path = ISSUES / f"agent-feedback_{stamp}.md"
-    leg = _stamp_legivel(stamp)
+    issues_path = ISSUES_DIR / feedback_name
+    leg = stamp_legivel(stamp)
     if not _FAILURES:
         issues_path.write_text(
             "\n".join(
                 [
                     "# Problemas encontrados — integração BANTADS",
                     "",
-                    f"- **Quando (UTC):** {leg}",
-                    f"- **Identificador do arquivo:** `{stamp}`",
+                    f"- **Leva (ID):** `{batch_leg}`",
+                    f"- **Quando (BRT):** {leg}",
+                    f"- **Identificador do arquivo:** `{feedback_name}`",
                     "",
                     "Nenhuma falha registrada nesta execução.",
                     "",
@@ -115,8 +125,9 @@ def pytest_sessionfinish(session: pytest.Session, exitstatus: int) -> None:
         "",
         "Use este arquivo para colar de volta no agente (Cursor) com o contexto de falha.",
         "",
-        f"- **Quando (UTC):** {leg}",
-        f"- **Identificador do arquivo:** `{stamp}`",
+        f"- **Leva (ID):** `{batch_leg}`",
+        f"- **Quando (BRT):** {leg}",
+        f"- **Identificador do arquivo:** `{feedback_name}`",
         "",
     ]
     for i, f in enumerate(_FAILURES, 1):
@@ -180,9 +191,10 @@ def http_misc() -> httpx.Client:
 
 @pytest.fixture(scope="session")
 def seed_stack(gateway_client: GatewayClient) -> None:
-    """Reseta usuários seed no Mongo (ms-auth) antes da suíte."""
-    r = gateway_client.request("GET", "/api/auth/reboot")
-    assert r.status_code == 200, f"reboot: {r.status_code} {r.text}"
+    """Reseta PostgreSQL (cliente, gerente, conta) + Mongo (auth) antes da suíte."""
+    from lib.integration_reboot import integration_reboot
+
+    integration_reboot(gateway_client, profile="full")
 
 
 @pytest.fixture(scope="session")
@@ -228,6 +240,12 @@ def seed_contas(
 ) -> dict[str, str]:
     """Números de conta (4 dígitos) dos clientes seed."""
     t = tokens["cliente"]
+    from lib.seed_data import SEED_CONTA_CLI1, SEED_CONTA_CLI2
+
     n1 = gateway_client.get_json(f"/api/contas/por-cliente/{seed_cli1_ids['id_cli1']}", token=t)
     n2 = gateway_client.get_json(f"/api/contas/por-cliente/{seed_cli1_ids['id_cli2']}", token=tokens["cliente2"])
-    return {"numero_cli1": str(n1["numero"]), "numero_cli2": str(n2["numero"])}
+    numero_cli1 = str(n1["numero"])
+    numero_cli2 = str(n2["numero"])
+    assert numero_cli1 == SEED_CONTA_CLI1, f"conta cli1 esperada {SEED_CONTA_CLI1}, obtida {numero_cli1}"
+    assert numero_cli2 == SEED_CONTA_CLI2, f"conta cli2 esperada {SEED_CONTA_CLI2}, obtida {numero_cli2}"
+    return {"numero_cli1": numero_cli1, "numero_cli2": numero_cli2}

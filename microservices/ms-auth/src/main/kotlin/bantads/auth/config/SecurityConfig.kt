@@ -11,6 +11,8 @@ class SecurityConfig {
     @Bean
     fun filterChain(http: HttpSecurity): SecurityFilterChain {
         http.csrf { it.disable() }
+            // Logout customizado em AuthController (POST /auth/logout); evita redirect GET do filtro padrão.
+            .logout { it.disable() }
             .authorizeHttpRequests { it.anyRequest().permitAll() }
         return http.build()
     }

@@ -2,7 +2,10 @@
 
 from __future__ import annotations
 
+import os
+import sys
 import time
+from collections.abc import Callable
 from typing import Any
 
 import httpx
@@ -29,8 +32,10 @@ class GatewayClient:
             headers["Authorization"] = f"Bearer {token}"
         if json_body is not None:
             headers["Content-Type"] = "application/json"
-        if method.upper() == "POST" and path.rstrip("/") == "/api/clientes":
-            path = "/api/clientes/"
+        if method.upper() == "POST":
+            normalized = path.rstrip("/")
+            if normalized in ("/api/clientes", "/api/gerentes"):
+                path = f"{normalized}/"
         return self._client.request(
             method,
             path,
@@ -66,20 +71,83 @@ def poll_until(
     timeout_s: float = 120.0,
     interval_s: float = 2.0,
     desc: str = "condição",
+    fail_fast_assertions: int = 3,
+    log_pending: Callable[[], str | None] | None = None,
 ) -> Any:
+    """
+    Aguarda ``fn()`` retornar valor truthy (exceto False/None).
+
+    Com ``BANTADS_POLL_VERBOSE=1`` (padrão), imprime progresso em stderr a cada tentativa.
+    ``log_pending`` pode retornar texto extra (ex.: status atual da saga) enquanto aguarda.
+    Após ``fail_fast_assertions`` AssertionErrors seguidos, aborta (ex.: HTTP 503 persistente).
+    Em Ctrl+C, imprime diagnóstico em stderr antes de propagar (use pytest ``--full-trace`` para stack completo).
+    """
+    verbose = os.environ.get("BANTADS_POLL_VERBOSE", "1").lower() in ("1", "true", "yes")
+
+    def _emit_interrupt(elapsed: float, attempt: int) -> None:
+        print(
+            f"\n[poll] Interrompido (Ctrl+C) durante: {desc} — tentativa {attempt}, {elapsed:.0f}s",
+            file=sys.stderr,
+            flush=True,
+        )
+        if log_pending:
+            hint = log_pending()
+            if hint:
+                print(f"[poll] Último estado: {hint}", file=sys.stderr, flush=True)
+        if last_exc:
+            print(f"[poll] Última exceção: {last_exc}", file=sys.stderr, flush=True)
+        print(
+            "[poll] Dica: logs Docker → docker compose logs ms-saga ms-cliente ms-email --tail=50",
+            file=sys.stderr,
+            flush=True,
+        )
+
     deadline = time.monotonic() + timeout_s
+    started = time.monotonic()
     last_exc: Exception | None = None
-    while time.monotonic() < deadline:
-        try:
-            ok = fn()
-            if ok is not False and ok is not None:
-                return ok
-        except Exception as e:
-            last_exc = e
-        time.sleep(interval_s)
+    assert_streak = 0
+    attempt = 0
+    try:
+        while time.monotonic() < deadline:
+            attempt += 1
+            elapsed = time.monotonic() - started
+            if verbose:
+                line = f"[poll] {desc} — tentativa {attempt}, {elapsed:.0f}s"
+                if log_pending:
+                    hint = log_pending()
+                    if hint:
+                        line += f" | {hint}"
+                print(line, file=sys.stderr, flush=True)
+            try:
+                ok = fn()
+                assert_streak = 0
+                if ok is not False and ok is not None:
+                    return ok
+            except AssertionError as e:
+                last_exc = e
+                assert_streak += 1
+                if assert_streak >= fail_fast_assertions:
+                    raise TimeoutError(
+                        f"{desc}: erro repetido ({assert_streak}x) após {elapsed:.0f}s — {e}"
+                    ) from e
+            except Exception as e:
+                last_exc = e
+                assert_streak = 0
+            try:
+                time.sleep(interval_s)
+            except KeyboardInterrupt:
+                _emit_interrupt(elapsed, attempt)
+                raise
+    except KeyboardInterrupt:
+        _emit_interrupt(time.monotonic() - started, attempt)
+        raise
     msg = f"Timeout aguardando {desc} ({timeout_s}s)"
     if last_exc:
         msg += f"; última exceção: {last_exc}"
+    if log_pending:
+        hint = log_pending()
+        if hint:
+            msg += f"; último estado: {hint}"
     raise TimeoutError(msg)
 
 

@@ -1,6 +1,7 @@
 package bantads.cliente.controller
 
 import bantads.cliente.exception.CpfJaCadastradoException
+import bantads.cliente.exception.EmailJaCadastradoException
 import bantads.cliente.exception.EstadoClienteInvalidoException
 import org.slf4j.LoggerFactory
 import org.springframework.http.HttpStatus
@@ -31,6 +32,16 @@ class RestExceptionHandler {
                 status = HttpStatus.CONFLICT.value(),
                 error = "Conflict",
                 message = ex.message ?: "Conflito",
+            ),
+        )
+
+    @ExceptionHandler(EmailJaCadastradoException::class)
+    fun emailDuplicado(ex: EmailJaCadastradoException): ResponseEntity<ErrorResponse> =
+        ResponseEntity.status(HttpStatus.CONFLICT).body(
+            ErrorResponse(
+                status = HttpStatus.CONFLICT.value(),
+                error = "Conflict",
+                message = ex.message ?: "E-mail já cadastrado",
             ),
         )
 

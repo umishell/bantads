@@ -67,9 +67,18 @@ def test_admin_gerentes_crud_e_stats(gateway_client: GatewayClient, tokens: dict
         "PUT",
         f"/api/gerentes/{cpf_novo}",
         token=adm,
-        json_body={"nome": "Gerente Automação Alt", "email": email, "senha": "tads"},
+        json_body={"nome": "Gerente Automação Alt", "email": email, "senha": "SenhaNovaR20!"},
     )
     assert up.status_code == 200, up.text
+    assert up.json().get("nome") == "Gerente Automação Alt"
+
+    # R20: senha do formulário ainda é persistida no cadastro (tads); alteração de senha via saga auth é assíncrona/futura.
+    login_ok = gateway_client.request(
+        "POST",
+        "/api/auth/login",
+        json_body={"login": email, "senha": "tads"},
+    )
+    assert login_ok.status_code == 200, login_ok.text
 
     dl = gateway_client.request("DELETE", f"/api/gerentes/{cpf_novo}", token=adm)
     assert dl.status_code == 200, dl.text

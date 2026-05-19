@@ -5,6 +5,7 @@ import bantads.conta.dto.OperacaoResponse
 import bantads.conta.dto.TransferenciaRequest
 import bantads.conta.dto.ValorRequest
 import bantads.conta.service.ContaCommandService
+import bantads.conta.service.TransferenciaSagaCoordinator
 import jakarta.validation.Valid
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.DeleteMapping
@@ -23,6 +24,7 @@ import org.springframework.web.bind.annotation.RestController
 @RequestMapping
 class ContaCommandController(
     private val commandService: ContaCommandService,
+    private val transferenciaSaga: TransferenciaSagaCoordinator,
 ) {
 
     /** R3: Depositar em uma conta. */
@@ -41,13 +43,13 @@ class ContaCommandController(
     ): ResponseEntity<OperacaoResponse> =
         ResponseEntity.ok(commandService.sacar(numero, body))
 
-    /** R3: Transferir entre contas. */
+    /** R3/R7: Transferir entre contas (saga débito → crédito via `cmd.conta`). */
     @PostMapping("/{numero}/transferir")
     fun transferir(
         @PathVariable numero: String,
         @Valid @RequestBody body: TransferenciaRequest,
     ): ResponseEntity<OperacaoResponse> =
-        ResponseEntity.ok(commandService.transferir(numero, body))
+        ResponseEntity.ok(transferenciaSaga.transferir(numero, body))
 
     /** R8: Gerente atualiza limite da conta. */
     @PatchMapping("/{numero}/limite")

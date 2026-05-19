@@ -31,12 +31,14 @@ class JwtService(
     /**
      * Gera o token com as informações do usuário
      */
-    fun gerarToken(login: String, perfil: String): String {
+    fun gerarToken(login: String, perfil: String, cpf: String? = null): String {
         val now = System.currentTimeMillis()
-        return Jwts.builder()
+        val builder = Jwts.builder()
             .subject(login)
             .claim("perfil", perfil)
             .claim("tipo", perfil)
+        cpf?.filter { it.isDigit() }?.takeIf { it.length == 11 }?.let { builder.claim("cpf", it) }
+        return builder
             .issuedAt(Date(now))
             .expiration(Date(now + expiration))
             .signWith(signingKey())

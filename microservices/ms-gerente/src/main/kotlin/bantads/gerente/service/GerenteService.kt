@@ -7,6 +7,7 @@ import bantads.gerente.dto.InserirGerenteRequest
 import bantads.gerente.exception.CpfJaCadastradoException
 import bantads.gerente.exception.GerenteNaoEncontradoException
 import bantads.gerente.exception.UltimoGerenteException
+import bantads.gerente.integration.AuthClient
 import bantads.gerente.integration.ContaClient
 import bantads.gerente.model.Gerente
 import bantads.gerente.repository.GerenteRepository
@@ -20,6 +21,7 @@ import java.math.BigDecimal
 class GerenteService(
     private val repository: GerenteRepository,
     private val contaClient: ContaClient,
+    private val authClient: AuthClient,
 ) {
 
     private val log = LoggerFactory.getLogger(javaClass)
@@ -38,12 +40,7 @@ class GerenteService(
         return g.toResponse()
     }
 
-    /**
-     * R17: inserção de gerente. A senha vem do formulário e é persistida no ms-auth via saga;
-     * aqui persistimos os dados cadastrais e publicamos evento para a saga (remanejamento de contas).
-     * Por ora criamos o gerente no banco e retornamos a resposta; a saga de remanejamento,
-     * quando implementada, consumirá o evento "gerente.inserido".
-     */
+    /** R17: inserção de gerente; atribui uma conta via ms-conta (regra do enunciado). */
     @Transactional
     fun inserir(req: InserirGerenteRequest): GerenteResponse {
         val cpf = Cpf.require(req.cpf)
@@ -56,6 +53,18 @@ class GerenteService(
             tipo = (req.tipo ?: "GERENTE").uppercase(),
         )
         val saved = repository.save(g)
+        authClient.criarUsuario(
+            email = saved.email,
+            nome = saved.nome,
+            cpf = saved.cpf,
+            senha = req.senha,
+            perfil = saved.tipo,
+        )
+        if (saved.tipo == "GERENTE") {
+            val ativos = repository.findAllByAtivoTrueAndTipoOrderByNomeAsc("GERENTE")
+                .mapNotNull { it.id }
+            contaClient.atribuirUmaContaAoNovoGerente(saved.id!!, ativos)
+        }
         log.info("Gerente inserido id={} cpf={} tipo={}", saved.id, saved.cpf, saved.tipo)
         return saved.toResponse()
     }
@@ -72,10 +81,7 @@ class GerenteService(
         return saved.toResponse()
     }
 
-    /**
-     * R18: remoção de gerente (soft delete) — não pode remover o último gerente ativo.
-     * As contas atreladas serão remanejadas via saga (orquestrador escuta evento).
-     */
+    /** R18: remoção (soft delete); remaneja contas para o gerente com menos clientes. */
     @Transactional
     fun remover(cpf: String): GerenteResponse {
         val g = repository.findByCpf(Cpf.normalize(cpf))
@@ -83,8 +89,17 @@ class GerenteService(
         if (g.tipo == "GERENTE" && repository.countByAtivoTrueAndTipo("GERENTE") <= 1) {
             throw UltimoGerenteException()
         }
+        if (g.tipo == "GERENTE") {
+            val outros = repository.findAllByAtivoTrueAndTipoOrderByNomeAsc("GERENTE")
+                .filter { it.id != g.id }
+                .mapNotNull { it.id }
+            if (outros.isNotEmpty()) {
+                contaClient.remanejarContasDoGerente(g.id!!, outros)
+            }
+        }
         g.ativo = false
         val saved = repository.save(g)
+        authClient.removerUsuario(saved.email)
         log.info("Gerente removido (soft) id={} cpf={}", saved.id, saved.cpf)
         return saved.toResponse()
     }

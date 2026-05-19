@@ -10,6 +10,8 @@ import bantads.conta.exception.SaldoInsuficienteException
 import bantads.conta.model.Conta
 import bantads.conta.model.Movimentacao
 import bantads.conta.model.TipoMovimentacao
+import bantads.conta.messaging.TransferenciaPendente
+import bantads.conta.messaging.TransferenciaPendenteStore
 import bantads.conta.repository.ContaRepository
 import bantads.conta.repository.MovimentacaoRepository
 import org.slf4j.LoggerFactory
@@ -22,6 +24,7 @@ import java.time.Instant
 class ContaCommandService(
     private val contaRepository: ContaRepository,
     private val movimentacaoRepository: MovimentacaoRepository,
+    private val transferenciaPendenteStore: TransferenciaPendenteStore,
 ) {
     private val log = LoggerFactory.getLogger(javaClass)
 
@@ -83,6 +86,74 @@ class ContaCommandService(
             saldoDestino = null,
             dataHora = mov.dataHora,
         )
+    }
+
+    /** Passo 1 da saga R7 — apenas débito na origem. */
+    @Transactional
+    fun sagaTransferDebito(sagaId: String, numeroContaOrigem: String, numeroDestino: String, valor: BigDecimal) {
+        if (numeroContaOrigem == numeroDestino) {
+            throw OperacaoInvalidaException("Conta de origem e destino são iguais")
+        }
+        val origem = exigirContaAtiva(numeroContaOrigem)
+        exigirContaAtiva(numeroDestino)
+        val v = valor.normalizar()
+        val disponivel = origem.saldo + origem.limite
+        if (v > disponivel) {
+            throw SaldoInsuficienteException(
+                "Saldo+limite insuficiente (disponível=$disponivel, solicitado=$v)",
+            )
+        }
+        origem.saldo = origem.saldo - v
+        contaRepository.save(origem)
+        transferenciaPendenteStore.put(
+            sagaId,
+            TransferenciaPendente(
+                numeroOrigem = numeroContaOrigem,
+                numeroDestino = numeroDestino,
+                valor = v,
+                saldoOrigemAposDebito = origem.saldo,
+            ),
+        )
+    }
+
+    /** Passo 2 da saga R7 — crédito no destino e movimentação. */
+    @Transactional
+    fun sagaTransferCredito(sagaId: String): OperacaoResponse {
+        val pendente = transferenciaPendenteStore.remove(sagaId)
+            ?: throw OperacaoInvalidaException("Transferência pendente não encontrada")
+        val origem = exigirContaAtiva(pendente.numeroOrigem)
+        val destino = exigirContaAtiva(pendente.numeroDestino)
+        destino.saldo = destino.saldo + pendente.valor
+        contaRepository.save(destino)
+        val mov = movimentacaoRepository.save(
+            Movimentacao(
+                dataHora = Instant.now(),
+                tipo = TipoMovimentacao.TRANSFERENCIA,
+                valor = pendente.valor,
+                contaOrigemId = origem.id,
+                contaDestinoId = destino.id,
+                saldoResultanteOrigem = origem.saldo,
+                saldoResultanteDestino = destino.saldo,
+            ),
+        )
+        return OperacaoResponse(
+            movimentacaoId = mov.id!!,
+            tipo = mov.tipo,
+            valor = mov.valor,
+            saldoOrigem = origem.saldo,
+            saldoDestino = destino.saldo,
+            dataHora = mov.dataHora,
+        )
+    }
+
+    /** Compensação — estorna débito se o crédito falhar. */
+    @Transactional
+    fun sagaTransferCompensarDebito(sagaId: String) {
+        val pendente = transferenciaPendenteStore.remove(sagaId) ?: return
+        val origem = contaRepository.findByNumero(pendente.numeroOrigem) ?: return
+        origem.saldo = origem.saldo + pendente.valor
+        contaRepository.save(origem)
+        log.warn("Compensação transferência sagaId={} conta={}", sagaId, pendente.numeroOrigem)
     }
 
     @Transactional

@@ -1,120 +1,140 @@
 # Tutorial — Testes transacionais no BANTADS com HTTPie Desktop (2026)
 
-Este guia é para testar, no mesmo estilo do front, todos os endpoints “transacionais” usando **HTTPie Desktop (Windows/Mac/Linux)** e o **API Gateway** do BANTADS.
+Este guia é para testar, no mesmo estilo do front, os endpoints transacionais usando **HTTPie Desktop** e o **API Gateway** (`http://localhost/api/...`).
 
-Ele assume que a stack Docker já está funcional (gateway, microsserviços, bancos, RabbitMQ, MailHog).
+Complementa:
+- [`swaggerTests.md`](swaggerTests.md) — explorar contratos por microsserviço (portas 808x)
+- [`guia-completo-testes-integracao.md`](guia-completo-testes-integracao.md) — suíte pytest automatizada (~62 cenários)
+- [`integrationTests.md`](integrationTests.md) — como rodar a suíte
+
+Assume a stack Docker no ar (gateway, microsserviços, PostgreSQL, Mongo, RabbitMQ, MailHog).
 
 ---
 
-## 1) Pré-requisitos (mínimos)
+## 1) Pré-requisitos
 
 1. **Docker Desktop** ligado.
-2. Navegador/HTTPie Desktop instalado e funcionando.
-3. Banco e microsserviços rodando via Compose.
-
-Na raiz do repositório (onde está `docker-compose.yml`):
+2. **HTTPie Desktop** instalado.
+3. Stack rodando na raiz do repositório:
 
 ```powershell
 docker compose up --build -d
 ```
 
----
+Após mudanças no gateway ou nos seeds:
 
-## 2) Criar Space, Collection e Environment no HTTPie Desktop
-
-1. Abra o HTTPie Desktop.
-2. Crie/Selecione um **Space** (ex.: “BANTADS”).
-3. Crie uma **Collection** (ex.: “Gateway — transacionais”).
-4. Crie/edite um **Environment** com estas variáveis:
-
-   - `gateway` = `http://localhost`  
-   - `token_cliente` = (vazio inicialmente)
-   - `token_gerente` = (vazio inicialmente)
-   - `token_admin` = (vazio inicialmente)
-   - `clienteId` = (vazio inicialmente, UUID)
-   - `cpf_cliente` = (vazio inicialmente, 11 dígitos)
-   - `numeroConta` = (vazio inicialmente, 4 dígitos)
-
-Observação: o HTTPie Desktop normalmente não “extrai automaticamente” valores do JSON para variáveis. Você vai copiar/colar manualmente o que for necessário depois de cada resposta.
+```powershell
+docker compose build gateway ms-auth ms-cliente ms-conta ms-gerente
+docker compose up -d
+```
 
 ---
 
-## 3) Como autenticar com Bearer no HTTPie Desktop
+## 2) Space, Collection e Environment
 
-Em cada requisição que exige token:
+1. Crie um **Space** (ex.: “BANTADS”).
+2. Crie uma **Collection** (ex.: “Gateway — transacionais”).
+3. Variáveis sugeridas:
 
-1. No painel **Auth** da requisição:
-   - escolha **Bearer token**
-   - coloque `{{token_cliente}}` ou `{{token_gerente}}` ou `{{token_admin}}`
-2. Envie a requisição.
+| Variável | Valor inicial | Uso |
+|----------|---------------|-----|
+| `gateway` | `http://localhost` | Base de todas as requisições |
+| `token_cliente` | (vazio) | JWT do cli1 |
+| `token_cliente2` | (vazio) | JWT do cli2 (saldo negativo) |
+| `token_gerente` | (vazio) | JWT do ger1 |
+| `token_admin` | (vazio) | JWT do adm1 |
+| `clienteId` | (vazio) | UUID (autocadastro / consulta gerente) |
+| `cpf_cliente` | `12912861012` | CPF seed Catharyna (cli1) |
+| `numeroConta` | `1291` | Conta seed cli1 (4 dígitos) |
+| `numeroConta_destino` | `0950` | Conta seed cli2 (transferências) |
 
-Dica: para reduzir erro, prefira chamar tudo via `{{gateway}}/api/...` (gateway sempre é o mesmo ponto do app).
+O HTTPie Desktop não extrai JSON para variáveis automaticamente — copie `access_token`, `clienteId`, etc. das respostas.
 
 ---
 
-## 4) Fluxo base: reboot + login (antes de testar qualquer transação)
+## 3) Autenticação Bearer
+
+Em requisições protegidas:
+
+1. Painel **Auth** → **Bearer token**
+2. Valor: `{{token_cliente}}`, `{{token_gerente}}` ou `{{token_admin}}`
+
+Prefira sempre `{{gateway}}/api/...` (mesmo ponto do Angular e da suíte pytest).
+
+---
+
+## 4) Fluxo base: health + reboot + login
 
 ### 4.1 Health (gateway)
 
-- Método: `GET`
-- URL: `{{gateway}}/health`
-- Body: vazio
-- Esperado: `200 OK`
+- `GET {{gateway}}/health`
+- Esperado: `200` com `status: up`
 
-### 4.2 Seed / reboot (Mongo seed do ms-auth)
+### 4.2 Reboot completo (recomendado)
 
-- Método: `GET`
-- URL: `{{gateway}}/api/auth/reboot`
+Reseta **PostgreSQL** (cliente, gerente, conta) e **Mongo** (auth), repovoa o seed do PDF.
+
+- `GET {{gateway}}/api/integration/reboot`
 - Auth: nenhum
-- Esperado: `200 OK`
+- Esperado: `200` com JSON listando `ms-gerente`, `ms-cliente`, `ms-conta`, `ms-auth`
 
-### 4.3 Login — definir token do perfil
+Use isto **antes** de qualquer bateria manual longa ou quando saldos/contas não baterem com a tabela abaixo.
 
-#### Login CLIENTE
+> **Só Mongo (legado):** `GET {{gateway}}/api/auth/reboot` recria usuários no `ms-auth`, mas **não** repõe contas/saldos no PostgreSQL. Para testes transacionais, prefira `integration/reboot`.
 
-- Método: `POST`
-- URL: `{{gateway}}/api/auth/login`
-- Body JSON:
+### 4.3 Dados seed (após reboot)
+
+| Personagem | E-mail login | Senha | CPF | Conta | Saldo (aprox.) |
+|------------|--------------|-------|-----|-------|----------------|
+| Catharyna (cli1) | `cli1@bantads.com.br` | `tads` | 12912861012 | **1291** | 800 |
+| Cleuddônio (cli2) | `cli2@bantads.com.br` | `tads` | 09506382000 | **0950** | -10000 |
+| Catianna (cli3) | `cli3@bantads.com.br` | `tads` | 85733854057 | **8573** | -1000 |
+| Cutardo (cli4) | `cli4@bantads.com.br` | `tads` | 58872160006 | **5887** | 150000 |
+| Coândrya (cli5) | `cli5@bantads.com.br` | `tads` | 76179646090 | **7617** | 1500 |
+| Geniéve (ger1) | `ger1@bantads.com.br` | `tads` | — | — | — |
+| Adamântio (admin) | `adm1@bantads.com.br` | `tads` | — | — | — |
+
+### 4.4 Login
+
+`POST {{gateway}}/api/auth/login`
+
+**Cliente 1**
 ```json
-{
-  "login": "cli1@bantads.com.br",
-  "senha": "tads"
-}
+{ "login": "cli1@bantads.com.br", "senha": "tads" }
 ```
-- Copie `access_token` e cole em `token_cliente`.
+→ copie `access_token` para `token_cliente`.
 
-#### Login GERENTE
-
-mesma rota:
+**Cliente 2** (testes de saldo negativo / limite)
 ```json
-{
-  "login": "ger1@bantads.com.br",
-  "senha": "tads"
-}
+{ "login": "cli2@bantads.com.br", "senha": "tads" }
 ```
-- Copie `access_token` e cole em `token_gerente`.
+→ `token_cliente2`.
 
-#### Login ADMINISTRADOR
-
-mesma rota:
+**Gerente**
 ```json
-{
-  "login": "adm1@bantads.com.br",
-  "senha": "tads"
-}
+{ "login": "ger1@bantads.com.br", "senha": "tads" }
 ```
-- Copie `access_token` e cole em `token_admin`.
+
+**Administrador**
+```json
+{ "login": "adm1@bantads.com.br", "senha": "tads" }
+```
+
+Resposta típica: `access_token`, `token_type`, `tipo` (`CLIENTE` | `GERENTE` | `ADMINISTRADOR`), `usuario`.
+
+### 4.5 Logout (opcional)
+
+1. `POST {{gateway}}/api/auth/logout` com Bearer do token a revogar → `200`
+2. `GET {{gateway}}/api/auth/introspect` com o mesmo token → `401`
 
 ---
 
-## 5) R1 — Autocadastro (público) e saga de aprovação (GERENTE)
+## 5) R1 — Autocadastro e saga (GERENTE)
 
-### 5.1 Autocadastro (público, Gateway)
+### 5.1 Autocadastro (público)
 
-- Método: `POST`
-- URL: `{{gateway}}/api/clientes`
+- `POST {{gateway}}/api/clientes`
 - Auth: nenhum
-- Body JSON:
 ```json
 {
   "cpf": "52998224725",
@@ -128,205 +148,169 @@ mesma rota:
   "estado": "PR"
 }
 ```
-- Esperado: `201 Created`
+- Esperado: `201` — copie `clienteId` e `cpf`.
 
-Na resposta, copie:
-- `clienteId` (UUID) -> cole em `clienteId`
-- `cpf` -> cole em `cpf_cliente`
+**Erros úteis para validar:**
+- CPF ou e-mail já usados no seed → `409`
+- E-mail novo + CPF duplicado → `409`
 
-> Se der erro de CPF/email duplicado, altere o `email` e/ou use outro CPF válido.
-
-### 5.2 Listar pendentes (GERENTE)
-
-- Método: `GET`
-- URL: `{{gateway}}/api/clientes/pendentes`
-- Auth: Bearer `{{token_gerente}}`
-- Esperado: `200 OK`
-- Confirme que existe o cliente pendente criado na 5.1.
-
-### 5.3 Aprovar (GERENTE) — inicia saga
-
-- Método: `POST`
-- URL: `{{gateway}}/api/clientes/{{clienteId}}/aprovar`
-- Auth: Bearer `{{token_gerente}}`
-- Body: `{}` ou vazio (se o Swagger aceitar body opcional)
-- Esperado: `202 Accepted`
-
-### 5.4 Acompanhar resultado (assíncrono)
-
-Enquanto a saga roda:
-- ver filas e consumo em **RabbitMQ Management**: `http://localhost:15672`
-- e-mails em **MailHog**: `http://localhost:8025`
-
-Quando concluir, o cliente deve aparecer como aprovado (e a conta passa a existir no ms-conta).
-
----
-
-## 6) R12/R13/R4 — Consultar e alterar perfil (CLIENTE)
-
-### 6.1 Consultar detalhe do cliente por CPF (CLIENTE)
-
-- Método: `GET`
-- URL: `{{gateway}}/api/clientes/{{cpf_cliente}}`
-- Auth: Bearer `{{token_cliente}}` (ACL do gateway)
-- Esperado: `200 OK`
-
-### 6.2 Alterar perfil do cliente (CLIENTE) — (R4)
-
-- Método: `PUT`
-- URL: `{{gateway}}/api/clientes/{{cpf_cliente}}`
-- Auth: Bearer `{{token_cliente}}`
-- Body JSON (campos opcionais, envie o que quiser alterar):
-```json
-{
-  "nome": "Fulano da Silva (editado)",
-  "email": "fulano.editado@example.com",
-  "telefone": "41998887766",
-  "salario": 2500.00,
-  "endereco": "Rua X, 50",
-  "cidade": "Curitiba",
-  "estado": "PR",
-  "cep": "80000000"
-}
-```
-- Esperado: `200 OK`
-
-> Depois valide o efeito em `ms-conta` via `GET /api/contas/{numero}/saldo`, usando o `numeroConta` do cliente (próximo passo).
-
----
-
-## 7) R3/R5/R6/R7/R8 — Depósito, saque, transferência, saldo e extrato (CLIENTE)
-
-### 7.1 Obter `numeroConta` do CLIENTE (para usar nos próximos endpoints)
-
-Opções:
-
-- via detalhe do cliente (se retornar conta, depende do contrato no seu ambiente), ou
-- via consulta de conta no gateway/microsserviço.
-
-Para o seu workflow, faça:
-1. `GET {{gateway}}/api/clientes/{{cpf_cliente}}` (se a resposta incluir número de conta)
-2. se não incluir, use:
-   - `GET {{gateway}}/api/clientes/{{cpf_cliente}}` para confirmar os dados
-   - e depois `ms-conta` para listar por cliente (quando você souber o `clienteId`)
-
-Assim que tiver `numeroConta` (4 dígitos), continue.
-
-### 7.2 Depósito
-
-- Método: `POST`
-- URL: `{{gateway}}/api/contas/{{numeroConta}}/depositar`
-- Auth: Bearer `{{token_cliente}}`
-- Body JSON:
-```json
-{ "valor": 51.44 }
-```
-- Esperado: `200 OK`
-
-### 7.3 Saque
-
-- Método: `POST`
-- URL: `{{gateway}}/api/contas/{{numeroConta}}/sacar`
-- Auth: Bearer `{{token_cliente}}`
-- Body JSON:
-```json
-{ "valor": 51.44 }
-```
-- Esperado: `200 OK`
-
-### 7.4 Transferência
-
-- Método: `POST`
-- URL: `{{gateway}}/api/contas/{{numeroConta}}/transferir`
-- Auth: Bearer `{{token_cliente}}`
-- Body JSON (destino deve ter 4 dígitos e não pode ser a própria conta):
-```json
-{
-  "numeroContaDestino": "0123",
-  "valor": 51.44
-}
-```
-
-> Observação: no front o payload usa `destino`; no serviço a DTO chama `numeroContaDestino`. No gateway, os DTOs do contrato do app precisam estar compatíveis. Se você receber erro de validação, verifique o campo correto no Swagger do `ms-conta`.
-
-### 7.5 Saldo
-
-- Método: `GET`
-- URL: `{{gateway}}/api/contas/{{numeroConta}}/saldo`
-- Auth: Bearer `{{token_cliente}}`
-- Esperado: `200 OK`
-
-### 7.6 Extrato
-
-- Método: `GET`
-- URL: `{{gateway}}/api/contas/{{numeroConta}}/extrato?dataInicio=2025-01-01&dataFim=2025-12-31`
-- Auth: Bearer `{{token_cliente}}`
-- Esperado: `200 OK`
-
-Confirme que:
-- depósitos entram como “entrada”
-- saques/transferências entram como “saída”
-
----
-
-## 8) R9/R10/R11 — Pendentes, aprovar e rejeitar (GERENTE)
-
-### 8.1 Pendentes
+### 5.2 Pendentes
 
 - `GET {{gateway}}/api/clientes/pendentes`
-- Auth: Bearer `{{token_gerente}}`
-- Esperado: `200 OK`
+- Bearer `{{token_gerente}}` → `200`
 
-### 8.2 Aprovar (iniciar saga)
+Alternativa com filtro (equivalente no gateway):
+
+- `GET {{gateway}}/api/clientes?filtro=para_aprovar`
+
+### 5.3 Aprovar (saga)
 
 - `POST {{gateway}}/api/clientes/{{clienteId}}/aprovar`
-- Auth: Bearer `{{token_gerente}}`
-- Body: `{}` ou vazio
+- Bearer `{{token_gerente}}`
+- Body: `{}`
 - Esperado: `202 Accepted`
 
-### 8.3 Rejeitar (opcional)
+Monitore:
+- RabbitMQ: `http://localhost:15672`
+- MailHog: `http://localhost:8025` (credenciais provisórias)
 
-Para rejeitar um cliente pendente:
+### 5.4 Rejeitar (opcional)
 
 - `POST {{gateway}}/api/clientes/{{clienteId}}/rejeitar`
-- Auth: Bearer `{{token_gerente}}`
-- Body JSON:
 ```json
 { "motivo": "Usuário não é interessante para o banco" }
 ```
-- Esperado: `200 OK`
+- Esperado: `200` — e-mail no MailHog deve conter o motivo.
 
 ---
 
-## 9) R19/R15/R16/R17/R18/R20 — Gerentes e operações de ADMIN
+## 6) R12 / R13 / R4 — Perfil do cliente
 
-### 9.1 Listar gerentes (R19)
+### 6.1 Consultar por CPF (gerente ou dono)
 
-- Método: `GET`
-- URL: `{{gateway}}/api/gerentes`
-- Auth: Bearer `{{token_admin}}`
-- Esperado: `200 OK`
+- `GET {{gateway}}/api/clientes/{{cpf_cliente}}`
+- Bearer `{{token_gerente}}` ou `{{token_cliente}}` (próprio CPF)
+- Esperado: `200` com `id`, `nome`, `salario`, `status`, etc.
 
-### 9.2 Dashboard admin (R15)
+### 6.2 Alterar perfil (R4)
 
-- Método: `GET`
-- URL: `{{gateway}}/api/gerentes/stats`
-- Auth: Bearer `{{token_admin}}`
-- Esperado: `200 OK`
+- `PUT {{gateway}}/api/clientes/{{cpf_cliente}}`
+- Bearer `{{token_cliente}}` — **só o próprio CPF** (gateway retorna `403` se tentar outro)
+```json
+{
+  "nome": "Catharyna (editado)",
+  "salario": 8000.00,
+  "cidade": "Curitiba",
+  "estado": "PR"
+}
+```
+- Esperado: `200`
 
-### 9.3 Relatório de clientes (R16)
+**Conferir efeito:** após mudar `salario`, o limite em `ms-conta` deve recalcular (metade do salário; regras &lt; 2000 e piso com saldo negativo — ver `test_13` na suíte).
 
-- Método: `GET`
-- URL: `{{gateway}}/api/clientes/report`
-- Auth: Bearer `{{token_admin}}`
-- Esperado: `200 OK`
+### 6.3 Obter `numeroConta` e `clienteId`
 
-### 9.4 Inserir gerente (R17)
+1. `GET {{gateway}}/api/clientes/12912861012` com token gerente → anote `id` (UUID).
+2. `GET {{gateway}}/api/contas/por-cliente/{id}` com token **cliente** dono da conta → `numero` (ex.: `1291`).
 
-- Método: `POST`
-- URL: `{{gateway}}/api/gerentes`
-- Auth: Bearer `{{token_admin}}`
-- Body JSON:
+---
+
+## 7) R3 / R5 / R6 / R7 / R8 — Conta (CLIENTE)
+
+Use `numeroConta=1291` e token `{{token_cliente}}` salvo indicação contrária.
+
+### 7.1 Saldo
+
+- `GET {{gateway}}/api/contas/{{numeroConta}}/saldo`
+- Esperado: `saldo`, `limite`, `saldoDisponivel` (= saldo + limite)
+
+### 7.2 Depósito
+
+- `POST {{gateway}}/api/contas/{{numeroConta}}/depositar`
+```json
+{ "valor": 51.44 }
+```
+- Esperado: `200`
+
+**Erros:** valor `0` → `400`; depositar na conta **0950** com token cli1 → `403`.
+
+### 7.3 Saque
+
+- `POST {{gateway}}/api/contas/{{numeroConta}}/sacar`
+```json
+{ "valor": 10.00 }
+```
+- Esperado: `200` se saldo+limite permitir
+
+**Erros:** valor negativo → `400`; valor acima do disponível → `422`; sacar conta alheia → `403`.
+
+**cli2 (saldo negativo):** login cli2, conta `0950`, saque parcial dentro do limite.
+
+### 7.4 Transferência
+
+- `POST {{gateway}}/api/contas/{{numeroConta}}/transferir`
+```json
+{
+  "numeroContaDestino": "0950",
+  "valor": 25.00
+}
+```
+- Esperado: `200`
+
+**Erros:**
+- destino `0000` → `404`
+- valor acima do disponível → `422`
+- origem = destino → `400`
+- path com conta de outro cliente → `403`
+
+### 7.5 Extrato
+
+- `GET {{gateway}}/api/contas/{{numeroConta}}/extrato?dataInicio=2025-01-01&dataFim=2026-12-31`
+- Confira: `tipo`, `valor`, `saldoApos`, `contraparteContaNumero`, `natureza` (entrada/saída)
+
+### 7.6 Encerrar conta (GERENTE — R8)
+
+Use conta de cliente **criado na saga**, não a seed `0950`:
+
+1. Autocadastro + aprovar (seção 5)
+2. `DELETE {{gateway}}/api/contas/{numero}` com Bearer gerente → `204`
+3. Depósito/saque/transferência do cliente → `409` ou `422`
+
+---
+
+## 8) Consultas do gerente (R9, R12, R14, R19)
+
+| Ação | Método | URL | Token |
+|------|--------|-----|-------|
+| Pendentes | GET | `/api/clientes/pendentes` | gerente |
+| Cliente por CPF | GET | `/api/clientes/{cpf}` | gerente |
+| Carteira | GET | `/api/clientes` | gerente |
+| Melhores (top) | GET | `/api/clientes?filtro=melhores_clientes` | gerente |
+| Top 3 contas | GET | `/api/contas/top3` | gerente |
+| Listar contas | GET | `/api/contas` | gerente |
+| PATCH limite | PATCH | `/api/contas/{numero}/limite` | gerente |
+
+Body do limite:
+```json
+{ "limite": 999.99 }
+```
+
+---
+
+## 9) Admin (R15, R16, R17, R18, R20)
+
+| Ação | Método | URL |
+|------|--------|-----|
+| Listar gerentes | GET | `/api/gerentes` |
+| Dashboard | GET | `/api/gerentes/stats` |
+| Relatório clientes | GET | `/api/clientes/report` |
+| Relatório (filtro) | GET | `/api/clientes?filtro=adm_relatorio_clientes` |
+| Agregados por gerente | GET | `/api/contas/agregados/por-gerente` |
+| Criar gerente | POST | `/api/gerentes` |
+| Alterar gerente | PUT | `/api/gerentes/{cpf}` |
+| Remover gerente | DELETE | `/api/gerentes/{cpf}` |
+
+**Criar gerente (exemplo)**
 ```json
 {
   "cpf": "40501740066",
@@ -337,47 +321,47 @@ Para rejeitar um cliente pendente:
   "tipo": "GERENTE"
 }
 ```
-- Esperado: `201 Created`
 
-### 9.5 Alterar gerente (R20)
+**Remover gerente:** não remova o **último** gerente ativo → `422`.
 
-- Método: `PUT`
-- URL: `{{gateway}}/api/gerentes/{{cpf_novo_gerente}}`
-- Auth: Bearer `{{token_admin}}`
-- Body JSON (nome/email/senha):
-```json
-{
-  "nome": "Gerente HTTPie (editado)",
-  "email": "gerente.httpie.editado@example.com",
-  "senha": "tads"
-}
-```
-- Esperado: `200 OK`
-
-### 9.6 Remover gerente (R18)
-
-- Método: `DELETE`
-- URL: `{{gateway}}/api/gerentes/{{cpf_gerente_para_remover}}`
-- Auth: Bearer `{{token_admin}}`
-- Esperado: `200 OK`  
-
-> Regra: não remover o último gerente ativo (pode retornar erro).
+> **R20 senha:** o PUT aceita `senha`, mas a persistência no `ms-auth` via saga ainda pode estar incompleta — após alterar, teste login com `tads` e documente o resultado.
 
 ---
 
-## 10) Dicas finais (para evitar retrabalho)
+## 10) ACL no gateway (perfis)
 
-- Sempre que mudar token/perfil, re-pegue o Bearer e substitua `{{token_cliente}}` / `{{token_gerente}}` / `{{token_admin}}`.
-- Para endpoints assíncronos (saga de autocadastro/aprovacao), espere o e-mail chegar/estado mudar antes de validar extrato/saldo.
-- Se algum endpoint acusar erro de validação:
-  - verifique o campo correto do JSON no Swagger do `ms-` (porque o contrato do front pode ter nomes diferentes dos DTOs internos).
+Comportamento igual à suíte `test_11` / `test_14`:
+
+| Cenário | Esperado |
+|---------|----------|
+| Sem Bearer em rota protegida | `401` |
+| Cliente em `/api/clientes/pendentes` | `403` |
+| Cliente em `/api/clientes/report` | `403` |
+| Cliente POST `/api/gerentes` | `403` |
+| Gerente em `/api/gerentes/stats` | `403` |
+| Admin POST depositar em conta | `403` |
+| Cliente deposita/sacar/transfere conta alheia | `403` |
+| Cliente PUT perfil de outro CPF | `403` |
+| Gerente consulta gerente por CPF (rota admin) | `403` |
+
+Testar no **gateway**; no Swagger direto (808x) o Spring pode aceitar sem o mesmo ACL.
 
 ---
 
-## 11) Próximo passo sugerido
+## 11) Dicas finais
 
-Use junto com:
-- `tutor/fluxos-transacionais-do-app-para-testes-swagger.md`
+- Rode `GET /api/integration/reboot` quando saldos, contas ou logins estiverem inconsistentes.
+- Sagas: aguarde MailHog antes de validar conta/saldo do novo cliente.
+- Campos JSON: no gateway use os nomes do OpenAPI exposto (`numeroContaDestino`, não `destino`).
+- Evidências: salve request/response + print MailHog/RabbitMQ para a defesa.
 
-para você montar “evidências de teste” por fluxo: request, response, e efeito no banco/RabbitMQ/MailHog.
+---
 
+## 12) Próximos passos
+
+| Objetivo | Documento |
+|----------|-----------|
+| Automatizar tudo | [`integrationTests.md`](integrationTests.md) |
+| Detalhe de cada teste pytest | [`guia-completo-testes-integracao.md`](guia-completo-testes-integracao.md) |
+| Explorar DTOs por MS | [`swaggerTests.md`](swaggerTests.md) |
+| Correções recentes (reboot, ACL) | `testReports/corrections/5.18[04-30]*`, `5.18[05-15]*` |
