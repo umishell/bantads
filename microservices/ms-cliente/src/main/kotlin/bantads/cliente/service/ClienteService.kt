@@ -7,7 +7,9 @@ import bantads.cliente.dto.AutocadastroResponse
 import bantads.cliente.dto.ClientePendenteListItemResponse
 import bantads.cliente.dto.RejeitarClienteRequest
 import bantads.cliente.exception.CpfJaCadastradoException
+import bantads.cliente.exception.EmailJaCadastradoException
 import bantads.cliente.exception.EstadoClienteInvalidoException
+import bantads.cliente.integration.ContaOperacoesClient
 import bantads.cliente.messaging.ClienteSagaPublisher
 import bantads.cliente.model.Cliente
 import bantads.cliente.model.StatusCliente
@@ -22,6 +24,7 @@ import java.util.UUID
 class ClienteService(
     private val repository: ClienteRepository,
     private val sagaPublisher: ClienteSagaPublisher,
+    private val contaOperacoesClient: ContaOperacoesClient,
 ) {
 
     @Transactional
@@ -32,13 +35,17 @@ class ClienteService(
         if (repository.existsByCpf(cpf)) {
             throw CpfJaCadastradoException()
         }
+        val emailNorm = req.email.trim().lowercase()
+        if (repository.existsByEmailIgnoreCase(emailNorm)) {
+            throw EmailJaCadastradoException()
+        }
 
         val correlationId = UUID.randomUUID().toString()
         val sagaId = UUID.randomUUID().toString()
 
         val cliente = Cliente(
             cpf = cpf,
-            email = req.email.trim().lowercase(),
+            email = emailNorm,
             nome = req.nome.trim(),
             telefone = req.telefone.trim(),
             salario = req.salario,
@@ -83,6 +90,7 @@ class ClienteService(
     fun alterarPerfil(cpfRaw: String, req: AlterarPerfilClienteRequest) {
         val cpf = Cpf.require(cpfRaw)
         val c = repository.findByCpf(cpf) ?: throw EstadoClienteInvalidoException("Cliente não encontrado")
+        val salarioAnterior = c.salario
         req.nome?.let { c.nome = it.trim() }
         req.email?.let { c.email = it.trim().lowercase() }
         req.telefone?.let { c.telefone = it.trim() }
@@ -95,7 +103,10 @@ class ClienteService(
             require(digits.length == 8) { "CEP deve conter 8 dígitos" }
             c.cep = digits
         }
-        repository.save(c)
+        val saved = repository.save(c)
+        if (req.salario != null && saved.salario.compareTo(salarioAnterior) != 0 && saved.status == StatusCliente.APROVADO) {
+            contaOperacoesClient.recalcularLimite(saved.id!!, saved.salario)
+        }
     }
 
     @Transactional(readOnly = true)

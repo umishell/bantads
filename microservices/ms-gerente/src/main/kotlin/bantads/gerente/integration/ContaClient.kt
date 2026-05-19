@@ -35,6 +35,50 @@ class ContaClient(
         } ?: emptyList()
     }
 
+    /** R18 — remanejamento de contas antes do soft delete do gerente. */
+    fun remanejarContasDoGerente(gerenteRemovidoId: UUID, outrosGerentesAtivosIds: List<UUID>): Int {
+        val body = mapOf(
+            "gerenteRemovidoId" to gerenteRemovidoId.toString(),
+            "outrosGerentesAtivosIds" to outrosGerentesAtivosIds.map { it.toString() },
+        )
+        val resp = tryPost("$baseUrl/operacoes/gerente/remanejar", body) ?: return 0
+        return (resp["contasRemanejadas"] as? Number)?.toInt() ?: 0
+    }
+
+    /** R17 — atribui uma conta ao novo gerente conforme regras do enunciado. */
+    fun atribuirUmaContaAoNovoGerente(novoGerenteId: UUID, gerentesAtivosIds: List<UUID>): Boolean {
+        val body = mapOf(
+            "novoGerenteId" to novoGerenteId.toString(),
+            "gerentesAtivosIds" to gerentesAtivosIds.map { it.toString() },
+        )
+        val resp = tryPost("$baseUrl/operacoes/gerente/atribuir-uma-conta", body) ?: return false
+        return resp["atribuida"] as? Boolean ?: false
+    }
+
+    private fun tryPost(url: String, body: Map<String, Any>): Map<String, Any>? {
+        val json = objectMapper.writeValueAsString(body)
+        val req = HttpRequest.newBuilder()
+            .uri(URI.create(url))
+            .timeout(Duration.ofSeconds(10))
+            .header("Content-Type", "application/json")
+            .header("Accept", "application/json")
+            .POST(HttpRequest.BodyPublishers.ofString(json))
+            .build()
+        return try {
+            val resp = httpClient.send(req, HttpResponse.BodyHandlers.ofString())
+            if (resp.statusCode() in 200..299) {
+                @Suppress("UNCHECKED_CAST")
+                objectMapper.readValue(resp.body(), Map::class.java) as Map<String, Any>
+            } else {
+                log.warn("ms-conta POST status={} url={} body={}", resp.statusCode(), url, resp.body())
+                null
+            }
+        } catch (ex: Exception) {
+            log.warn("Falha POST ms-conta {}: {}", url, ex.message)
+            null
+        }
+    }
+
     private fun <T> tryGet(url: String, parser: (String) -> T): T? {
         val req = HttpRequest.newBuilder()
             .uri(URI.create(url))

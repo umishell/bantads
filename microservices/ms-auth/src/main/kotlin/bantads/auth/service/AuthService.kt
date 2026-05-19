@@ -55,9 +55,39 @@ class AuthService(
         return ResultadoCriacaoSaga(criado = true, plainPassword = senha, login = login)
     }
 
+    fun findUserByLogin(login: String): User? =
+        userRepository.findByLogin(login.trim().lowercase())
+
     fun removerUsuarioPorLogin(login: String) {
         val n = userRepository.deleteByLogin(login.trim().lowercase())
         logger.info("Remoção por login {} registros={}", login, n)
+    }
+
+    /** R17/R20 — criação síncrona de GERENTE ou ADMINISTRADOR a partir do ms-gerente. */
+    fun criarUsuarioBackoffice(
+        email: String,
+        nome: String,
+        cpf: String,
+        senha: String,
+        perfil: String,
+    ): Boolean {
+        val login = email.trim().lowercase()
+        if (userRepository.existsByLogin(login)) {
+            logger.warn("Login já existente: {}", login)
+            return false
+        }
+        val hashed = passwordHasher.hash(senha)
+        val novoUsuario = User(
+            login = login,
+            senhaHash = hashed.hashHex,
+            salt = hashed.saltHex,
+            nome = nome.trim(),
+            cpf = cpf.filter { it.isDigit() },
+            perfil = perfil.trim().uppercase(),
+        )
+        userRepository.save(novoUsuario)
+        logger.info("Usuário {} criado login={}", novoUsuario.perfil, login)
+        return true
     }
 
     fun autenticar(request: LoginRequest): LoginResponse {
@@ -76,7 +106,7 @@ class AuthService(
 
         logger.info("Login OK: ${request.login}")
 
-        val token = jwtService.gerarToken(user.login, user.perfil)
+        val token = jwtService.gerarToken(user.login, user.perfil, user.cpf)
         val usuario = UsuarioLoginResponse(
             cpf = user.cpf,
             nome = user.nome,

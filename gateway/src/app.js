@@ -7,6 +7,14 @@ import { requiresGerenteProfile } from './gerente-routes.js'
 import { requiresAdminProfile } from './admin-routes.js'
 import { requiresClienteProfile } from './cliente-routes.js'
 import { requiresContaListagemOuTop3 } from './conta-routes.js'
+import { integrationReboot } from './integration-reboot.js'
+import {
+  clientePossuiConta,
+  extractClienteCpfPut,
+  extractContaNumero,
+  isClienteContaMutation,
+  isClientePerfilPut,
+} from './conta-cliente-guard.js'
 
 const JWT_SECRET = process.env.JWT_SECRET || '7a56403163745262704573315a6b3164746b386153646c7a4d31354a726e3230'
 
@@ -75,6 +83,12 @@ fastify.addHook('onRequest', async (request, reply) => {
 })
 
 fastify.get('/health', async () => ({ status: 'up', service: 'bantads-gateway' }))
+
+/** Reset PG + Mongo para pytest (perfil `full` ou `single-gerente`). */
+fastify.get('/api/integration/reboot', async (request) => {
+  const profile = typeof request.query?.profile === 'string' ? request.query.profile : 'full'
+  return integrationReboot(upstreams, profile)
+})
 
 /** Landing com links para o Swagger UI de cada microsserviço (testes locais). */
 fastify.get('/docs', async (_request, reply) => {
@@ -167,13 +181,64 @@ fastify.addHook('onRequest', async (request, reply) => {
     })
   }
 
+  let cpfClaim = payload.cpf ?? null
+  const perfilClaim = payload.perfil ?? payload.tipo
+  if (!cpfClaim && perfilClaim === 'CLIENTE') {
+    try {
+      const intro = await fetch(`${upstreams.auth}/auth/introspect`, {
+        headers: { Authorization: auth },
+      })
+      if (intro.ok) {
+        const body = await intro.json()
+        cpfClaim = body.cpf ?? null
+      }
+    } catch {
+      cpfClaim = null
+    }
+  }
+
   request.gatewayUser = {
     sub: payload.sub,
     tipo: payload.tipo ?? payload.perfil,
     perfil: payload.perfil,
+    cpf: cpfClaim,
   }
 
   const perfil = payload.perfil ?? payload.tipo
+  const pathOnly = url.replace(/\/$/, '') || '/'
+
+  if (perfil === 'CLIENTE') {
+    if (isClientePerfilPut(request.method, pathOnly)) {
+      const cpfPath = extractClienteCpfPut(pathOnly)
+      const cpfToken = request.gatewayUser.cpf
+      if (cpfToken && cpfPath && cpfPath !== cpfToken) {
+        return reply.code(403).send({
+          status: 403,
+          error: 'Forbidden',
+          message: 'Cliente só pode alterar o próprio perfil',
+        })
+      }
+    }
+    if (isClienteContaMutation(request.method, pathOnly)) {
+      const numero = extractContaNumero(pathOnly)
+      const cpfToken = request.gatewayUser.cpf
+      if (!cpfToken) {
+        return reply.code(403).send({
+          status: 403,
+          error: 'Forbidden',
+          message: 'Token sem CPF do cliente',
+        })
+      }
+      const owns = await clientePossuiConta(upstreams, cpfToken, numero)
+      if (owns === false) {
+        return reply.code(403).send({
+          status: 403,
+          error: 'Forbidden',
+          message: 'Operação permitida apenas na conta do cliente autenticado',
+        })
+      }
+    }
+  }
   const query = request.query ?? {}
 
   if (requiresAdminProfile(request.method, url, query) && perfil !== 'ADMINISTRADOR') {

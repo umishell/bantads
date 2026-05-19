@@ -30,6 +30,13 @@ def test_auth_login_cli1_shape(gateway_client: GatewayClient, tokens: dict):
 
 
 @pytest.mark.gateway
+def test_auth_introspect_fixture_token(gateway_client: GatewayClient, tokens: dict):
+    intro = gateway_client.request("GET", "/api/auth/introspect", token=tokens["cliente"])
+    assert intro.status_code == 200
+    assert intro.json().get("active") is True
+
+
+@pytest.mark.gateway
 def test_auth_introspect_and_logout(gateway_client: GatewayClient):
     """Logout usa um token descartável para não invalidar o JWT da fixture `tokens`."""
     r = gateway_client.request(
@@ -48,9 +55,5 @@ def test_auth_introspect_and_logout(gateway_client: GatewayClient):
     body = out.json()
     assert "cpf" in body or "email" in body
 
-
-@pytest.mark.gateway
-def test_auth_introspect_fixture_token(gateway_client: GatewayClient, tokens: dict):
-    intro = gateway_client.request("GET", "/api/auth/introspect", token=tokens["cliente"])
-    assert intro.status_code == 200
-    assert intro.json().get("active") is True
+    intro_after = gateway_client.request("GET", "/api/auth/introspect", token=t)
+    assert intro_after.status_code == 401, intro_after.text

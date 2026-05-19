@@ -47,11 +47,14 @@ class AuthController(
             throw ResponseStatusException(HttpStatus.UNAUTHORIZED, "Token inválido, expirado ou revogado")
         }
         val claims = jwtService.getClaims(token)
+        val login = claims.subject
+        val user = login?.let { authService.findUserByLogin(it) }
         return ResponseEntity.ok(
             mapOf(
                 "active" to true,
-                "subject" to claims.subject,
+                "subject" to login,
                 "perfil" to claims.get("perfil", String::class.java),
+                "cpf" to (claims.get("cpf", String::class.java) ?: user?.cpf),
                 "expiraEm" to claims.expiration.toInstant().toString(),
             ),
         )

@@ -3,6 +3,8 @@ package bantads.conta.messaging
 import bantads.conta.config.RabbitConfig
 import bantads.conta.model.Conta
 import bantads.conta.repository.ContaRepository
+import bantads.conta.service.ContaCommandService
+import bantads.conta.service.ContaLimiteCalculator
 import com.fasterxml.jackson.databind.JsonNode
 import com.fasterxml.jackson.databind.ObjectMapper
 import org.slf4j.LoggerFactory
@@ -16,6 +18,7 @@ import kotlin.random.Random
 @Component
 class ContaCommandListener(
     private val repository: ContaRepository,
+    private val commandService: ContaCommandService,
     private val responses: SagaResponsePublisher,
     private val objectMapper: ObjectMapper,
 ) {
@@ -32,6 +35,8 @@ class ContaCommandListener(
                 "CONTA_COUNTS_BY_GERENTE" -> handleCounts(root, correlationId, sagaId)
                 "CONTA_CREATE" -> handleCreate(root, correlationId, sagaId)
                 "CONTA_DELETE" -> handleDelete(root, correlationId, sagaId)
+                "CONTA_TRANSFER_DEBIT" -> handleTransferDebit(root, correlationId, sagaId)
+                "CONTA_TRANSFER_CREDIT" -> handleTransferCredit(root, correlationId, sagaId)
                 else -> log.warn("Comando conta desconhecido: {}", cmd)
             }
         } catch (ex: Exception) {
@@ -54,6 +59,8 @@ class ContaCommandListener(
         "CONTA_COUNTS_BY_GERENTE" -> "COUNTS"
         "CONTA_CREATE" -> "CREATE"
         "CONTA_DELETE" -> "DELETE"
+        "CONTA_TRANSFER_DEBIT" -> "TRANSFER_DEBIT"
+        "CONTA_TRANSFER_CREDIT" -> "TRANSFER_CREDIT"
         else -> "UNKNOWN"
     }
 
@@ -99,11 +106,7 @@ class ContaCommandListener(
             return
         }
         val salario = BigDecimal(root.path("salario").asText())
-        val limite = if (salario >= BigDecimal("2000")) {
-            salario.divide(BigDecimal.TWO, 2, RoundingMode.HALF_UP)
-        } else {
-            BigDecimal.ZERO
-        }
+        val limite = ContaLimiteCalculator.calcularLimitePorSalario(salario, BigDecimal.ZERO)
         val numero = gerarNumeroConta4Digitos()
         val conta = Conta(
             numero = numero,
@@ -137,6 +140,49 @@ class ContaCommandListener(
             if (!repository.existsByNumero(n)) return n
         }
         error("não foi possível gerar número de conta único")
+    }
+
+    private fun handleTransferDebit(root: JsonNode, correlationId: String, sagaId: String) {
+        commandService.sagaTransferDebito(
+            sagaId = sagaId,
+            numeroContaOrigem = root.path("numeroOrigem").asText(),
+            numeroDestino = root.path("numeroDestino").asText(),
+            valor = BigDecimal(root.path("valor").asText()),
+        )
+        responses.publish(
+            "resp.conta",
+            mapOf(
+                "correlationId" to correlationId,
+                "sagaId" to sagaId,
+                "success" to true,
+                "source" to "CONTA",
+                "intent" to "TRANSFER_DEBIT",
+            ),
+        )
+    }
+
+    private fun handleTransferCredit(root: JsonNode, correlationId: String, sagaId: String) {
+        try {
+            val op = commandService.sagaTransferCredito(sagaId)
+            responses.publish(
+                "resp.conta",
+                mapOf(
+                    "correlationId" to correlationId,
+                    "sagaId" to sagaId,
+                    "success" to true,
+                    "source" to "CONTA",
+                    "intent" to "TRANSFER_CREDIT",
+                    "movimentacaoId" to op.movimentacaoId.toString(),
+                    "valor" to op.valor.toPlainString(),
+                    "saldoOrigem" to op.saldoOrigem!!.toPlainString(),
+                    "saldoDestino" to op.saldoDestino!!.toPlainString(),
+                    "dataHora" to op.dataHora.toString(),
+                ),
+            )
+        } catch (ex: Exception) {
+            commandService.sagaTransferCompensarDebito(sagaId)
+            throw ex
+        }
     }
 
     private fun handleDelete(root: JsonNode, correlationId: String, sagaId: String) {

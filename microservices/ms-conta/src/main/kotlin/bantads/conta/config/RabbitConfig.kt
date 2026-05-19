@@ -1,5 +1,7 @@
 package bantads.conta.config
 
+import org.springframework.amqp.core.Binding
+import org.springframework.amqp.core.BindingBuilder
 import org.springframework.amqp.core.Queue
 import org.springframework.amqp.core.QueueBuilder
 import org.springframework.amqp.core.TopicExchange
@@ -16,6 +18,7 @@ class RabbitConfig {
     companion object {
         const val QUEUE_CMD = "cmd.conta"
         const val RESPONSE_EXCHANGE = "saga-response-exchange"
+        const val QUEUE_INTERNAL_RESPONSES = "conta.internal.responses"
         const val DLX_EXCHANGE = "bantads.dlx"
     }
 
@@ -29,6 +32,20 @@ class RabbitConfig {
     @Bean
     fun sagaResponseExchange(): TopicExchange =
         TopicExchange(RESPONSE_EXCHANGE, true, false)
+
+    @Bean
+    fun contaInternalResponsesQueue(): Queue =
+        QueueBuilder.durable(QUEUE_INTERNAL_RESPONSES)
+            .withArgument("x-dead-letter-exchange", DLX_EXCHANGE)
+            .withArgument("x-dead-letter-routing-key", "dlq.$QUEUE_INTERNAL_RESPONSES")
+            .build()
+
+    @Bean
+    fun bindingContaInternalResponses(
+        contaInternalResponsesQueue: Queue,
+        sagaResponseExchange: TopicExchange,
+    ): Binding =
+        BindingBuilder.bind(contaInternalResponsesQueue).to(sagaResponseExchange).with("resp.conta")
 
     @Bean
     fun jacksonMessageConverter(): Jackson2JsonMessageConverter =

@@ -33,3 +33,5 @@ management:
 bantads:
   conta-service:
     base-url: ${BANTADS_CONTA_SERVICE_BASE_URL:http://localhost:8083/contas}
+  auth-service:
+    base-url: ${BANTADS_AUTH_SERVICE_BASE_URL:http://localhost:8081/auth}

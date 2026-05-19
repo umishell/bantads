@@ -46,6 +46,8 @@ class ClienteConsultaService(
             endereco = c.endereco,
             cep = c.cep,
             status = c.status,
+            motivoRejeicao = c.motivoRejeicao,
+            decisaoGerenteEm = c.decisaoGerenteEm,
         )
     }
 
@@ -172,8 +174,9 @@ class ClienteConsultaService(
         type: ParameterizedTypeReference<T>,
     ): T {
         val root = baseUrl.trimEnd('/')
+        // Spring MVC redireciona coleções sem barra final (302); RestClient não segue redirect por padrão.
         val target =
-            if (pathSuffix.isBlank()) root else "$root/${pathSuffix.trimStart('/')}"
+            if (pathSuffix.isBlank()) "$root/" else "$root/${pathSuffix.trimStart('/')}"
         try {
             return RestClient.builder()
                 .baseUrl(target)

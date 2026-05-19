@@ -2,6 +2,7 @@ package bantads.cliente.dto
 
 import bantads.cliente.model.StatusCliente
 import java.math.BigDecimal
+import java.time.Instant
 import java.util.UUID
 
 /** Linha do relatório administrativo (alinhado ao front `AdminRelatorioClienteModel`). */
@@ -30,6 +31,10 @@ data class ClienteDetalheResponse(
     val endereco: String,
     val cep: String,
     val status: StatusCliente,
+    /** R11 — motivo informado pelo gerente na rejeição (quando aplicável). */
+    val motivoRejeicao: String? = null,
+    /** R11 — data/hora da decisão do gerente (aprovação ou rejeição). */
+    val decisaoGerenteEm: Instant? = null,
 )
 
 /** Carteira do gerente / listagens com conta (alinhado ao front `ClienteCarteiraModel`). */

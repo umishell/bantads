@@ -172,11 +172,15 @@ services:
       SPRING_RABBITMQ_PORT: 5672
       SPRING_RABBITMQ_USERNAME: ${RABBITMQ_USER:-guest}
       SPRING_RABBITMQ_PASSWORD: ${RABBITMQ_PASSWORD:-guest}
+      BANTADS_CONTA_SERVICE_BASE_URL: http://ms-conta:8083/contas
+      BANTADS_AUTH_SERVICE_BASE_URL: http://ms-auth:8081/auth
     depends_on:
       db-gerente:
         condition: service_healthy
       rabbitmq:
         condition: service_healthy
+      ms-auth:
+        condition: service_started
     networks:
       - bantads-net
 

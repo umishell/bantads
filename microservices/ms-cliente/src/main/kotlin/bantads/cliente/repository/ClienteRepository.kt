@@ -7,6 +7,7 @@ import java.util.UUID
 
 interface ClienteRepository : JpaRepository<Cliente, UUID> {
     fun existsByCpf(cpf: String): Boolean
+    fun existsByEmailIgnoreCase(email: String): Boolean
     fun findByCpf(cpf: String): Cliente?
     fun findAllByStatusOrderByCriadoEmAsc(status: StatusCliente): List<Cliente>
     fun findAllByStatusOrderByNomeAsc(status: StatusCliente): List<Cliente>

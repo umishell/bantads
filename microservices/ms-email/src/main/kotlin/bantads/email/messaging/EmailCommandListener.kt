@@ -53,6 +53,21 @@ class EmailCommandListener(
 
     private fun sendCredentials(root: com.fasterxml.jackson.databind.JsonNode, correlationId: String, sagaId: String) {
         val to = root.path("email").asText()
+        if (to.contains("itest.saga-fail.", ignoreCase = true)) {
+            log.warn("Simulação de falha no envio de credenciais (integração) sagaId={}", sagaId)
+            responses.publish(
+                "resp.email",
+                mapOf(
+                    "correlationId" to correlationId,
+                    "sagaId" to sagaId,
+                    "success" to false,
+                    "source" to "EMAIL",
+                    "intent" to "SEND",
+                    "error" to "simulated email failure for integration tests",
+                ),
+            )
+            return
+        }
         val nome = root.path("nome").asText()
         val login = root.path("login").asText()
         val numeroConta = root.path("numeroConta").asText()

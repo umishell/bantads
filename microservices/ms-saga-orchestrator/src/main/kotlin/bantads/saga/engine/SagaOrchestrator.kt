@@ -199,9 +199,13 @@ class SagaOrchestrator(
         val picked = pickGerente(gerentes, counts) ?: return handleFailure(ctx, root, "falha ao escolher gerente")
         ctx.gerenteId = picked
         val key = "CONTA_CREATE:${ctx.sagaId}"
-        if (!ctx.touchIdempotency(key)) {
-            log.info("CONTA_CREATE idempotente ignorado sagaId={}", ctx.sagaId)
+        val firstContaCreate = ctx.touchIdempotency(key)
+        if (!firstContaCreate && ctx.step != ApprovalStep.AWAIT_COUNTS) {
+            log.info("CONTA_CREATE já em andamento sagaId={} step={}", ctx.sagaId, ctx.step)
             return
+        }
+        if (!firstContaCreate) {
+            log.warn("Reenviando CONTA_CREATE após resposta duplicada de counts sagaId={}", ctx.sagaId)
         }
         val corr = UUID.randomUUID().toString()
         ctx.pendingCorrelationId = corr

@@ -49,9 +49,21 @@ Desktop.ini
 coverage/
 .nyc_output/
 
+# Bytecode Python (scripts/integration)
+scripts/integration/**/__pycache__/
+scripts/integration/**/*.pyc
+
 # Relatórios gerados localmente (integração Python em scripts/integration)
 testReports/**
 !testReports/README.md
+!testReports/logs/README.md
+!testReports/logs/.gitkeep
+!testReports/logs/junit/.gitkeep
+!testReports/logs/pytest/.gitkeep
+!testReports/logs/docker/README.md
+!testReports/logs/docker/.gitkeep
+!testReports/issues/.gitkeep
+!testReports/working/.gitkeep
 
 # --- GitNexus / agentes (gerados localmente; regeneram com `gitnexus analyze`) ---
 AGENTS.md
