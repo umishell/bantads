@@ -265,18 +265,25 @@
           <div class="section-title">
             <div>
               <h2>Acesso e segurança</h2>
-              <p>Fluxo visual para troca de senha até a integração do módulo de autenticação.</p>
+              <p>Informações de acesso à conta e orientações de segurança.</p>
             </div>
           </div>
 
           <div *ngIf="securityErrorMessage" class="feedback feedback--error">
             {{ securityErrorMessage }}
           </div>
-          <div *ngIf="securitySuccessMessage" class="feedback feedback--success">
-            {{ securitySuccessMessage }}
-          </div>
 
-          <form class="security-form" [formGroup]="senhaForm" (ngSubmit)="salvarSenha()">
+          <p *ngIf="!trocaSenhaDisponivel" class="security-unavailable">
+            A troca de senha pelo cliente ainda não está disponível na API. Utilize a senha enviada
+            por e-mail ou contate seu gerente.
+          </p>
+
+          <form
+            *ngIf="trocaSenhaDisponivel"
+            class="security-form"
+            [formGroup]="senhaForm"
+            (ngSubmit)="salvarSenha()"
+          >
             <div class="field">
               <label for="senhaAtual">Senha atual</label>
               <input
@@ -327,7 +334,6 @@
           <ul class="security-list security-list--compact">
             <li>Revise o extrato após operações de maior valor.</li>
             <li>Atualize telefone e e-mail para receber alertas importantes.</li>
-            <li>Evite repetir a senha atual quando o fluxo real for integrado.</li>
           </ul>
         </section>
       </aside>

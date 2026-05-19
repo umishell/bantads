@@ -35,6 +35,10 @@ data class ClienteDetalheResponse(
     val motivoRejeicao: String? = null,
     /** R11 — data/hora da decisão do gerente (aprovação ou rejeição). */
     val decisaoGerenteEm: Instant? = null,
+    /** R4 — gerente responsável (quando cliente aprovado com conta). */
+    val gerenteCpf: String? = null,
+    val gerenteNome: String? = null,
+    val gerenteEmail: String? = null,
 )
 
 /** Carteira do gerente / listagens com conta (alinhado ao front `ClienteCarteiraModel`). */

@@ -37,9 +37,10 @@ export class AdminService {
   private readonly http = inject(HttpClient);
 
   public obterDashboard(): Observable<AdminDashboardModel> {
-    return this.http
-      .get<DashboardGerenteItemDto[]>(`${API_BASE}/gerentes/stats`)
-      .pipe(map((rows) => mapDashboardFromStats(rows)));
+    return forkJoin({
+      stats: this.http.get<DashboardGerenteItemDto[]>(`${API_BASE}/gerentes/stats`),
+      gerentes: this.http.get<GerenteResponseDto[]>(`${API_BASE}/gerentes`),
+    }).pipe(map(({ stats, gerentes }) => mapDashboardFromStats(stats, gerentes)));
   }
 
   public listarRelatorioClientes(): Observable<AdminRelatorioClienteModel[]> {
@@ -91,12 +92,13 @@ export class AdminService {
     );
   }
 
+  /** R18 — feedback real da API (sucesso ou erro 422 do último gerente). */
   public removerGerente(cpf: string): Observable<AdminGerenteRemocaoResponse> {
     return this.http.delete<GerenteResponseDto>(`${API_BASE}/gerentes/${cpf}`).pipe(
-      map(() => ({
-        mensagem: 'Gerente removido.',
-        gerenteRemovido: cpf,
-        gerenteDestino: '—',
+      map((g) => ({
+        mensagem: `Gerente ${g.nome} removido. Contas vinculadas foram redistribuídas automaticamente.`,
+        gerenteRemovido: g.cpf,
+        gerenteDestino: 'Gerente com menor carteira',
         totalContasReatribuidas: 0,
         detalhes: [],
       })),

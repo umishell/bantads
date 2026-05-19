@@ -1,2 +1,2 @@
-/** Base do gateway (mesma origem em produção atrás do nginx na porta 80). */
-export const API_BASE = 'http://localhost/api';
+/** Base do gateway — relativo para funcionar em qualquer host/porta atrás do proxy. */
+export const API_BASE = '/api';

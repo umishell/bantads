@@ -9,6 +9,7 @@ import {
   AdminGerenteModel,
 } from '../../../../shared/models/admin/admin.model';
 import { AdminService } from '../../../../shared/services/admin.service';
+import { mensagemErroHttp } from '../../../../shared/utils/http-error.util';
 
 @Component({
   selector: 'app-admin-gerentes',
@@ -170,7 +171,7 @@ export class AdminGerentesComponent implements OnInit {
         this.carregarGerentes();
       },
       error: (error) => {
-        this.errorMessage.set(error?.message || 'Não foi possível remover o gerente.');
+        this.errorMessage.set(mensagemErroHttp(error, 'Não foi possível remover o gerente.'));
       },
     });
   }
@@ -203,7 +204,6 @@ export class AdminGerentesComponent implements OnInit {
   }
 
   public logout(): void {
-    this.authService.logout();
-    void this.router.navigate(['/auth/login']);
+    this.authService.sair(this.router);
   }
 }

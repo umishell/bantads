@@ -250,11 +250,18 @@ fastify.addHook('onRequest', async (request, reply) => {
   }
 
   if (requiresGerenteProfile(request.method, url, query) && perfil !== 'GERENTE') {
-    return reply.code(403).send({
-      status: 403,
-      error: 'Forbidden',
-      message: 'Acesso restrito a gerentes',
-    })
+    const ownCpfGet =
+      request.method === 'GET' &&
+      /^\/api\/clientes\/\d{11}$/.test(pathOnly) &&
+      perfil === 'CLIENTE' &&
+      request.gatewayUser.cpf === pathOnly.slice('/api/clientes/'.length)
+    if (!ownCpfGet) {
+      return reply.code(403).send({
+        status: 403,
+        error: 'Forbidden',
+        message: 'Acesso restrito a gerentes',
+      })
+    }
   }
 
   if (

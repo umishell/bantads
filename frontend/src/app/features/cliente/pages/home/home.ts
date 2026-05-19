@@ -168,12 +168,7 @@ export class HomeComponent implements OnInit {
     return this.cliente?.agencia ?? this.agenciaPadrao;
   }
 
-  public getModoVisualLabel(): string {
-    return 'Dados do servidor (API)';
-  }
-
   public logout(): void {
-    this.authService.logout();
-    void this.router.navigate(['/auth/login']);
+    this.authService.sair(this.router);
   }
 }

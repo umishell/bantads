@@ -98,7 +98,11 @@ export class ContaService {
     }
     return this.http
       .get<LancamentoExtratoDto[]>(`${API_BASE}/contas/${numeroConta}/extrato`, { params })
-      .pipe(map((rows) => mapExtratoLancamentos(numeroConta, rows)));
+      .pipe(
+        map((rows) =>
+          mapExtratoLancamentos(numeroConta, rows, filtro.dataInicio, filtro.dataFim),
+        ),
+      );
   }
 
   public consultarMeuExtrato(filtro: ExtratoFiltroModel): Observable<ExtratoResponseModel> {
@@ -111,7 +115,6 @@ export class ContaService {
 
   /**
    * Contrapartes deduzidas do extrato (transferências), via `GET .../extrato`.
-   * Sem histórico de transferências a lista fica vazia; o destino pode ser digitado.
    */
   public listarFavorecidos(numeroContaOrigem?: string | null): Observable<FavorecidoConta[]> {
     const n = numeroContaOrigem ?? this.authService.getNumeroConta();

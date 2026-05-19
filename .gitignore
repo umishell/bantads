@@ -20,6 +20,9 @@ data/
 # --- Docs (local, raiz do repositório) ---
 /docs/
 
+# --- Prompts (local, raiz do repositório) ---
+#/prompts/
+
 # --- Ambiente e segredos ---
 .env
 .env.*

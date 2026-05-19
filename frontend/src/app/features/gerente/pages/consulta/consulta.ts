@@ -6,6 +6,7 @@ import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { AuthService } from '../../../../core/services/auth.service';
 import { ClienteCarteiraModel } from '../../../../shared/models/gerente/gerente.model';
 import { GerenteService } from '../../../../shared/services/gerente.service';
+import { mensagemErroHttp } from '../../../../shared/utils/http-error.util';
 
 @Component({
   selector: 'app-gerente-consulta',
@@ -64,7 +65,7 @@ export class GerenteConsultaComponent implements OnInit {
       },
       error: (error) => {
         this.loading = false;
-        this.errorMessage = error?.message || 'Cliente não encontrado.';
+        this.errorMessage = mensagemErroHttp(error, error?.message || 'Cliente não encontrado.');
       },
     });
   }
@@ -78,8 +79,17 @@ export class GerenteConsultaComponent implements OnInit {
     return new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(value ?? 0);
   }
 
+  public formatDateTime(value: string | null | undefined): string {
+    if (!value) return '—';
+    const d = new Date(value);
+    if (Number.isNaN(d.getTime())) return value;
+    return new Intl.DateTimeFormat('pt-BR', {
+      dateStyle: 'short',
+      timeStyle: 'short',
+    }).format(d);
+  }
+
   public logout(): void {
-    this.authService.logout();
-    void this.router.navigate(['/auth/login']);
+    this.authService.sair(this.router);
   }
 }

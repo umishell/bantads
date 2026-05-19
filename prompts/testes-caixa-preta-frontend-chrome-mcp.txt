@@ -1,0 +1,85 @@
+================================================================================
+ÍNDICE — TESTES DE CAIXA PRETA BANTADS VIA FRONTEND (CHROME MCP)
+================================================================================
+
+A bateria UI foi **dividida em sessões** para evitar freeze/timeout do Chrome MCP.
+Execute **uma sessão por conversa Agent**, na ordem abaixo.
+
+## Por que sessões separadas?
+
+| Problema | Solução |
+|----------|---------|
+| Timeout ~8 min no MCP | Sessões de 10–40 min cada, menos passos por prompt |
+| Paralelismo trava browser | Regra: **uma ação MCP por vez** |
+| Sagas demoram 120s | Sessão 02 dedicada + MailHog em aba separada |
+| CRUD admin suja seed | Sessão 05 por último |
+
+## Arquivos
+
+| Ordem | Arquivo | Escopo | Duração |
+|-------|---------|--------|---------|
+| — | `_comum-chrome-mcp.txt` | Regras, seed, rotas, anti-freeze | Leitura |
+| 01 | `ui-01-smoke-infra.txt` | Smoke, health, login carrega | ~5–10 min |
+| 02 | `ui-02-saga-r1-r10-r11.txt` | Autocadastro, aprovar, rejeitar, MailHog | ~20–40 min |
+| 03 | `ui-03-cliente-r2-r8.txt` | Login, home, perfil, depósito, saque, transferência, extrato | ~25–40 min |
+| 04 | `ui-04-gerente-r9-r14.txt` | Home gerente, carteira, consulta, top 3 | ~15–25 min |
+| 05 | `ui-05-admin-r15-r20.txt` | Dashboard, relatório, CRUD gerentes | ~20–35 min |
+| 06 | `ui-06-acl-requisitos-nao-funcionais.txt` | ACL perfis + NF UI | ~10–15 min |
+
+## Como executar
+
+1. Subir stack: `docker compose up -d`
+2. Modo **Agent** no Cursor
+3. Copiar **INÍCIO DO PROMPT** → **FIM DO PROMPT** de **uma sessão**
+4. Colar e executar; aguardar relatório em `testReports/working/`
+5. Próxima sessão = **nova conversa** (recomendado) ou continuar após `browser_unlock`
+
+## Ordem recomendada
+
+```
+reboot → 01 → 02 → reboot (opcional) → 03 → 04 → 05 → 06
+```
+
+- **Sessão 02** antes de **04** se quiser pendentes frescos na home do gerente.
+- **Sessão 05** sempre **por último** (altera gerentes).
+- **Sessão 03** após reboot para saldos seed previsíveis.
+
+## Mapa requisito → sessão
+
+| Req | Sessão |
+|-----|--------|
+| R1 | 02 |
+| R2 | 03, 06 |
+| R3–R8 | 03 |
+| R9 | 02, 04 |
+| R10–R11 | 02 |
+| R12–R14 | 04 |
+| R15–R20 | 05 |
+| NF / ACL | 06 |
+
+## Relatórios
+
+Cada sessão gera:
+`testReports/working/UI-{NN}-{nome}__{timestamp-BRT}.md`
+
+Opcional: consolidar manualmente em um único markdown de defesa.
+
+## Referências
+
+- Enunciado: `c:\Users\zuria\CODE\UFPR\DAC\all bantads intructions.md`
+- API (~62 casos): `.\scripts\run-integration-tests.ps1`
+- Auditoria: `tutor/auditoria-testes-integracao.md`
+
+## Ciclo MCP ( repetir em cada passo )
+
+```
+browser_navigate → browser_lock → browser_snapshot
+→ browser_fill OU browser_click (UM só)
+→ browser_wait_for (2–5s)
+→ browser_snapshot → browser_network_requests (se necessário)
+→ browser_take_screenshot (evidência)
+```
+
+Ao terminar cada sessão: **browser_lock action unlock**
+
+================================================================================

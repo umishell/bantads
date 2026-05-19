@@ -52,11 +52,13 @@
 .movimentacao-row--entrada {
   border-color: rgba(37, 99, 235, 0.18);
   background: linear-gradient(180deg, rgba(239, 246, 255, 0.92), #fff);
+  color: #1d4ed8;
 }
 
 .movimentacao-row--saida {
   border-color: rgba(197, 48, 48, 0.16);
   background: linear-gradient(180deg, rgba(255, 241, 242, 0.82), #fff);
+  color: #b91c1c;
 }
 
 .cell-label {

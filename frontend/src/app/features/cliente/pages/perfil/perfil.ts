@@ -8,6 +8,7 @@ import { finalize } from 'rxjs';
 import { AuthService } from '../../../../core/services/auth.service';
 import { ClienteService } from '../../../../shared/services/cliente.service';
 import { ClienteModel } from '../../../../shared/models/cliente/cliente.model';
+import { mensagemErroHttp } from '../../../../shared/utils/http-error.util';
 
 type ClientePerfil = ClienteModel & {
   gerente_email?: string;
@@ -35,8 +36,9 @@ export class PerfilComponent implements OnInit {
   public securityErrorMessage = '';
   public securitySuccessMessage = '';
   public clienteResumo: ClientePerfil | null = null;
+  /** Troca de senha pelo cliente ainda não exposta na API. */
+  public readonly trocaSenhaDisponivel = false;
 
-  private usandoFallback = false;
   private readonly agenciaPadrao = '0001';
 
   public readonly perfilForm = this.fb.group({
@@ -65,7 +67,7 @@ export class PerfilComponent implements OnInit {
     const cpf = this.authService.getCpf();
 
     if (!cpf) {
-      this.carregarFallback();
+      this.errorMessage = 'Não foi possível identificar o usuário logado.';
       return;
     }
 
@@ -78,10 +80,9 @@ export class PerfilComponent implements OnInit {
       .subscribe({
         next: (cliente: ClienteModel) => {
           this.aplicarCliente(cliente as ClientePerfil);
-          this.usandoFallback = false;
         },
-        error: (_error: HttpErrorResponse) => {
-          this.carregarFallback();
+        error: (error: HttpErrorResponse) => {
+          this.errorMessage = mensagemErroHttp(error, 'Não foi possível carregar o perfil.');
         },
       });
   }
@@ -121,43 +122,18 @@ export class PerfilComponent implements OnInit {
       .subscribe({
         next: (clienteAtualizado) => {
           this.aplicarCliente(clienteAtualizado as ClientePerfil);
-          this.successMessage = this.usandoFallback
-            ? 'Dados atualizados no cache do protótipo.'
-            : 'Perfil atualizado com sucesso.';
+          this.successMessage = 'Perfil atualizado com sucesso.';
         },
         error: (error: HttpErrorResponse) => {
-          const payload = error.error as { message?: string; erro?: string } | null;
-          const apiMessage = payload?.message ?? payload?.erro ?? error.message;
-          this.errorMessage = apiMessage || 'Não foi possível atualizar o perfil.';
+          this.errorMessage = mensagemErroHttp(error, 'Não foi possível atualizar o perfil.');
         },
       });
   }
 
   public salvarSenha(): void {
-    this.securityErrorMessage = '';
+    this.securityErrorMessage =
+      'A troca de senha pelo cliente ainda não está disponível na API. Utilize a senha enviada por e-mail ou contate seu gerente.';
     this.securitySuccessMessage = '';
-
-    if (this.senhaForm.invalid) {
-      this.senhaForm.markAllAsTouched();
-      return;
-    }
-
-    const { senhaAtual, novaSenha, confirmarNovaSenha } = this.senhaForm.getRawValue();
-
-    if (novaSenha !== confirmarNovaSenha) {
-      this.securityErrorMessage = 'A nova senha e a confirmação precisam ser iguais.';
-      return;
-    }
-
-    if (senhaAtual === novaSenha) {
-      this.securityErrorMessage = 'Escolha uma nova senha diferente da atual.';
-      return;
-    }
-
-    this.securitySuccessMessage =
-      'Senha validada no fluxo do front-end. Quando o MS-AUTH estiver pronto, ligue este formulário ao endpoint real.';
-
-    this.senhaForm.reset();
   }
 
   public isInvalid(controlName: string): boolean {
@@ -276,35 +252,7 @@ export class PerfilComponent implements OnInit {
     });
   }
 
-  private carregarFallback(): void {
-    const mock: ClientePerfil = {
-      cpf: '00000000000',
-      nome: 'Cliente Teste',
-      telefone: '(41) 99999-9999',
-      email: 'cliente@teste.com',
-      endereco: 'Rua Exemplo, 123',
-      cidade: 'Curitiba',
-      estado: 'PR',
-      salario: 5000,
-      conta: this.authService.getNumeroConta() ?? '1291',
-      saldo: 2450.75,
-      limite: 1500,
-      gerente_nome: 'Marina Souza',
-      gerente_email: 'marina@bantads.com',
-      situacao: 'APROVADO',
-      cep: '80000-000',
-      agencia: this.agenciaPadrao,
-    };
-
-    this.aplicarCliente(mock);
-    this.loading = false;
-    this.errorMessage = '';
-    this.usandoFallback = true;
-  }
-
-
   public logout(): void {
-    this.authService.logout();
-    void this.router.navigate(['/auth/login']);
+    this.authService.sair(this.router);
   }
 }

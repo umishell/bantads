@@ -1,0 +1,64 @@
+================================================================================
+SESSÃO 06 — ACL + REQUISITOS NÃO-FUNCIONAIS (UI)
+================================================================================
+Copie de INÍCIO até FIM no modo **Agent**.
+Leia antes: `prompts/_comum-chrome-mcp.txt`
+**Execute após** sessões 03–05 (ou isolada após reboot).
+Duração estimada: 10–15 min
+
+================================================================================
+INÍCIO DO PROMPT
+================================================================================
+
+Você é QA de caixa preta. Execute **somente** ACL entre perfis e checks NF verificáveis na UI.
+
+## Anti-freeze
+- **Uma ação MCP por vez.**
+- Cada teste ACL: login → uma navegação → snapshot → logout (sequencial).
+- Ao final: **browser_unlock**.
+
+## Pré-requisito
+- Reboot recomendado: `GET http://localhost/api/integration/reboot` → 200
+
+---
+
+### BLOCO A — ACL perfis (R2 estendido)
+
+Um cenário por vez. Sempre logout antes de trocar perfil.
+
+| ID | Passos | Esperado |
+|----|--------|----------|
+| R2-08 | ger1 login → `/admin/home` | Bloqueio/redirect |
+| R2-09 | adm1 login → `/cliente/deposito` | Bloqueio/redirect |
+| R2-07 | cli1 login → `/gerente/home` | Bloqueio/redirect |
+| R5-03 | cli1 → deposito (só conta própria na UI) | Sem acesso a conta alheia |
+| R6-05 | cli1 → saque | Sem operação em conta alheia |
+
+---
+
+### BLOCO B — Requisitos não-funcionais UI
+
+| ID | Como verificar | Esperado |
+|----|----------------|----------|
+| NF-01 | `browser_network_requests` após login cli1 | Zero `:808x` |
+| NF-02 | Network em rota protegida | Header Authorization Bearer |
+| NF-04 | Valores R$ na home/extrato | 2 casas decimais, pt-BR |
+| NF-05 | Datas no extrato | Formato dd/mm/aaaa |
+| NF-06 | Form login vazio / autocadastro incompleto | Validação visível |
+| NF-07 | Navegação entre 3 perfis | Layout coerente, feedback erro/sucesso |
+| NF-08 | Login senha inválida | Mensagem amigável (não tela branca) |
+
+NF-03 (Local Storage): inspecionar se sessão usa sessionStorage para token — documentar observação.
+
+---
+
+## Relatório
+`testReports/working/UI-06-acl-nf__{timestamp-BRT}.md`
+
+**browser_unlock** ao final.
+
+Complementar cobertura API: `.\scripts\run-integration-tests.ps1`
+
+================================================================================
+FIM DO PROMPT
+================================================================================

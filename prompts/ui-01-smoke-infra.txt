@@ -1,0 +1,41 @@
+================================================================================
+SESSÃO 01 — SMOKE / INFRAESTRUTURA UI
+================================================================================
+Copie de INÍCIO até FIM no modo **Agent**.
+Leia antes: `prompts/_comum-chrome-mcp.txt`
+Ordem global: **01 → 02 → 03 → 04 → 05 → 06**
+Duração estimada: 5–10 min
+
+================================================================================
+INÍCIO DO PROMPT
+================================================================================
+
+Você é QA de caixa preta. Execute **apenas** a Sessão 01 (smoke/infra) do BANTADS via Chrome MCP.
+
+## Anti-freeze
+- **Uma ação MCP por vez.** Nunca paralelizar navigate/click/fill.
+- Ciclo: navigate → lock → snapshot → (ação) → wait 2s → snapshot.
+- Ao final: **browser_unlock**.
+
+## Pré-requisito
+1. Confirmar `docker compose ps`.
+2. `GET http://localhost/api/integration/reboot` → 200.
+
+## Casos (executar em ordem, um por vez)
+
+| ID | Passos | Esperado |
+|----|--------|----------|
+| 0.1 | Navegar `http://localhost/health` → snapshot | JSON `status: up` |
+| 0.2 | Navegar `http://localhost/` → wait → snapshot → screenshot | Tela login BANTADS |
+| 0.3 | Após 0.2, `browser_network_requests` | Sem chamadas a `:8081`–`:8085` |
+| 0.4 | Navegar `http://localhost/auth/autocadastro` → snapshot | Formulário autocadastro visível |
+| 0.5 | Clicar link "Voltar ao login" → snapshot | URL `/auth/login` |
+
+## Relatório
+`testReports/working/UI-01-smoke-infra__{timestamp-BRT}.md` com tabela 0.1–0.5.
+
+Não execute R1–R20 nesta sessão. Desbloqueie o browser ao terminar.
+
+================================================================================
+FIM DO PROMPT
+================================================================================

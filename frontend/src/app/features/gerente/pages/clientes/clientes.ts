@@ -64,7 +64,6 @@ export class GerenteClientesComponent implements OnInit {
   }
 
   public logout(): void {
-    this.authService.logout();
-    void this.router.navigate(['/auth/login']);
+    this.authService.sair(this.router);
   }
 }

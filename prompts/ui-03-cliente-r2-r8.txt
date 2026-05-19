@@ -1,0 +1,118 @@
+================================================================================
+SESSÃO 03 — CLIENTE: R2 + R3 + R4 + R5 + R6 + R7 + R8
+================================================================================
+Copie de INÍCIO até FIM no modo **Agent**.
+Leia antes: `prompts/_comum-chrome-mcp.txt`
+**Execute depois das Sessões 01 e 02** (ou 01 se pular saga).
+Recomendado: reboot antes desta sessão para saldos seed limpos.
+Duração estimada: 25–40 min
+
+================================================================================
+INÍCIO DO PROMPT
+================================================================================
+
+Você é QA de caixa preta. Execute **somente** requisitos de **perfil CLIENTE** (R2 parcial + R3–R8) via UI.
+
+## Anti-freeze
+- **Uma ação MCP por vez.** Proibido paralelizar navigate/click/fill.
+- Login Angular: após fill em senha, clique no campo ou Tab antes de Entrar (habilita botão).
+- Depósito/saque: preferir botões **R$ 50** / **R$ 20** (ngModel) em vez de só fill no input.
+- Transferência: preencher **conta destino** e **valor** em passos separados com snapshot entre eles.
+- Ao final: **browser_unlock**.
+
+## Pré-requisito
+- Reboot: `GET http://localhost/api/integration/reboot` → 200
+- Logins: cli1@bantads.com.br / cli2@bantads.com.br / senha **tads**
+
+---
+
+### BLOCO A — R2 Login / Logout / ACL (cliente)
+
+Executar **um cenário por vez**, logout entre perfis quando indicado.
+
+| ID | Passos | Esperado |
+|----|--------|----------|
+| R2-04 | Login senha errada | Erro; permanece em login |
+| R2-01 | cli1 / tads | `/cliente/home`; login 200 |
+| R2-06 | Sem login → `/cliente/home` | Redirect login |
+| R2-07 | cli1 logado → navegar `/admin/home` | Bloqueio/redirect |
+| R2-05 | Sair | `/auth/login` |
+
+(Não testar ger1/adm1 aqui — sessões 04/05.)
+
+---
+
+### BLOCO B — R3 Tela inicial (cli1 e cli2)
+
+| ID | Passos | Esperado |
+|----|--------|----------|
+| R3-01 | cli1 home | Menu: depósito, saque, transferência, extrato, perfil |
+| R3-02 | cli1 home | Saldo ~800; limite ~5000; conta 1291 |
+| R3-04 | cli1 home | Agência, CPF formatado, situação |
+| R3-05 | Recarregar home | Loading visível antes dos dados |
+| R3-03 | Logout → cli2 login → home | Saldo **negativo em vermelho** (~-10000) |
+
+---
+
+### BLOCO C — R5/R6/R7 Operações (cli1)
+
+Ordem: depósito → saque → transferência (altera saldos).
+
+| ID | Passos | Esperado |
+|----|--------|----------|
+| R5-01 | cli1 → deposito → R$50 → confirmar | Sucesso; conta 1291 identificada; saldo sobe |
+| R5-02 | deposito valor 0 | Erro na tela |
+| R6-01 | saque R$20 | Sucesso; saldo desce |
+| R6-02 | saque > disponível | Erro 422 |
+| R7-01 | transferência → 0950, R$5 | Sucesso |
+| R7-02 | mesma conta 1291 | Erro 400 |
+| R7-03 | destino 9999 | Erro 404 |
+
+---
+
+### BLOCO D — R8 Extrato (cli1)
+
+| ID | Passos | Esperado |
+|----|--------|----------|
+| R8-01 | `/cliente/extrato` datas amplas | Lançamentos visíveis |
+| R8-05 | Dias sem movimento | Saldo consolidado por dia |
+| R8-03 | Lançamentos saída | Cor vermelha |
+| R8-04 | Lançamentos entrada | Cor azul |
+| R8-06 | Após operações bloco C | Depósito/saque/transfer no extrato |
+| R8-07 | Gerar PDF (se botão ativo) | OK ou SKIP |
+
+---
+
+### BLOCO E — R4 Perfil (cli1)
+
+| ID | Passos | Esperado |
+|----|--------|----------|
+| R4-01 | `/cliente/perfil` | CPF readonly |
+| R4-02 | Alterar nome/telefone → salvar → reload | Persiste |
+| R4-03 | Salário 6000 → salvar | Limite ~3000 |
+| R4-06 | Após save | Nome do gerente visível |
+
+(R4-04/R4-05 opcionais com cli2 — documentar SKIP se sessão longa.)
+
+Logout cli1 ao terminar.
+
+---
+
+### BLOCO F — R6 cli2 (limite)
+
+| ID | Passos | Esperado |
+|----|--------|----------|
+| R6-03 | cli2 → saque R$100 dentro do limite | Permitido |
+
+Logout ao terminar.
+
+---
+
+## Relatório
+`testReports/working/UI-03-cliente-r2-r8__{timestamp-BRT}.md`
+
+**browser_unlock** ao final. Não execute gerente/admin nesta sessão.
+
+================================================================================
+FIM DO PROMPT
+================================================================================

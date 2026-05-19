@@ -70,6 +70,12 @@
         <div class="detail-list__item"><span>Limite</span><strong>{{ formatCurrency(cliente.limite) }}</strong></div>
         <div class="detail-list__item"><span>Salário</span><strong>{{ formatCurrency(cliente.salario) }}</strong></div>
         <div class="detail-list__item"><span>Endereço</span><strong>{{ cliente.endereco }}</strong></div>
+        <div class="detail-list__item" *ngIf="cliente.situacao === 'REJEITADO' && cliente.motivoRejeicao">
+          <span>Motivo da rejeição</span><strong>{{ cliente.motivoRejeicao }}</strong>
+        </div>
+        <div class="detail-list__item" *ngIf="cliente.decisaoGerenteEm">
+          <span>Decisão do gerente</span><strong>{{ formatDateTime(cliente.decisaoGerenteEm) }}</strong>
+        </div>
       </div>
     </div>
   </section>
