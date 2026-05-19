@@ -70,11 +70,18 @@ export class AuthService {
   public login(credenciais: LoginRequest): Observable<LoginResponse> {
     return this.http.post<LoginApiResponse>(`${API_BASE}/auth/login`, credenciais).pipe(
       map((res) => this.mapLoginApiToLoginResponse(res)),
+      tap((lr) => this.persistToken(lr.token)),
       switchMap((lr) => this.enriquecerClienteComConta(lr)),
       tap((lr) => {
         this.saveSession(lr.usuario, lr.token);
       }),
     );
+  }
+
+  /** Grava só o JWT antes do enriquecimento pós-login (interceptor precisa do Bearer). */
+  private persistToken(token: string): void {
+    sessionStorage.setItem(this.tokenKey, token);
+    this._token.set(token);
   }
 
   /** Após login, CLIENTE: busca cadastro + conta para preencher `numeroConta` e `clienteId`. */

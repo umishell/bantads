@@ -29,7 +29,9 @@ export class HomeComponent implements OnInit {
   public loading = false;
   public errorMessage = '';
   public cliente: ClienteDashboard | null = null;
-  public readonly numeroConta = this.authService.getNumeroConta();
+  public get numeroConta(): string | null {
+    return this.authService.getNumeroConta();
+  }
 
   private readonly agenciaPadrao = '0001';
 

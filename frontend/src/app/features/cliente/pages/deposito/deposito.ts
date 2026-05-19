@@ -26,7 +26,9 @@ export class DepositoComponent implements OnInit {
   public ultimoDeposito: number | null = null;
   public saldoAtual: number | null = null;
   public nomeTitular = '';
-  public readonly numeroConta = this.authService.getNumeroConta();
+  public get numeroConta(): string | null {
+    return this.authService.getNumeroConta();
+  }
   public readonly agencia = '0001';
 
   public ngOnInit(): void {

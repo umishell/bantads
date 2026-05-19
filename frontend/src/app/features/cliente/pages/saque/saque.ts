@@ -27,7 +27,9 @@ export class SaqueComponent implements OnInit {
   public saldoAtual: number | null = null;
   public limiteAtual: number | null = null;
   public nomeTitular = '';
-  public readonly numeroConta = this.authService.getNumeroConta();
+  public get numeroConta(): string | null {
+    return this.authService.getNumeroConta();
+  }
   public readonly agencia = '0001';
 
   public ngOnInit(): void {

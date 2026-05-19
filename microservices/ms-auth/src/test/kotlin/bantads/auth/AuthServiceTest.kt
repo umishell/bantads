@@ -52,7 +52,7 @@ class AuthServiceTest {
         )
         `when`(userRepository.findByLogin("cli1@bantads.com.br")).thenReturn(user)
         `when`(passwordHasher.matches("tads", "salt", "hash")).thenReturn(true)
-        `when`(jwtService.gerarToken("cli1@bantads.com.br", "CLIENTE")).thenReturn("jwt-xyz")
+        `when`(jwtService.gerarToken("cli1@bantads.com.br", "CLIENTE", "12912861012")).thenReturn("jwt-xyz")
 
         val res = authService.autenticar(LoginRequest(login = "cli1@bantads.com.br", senha = "tads"))
 

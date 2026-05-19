@@ -29,7 +29,9 @@ export class TransferenciaComponent implements OnInit {
   private readonly authService = inject(AuthService);
   private readonly router = inject(Router);
 
-  public readonly numeroConta = this.authService.getNumeroConta();
+  public get numeroConta(): string | null {
+    return this.authService.getNumeroConta();
+  }
   public readonly agencia = '0001';
   public saldoAtual: number | null = null;
   public favorecidos: Favorecido[] = [];

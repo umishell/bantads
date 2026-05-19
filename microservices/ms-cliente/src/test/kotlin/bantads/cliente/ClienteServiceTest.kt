@@ -2,6 +2,7 @@ package bantads.cliente
 
 import bantads.cliente.dto.AutocadastroRequest
 import bantads.cliente.exception.CpfJaCadastradoException
+import bantads.cliente.integration.ContaOperacoesClient
 import bantads.cliente.messaging.ClienteSagaPublisher
 import bantads.cliente.model.Cliente
 import bantads.cliente.repository.ClienteRepository
@@ -21,7 +22,8 @@ class ClienteServiceTest {
 
     private val repository: ClienteRepository = mock()
     private val sagaPublisher: ClienteSagaPublisher = mock()
-    private val service = ClienteService(repository, sagaPublisher)
+    private val contaOperacoesClient: ContaOperacoesClient = mock()
+    private val service = ClienteService(repository, sagaPublisher, contaOperacoesClient)
 
     private val req = AutocadastroRequest(
         cpf = "52998224725",
