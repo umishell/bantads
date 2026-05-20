@@ -923,6 +923,157 @@ A experiência adquirida aqui pode ser aplicada em projetos futuros de maior com
 
 ---
 
+---
+
+## 🔐 Controle de acesso e permissões
+
+O sistema possui separação de permissões baseada em perfis de usuário.
+
+Cada perfil possui acesso restrito apenas às funcionalidades necessárias dentro da aplicação.
+
+Perfis atualmente utilizados:
+
+- Cliente
+- Gerente
+- Administrador
+
+As validações de acesso são realizadas tanto no frontend quanto no backend.
+
+No frontend, guards de rota impedem acesso indevido às páginas protegidas.
+
+No backend, os tokens JWT são validados antes do processamento das requisições.
+
+Essa abordagem ajuda a aumentar segurança e confiabilidade do sistema.
+
+---
+
+## 📨 Comunicação assíncrona
+
+A comunicação entre os microsserviços ocorre principalmente através do RabbitMQ.
+
+Esse modelo permite maior desacoplamento entre os serviços da aplicação.
+
+As mensagens são enviadas por filas específicas de acordo com o fluxo executado.
+
+Benefícios dessa abordagem:
+
+- Maior escalabilidade
+- Melhor tolerância a falhas
+- Facilidade de expansão
+- Processamento distribuído
+
+O sistema também utiliza respostas assíncronas para confirmação de operações da saga.
+
+---
+
+## 🧱 Separação de responsabilidades
+
+Cada microsserviço foi desenvolvido com foco em responsabilidade única.
+
+Essa abordagem facilita:
+
+- manutenção do código
+- identificação de erros
+- testes isolados
+- futuras melhorias
+
+Exemplos:
+
+- ms-auth → autenticação
+- ms-conta → movimentações bancárias
+- ms-email → envio de emails
+- ms-gerente → gerenciamento administrativo
+
+Essa separação evita acoplamento excessivo entre funcionalidades.
+
+---
+
+## 🖥️ Frontend da aplicação
+
+O frontend foi desenvolvido utilizando Angular.
+
+A interface foi organizada de forma modular para facilitar reutilização de componentes e escalabilidade futura.
+
+Entre os principais recursos utilizados estão:
+
+- Rotas protegidas
+- Services para comunicação HTTP
+- Interceptors
+- Guards
+- Componentização
+- SCSS para estilização
+
+A organização busca manter o projeto limpo e de fácil manutenção.
+
+---
+
+## 📦 Backend da aplicação
+
+O backend foi dividido em múltiplos microsserviços independentes.
+
+Cada serviço possui sua própria estrutura, regras de negócio e persistência de dados quando necessário.
+
+O projeto utiliza:
+
+- Kotlin
+- Spring Boot
+- RabbitMQ
+- PostgreSQL
+- MongoDB
+
+Essa arquitetura permite maior flexibilidade no desenvolvimento.
+
+---
+
+## 🧪 Qualidade e manutenção
+
+Durante o desenvolvimento foram aplicadas práticas para melhorar qualidade do código.
+
+Entre elas:
+
+- Padronização de estrutura
+- Organização modular
+- Separação por camadas
+- Reaproveitamento de código
+- Tratamento de exceções
+
+Essas práticas ajudam a reduzir problemas durante manutenção futura.
+
+---
+
+## 🚀 Possíveis melhorias futuras
+
+Algumas melhorias que poderão ser implementadas futuramente:
+
+- Dashboard administrativo
+- Logs centralizados
+- Monitoramento de microsserviços
+- Testes automatizados mais completos
+- Pipeline CI/CD
+- Deploy em nuvem
+- Métricas de desempenho
+- Sistema de notificações em tempo real
+
+O projeto foi estruturado pensando na possibilidade dessas expansões.
+
+---
+
+## 📖 Documentação
+
+A documentação do projeto continuará sendo atualizada conforme novas funcionalidades forem implementadas.
+
+A intenção é manter informações claras sobre:
+
+- estrutura
+- arquitetura
+- execução
+- integração entre serviços
+- organização geral do sistema
+
+Isso facilita entendimento do projeto por novos colaboradores e avaliadores da disciplina.
+
+---
+
 ## Autores
 
 Gabriela Harres Rodrigues           - GRR20246215 -         gabrielahrodrigus101@gmail.com
