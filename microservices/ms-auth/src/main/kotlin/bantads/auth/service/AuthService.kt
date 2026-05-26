@@ -90,21 +90,40 @@ class AuthService(
         return true
     }
 
-    fun autenticar(request: LoginRequest): LoginResponse {
-        logger.info("Tentativa de login para: ${request.login}")
+    /** R20 — troca de senha de usuário backoffice (gerente/admin). */
+    fun atualizarSenhaPorLogin(email: String, senhaNova: String): Boolean {
+        val login = email.trim().lowercase()
+        val user = userRepository.findByLogin(login) ?: run {
+            logger.warn("Atualização de senha: login não encontrado ({})", login)
+            return false
+        }
+        val hashed = passwordHasher.hash(senhaNova)
+        userRepository.save(
+            user.copy(
+                senhaHash = hashed.hashHex,
+                salt = hashed.saltHex,
+            ),
+        )
+        logger.info("Senha atualizada login={}", login)
+        return true
+    }
 
-        val user = userRepository.findByLogin(request.login)
+    fun autenticar(request: LoginRequest): LoginResponse {
+        val login = request.login.trim().lowercase()
+        logger.info("Tentativa de login para: {}", login)
+
+        val user = userRepository.findByLogin(login)
             ?: run {
-                logger.warn("Login falhou: usuário não encontrado (${request.login}).")
+                logger.warn("Login falhou: usuário não encontrado ({}).", login)
                 throw BadCredentialsException("Usuário ou senha inválidos")
             }
 
         if (!passwordHasher.matches(request.senha, user.salt, user.senhaHash)) {
-            logger.warn("Login falhou: senha incorreta (${request.login}).")
+            logger.warn("Login falhou: senha incorreta ({}).", login)
             throw BadCredentialsException("Usuário ou senha inválidos")
         }
 
-        logger.info("Login OK: ${request.login}")
+        logger.info("Login OK: {}", login)
 
         val token = jwtService.gerarToken(user.login, user.perfil, user.cpf)
         val usuario = UsuarioLoginResponse(

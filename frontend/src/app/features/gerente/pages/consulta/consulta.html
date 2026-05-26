@@ -42,7 +42,9 @@
     <div *ngIf="errorMessage" class="feedback feedback--error">{{ errorMessage }}</div>
 
     <div class="form-actions">
-      <button type="submit" class="button button--primary">Consultar cliente</button>
+      <app-processando-button type="submit" [loading]="loading" buttonClass="button button--primary">
+        Consultar cliente
+      </app-processando-button>
       <button type="button" class="button button--ghost" routerLink="/gerente/clientes">Ver tabela completa</button>
     </div>
   </form>
@@ -65,9 +67,19 @@
       </div>
 
       <div class="detail-list">
-        <div class="detail-list__item"><span>Agência / Conta</span><strong>{{ cliente.agencia }} • {{ cliente.conta }}</strong></div>
-        <div class="detail-list__item"><span>Saldo</span><strong [class.text-danger]="cliente.saldo < 0">{{ formatCurrency(cliente.saldo) }}</strong></div>
-        <div class="detail-list__item"><span>Limite</span><strong>{{ formatCurrency(cliente.limite) }}</strong></div>
+        <div class="detail-list__item"><span>Situação</span><strong>{{ cliente.situacao }}</strong></div>
+        <div class="detail-list__item" *ngIf="cliente.situacao !== 'REJEITADO'">
+          <span>Agência / Conta</span><strong>{{ cliente.agencia }} • {{ cliente.conta }}</strong>
+        </div>
+        <div class="detail-list__item" *ngIf="cliente.situacao !== 'REJEITADO'">
+          <span>Saldo</span><strong [class.text-danger]="cliente.saldo < 0">{{ formatCurrency(cliente.saldo) }}</strong>
+        </div>
+        <div class="detail-list__item" *ngIf="cliente.situacao !== 'REJEITADO'">
+          <span>Limite</span><strong>{{ formatCurrency(cliente.limite) }}</strong>
+        </div>
+        <div class="detail-list__item" *ngIf="cliente.situacao === 'REJEITADO'">
+          <span>Conta</span><strong>Sem conta (cadastro rejeitado)</strong>
+        </div>
         <div class="detail-list__item"><span>Salário</span><strong>{{ formatCurrency(cliente.salario) }}</strong></div>
         <div class="detail-list__item"><span>Endereço</span><strong>{{ cliente.endereco }}</strong></div>
         <div class="detail-list__item" *ngIf="cliente.situacao === 'REJEITADO' && cliente.motivoRejeicao">

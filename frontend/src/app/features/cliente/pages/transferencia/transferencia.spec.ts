@@ -79,4 +79,22 @@ describe('TransferenciaComponent', () => {
     expect(component.favorecidos.length).toBe(1);
     expect(component.favorecidos[0].conta).toBe('0950');
   });
+
+  it('deve bloquear transferência para a própria conta', () => {
+    component.transferenciaForm.patchValue({ destino: '1291', valor: 10 });
+    component.submit();
+
+    expect(contaServiceSpy.transferir).not.toHaveBeenCalled();
+    expect(component.errorMessage).toContain('própria conta');
+  });
+
+  it('deve exibir saldo atualizado após transferência bem-sucedida', () => {
+    component.transferenciaForm.patchValue({ destino: '0950', valor: 5 });
+    component.submit();
+
+    expect(contaServiceSpy.transferir).toHaveBeenCalled();
+    expect(component.successMessage).toContain('Saldo atual:');
+    expect(component.successMessage).toContain('800');
+    expect(component.saldoAtual).toBe(800);
+  });
 });

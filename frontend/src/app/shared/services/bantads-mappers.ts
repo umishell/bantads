@@ -55,6 +55,31 @@ export function mapClienteConsultaGerente(
   };
 }
 
+/** R11 — cliente rejeitado/pendente sem conta: consulta só pelo detalhe da API. */
+export function mapClienteDetalheConsultaGerente(det: ClienteDetalheDto): ClienteCarteiraModel {
+  return {
+    cpf: det.cpf,
+    nome: det.nome,
+    email: det.email,
+    telefone: det.telefone,
+    cidade: det.cidade,
+    estado: det.estado,
+    endereco: det.endereco,
+    salario: Number(det.salario),
+    conta: '—',
+    agencia: '0001',
+    saldo: 0,
+    limite: 0,
+    situacao: mapStatusCliente(det.status),
+    gerenteCpf: det.gerenteCpf ?? '',
+    gerenteNome: det.gerenteNome ?? '—',
+    gerenteEmail: det.gerenteEmail ?? undefined,
+    cep: det.cep,
+    motivoRejeicao: det.motivoRejeicao ?? null,
+    decisaoGerenteEm: det.decisaoGerenteEm ?? null,
+  };
+}
+
 function mapStatusCliente(status: string): ClienteModel['situacao'] {
   if (status === 'PENDENTE_APROVACAO' || status === 'PROCESSANDO_APROVACAO') return 'PENDENTE';
   if (status === 'APROVADO') return 'APROVADO';
@@ -62,11 +87,23 @@ function mapStatusCliente(status: string): ClienteModel['situacao'] {
   return 'PENDENTE';
 }
 
+function saldoPosOperacaoNaConta(body: OperacaoResponseDto): number {
+  const origem = body.saldoOrigem;
+  if (origem !== null && origem !== undefined) {
+    return Number(origem);
+  }
+  const destino = body.saldoDestino;
+  if (destino !== null && destino !== undefined) {
+    return Number(destino);
+  }
+  return 0;
+}
+
 export function mapOperacaoDepositoSaque(
   numeroConta: string,
   body: OperacaoResponseDto,
 ): { conta: string; data: string; saldo: number; valor: number } {
-  const saldo = body.saldoOrigem ?? body.saldoDestino ?? 0;
+  const saldo = saldoPosOperacaoNaConta(body);
   return {
     conta: numeroConta,
     data: body.dataHora,
@@ -80,7 +117,7 @@ export function mapOperacaoTransferencia(
   destino: string,
   body: OperacaoResponseDto,
 ): TransferenciaResponseModel {
-  const saldo = body.saldoOrigem ?? body.saldoDestino ?? 0;
+  const saldo = saldoPosOperacaoNaConta(body);
   return {
     conta: numeroOrigem,
     destino,
@@ -95,6 +132,7 @@ export function mapExtratoLancamentos(
   lancs: LancamentoExtratoDto[],
   dataInicio?: string,
   dataFim?: string,
+  saldoInicial = 0,
 ): ExtratoResponseModel {
   const sorted = [...lancs].sort((a, b) => a.dataHora.localeCompare(b.dataHora));
   const diasMap = new Map<string, ExtratoDiaModel>();
@@ -121,12 +159,7 @@ export function mapExtratoLancamentos(
   }
 
   if (dataInicio && dataFim && dataInicio <= dataFim) {
-    let saldoCarry = 0;
-    for (const d of sorted) {
-      if (d.saldoApos != null && d.dataHora.slice(0, 10) < dataInicio) {
-        saldoCarry = Number(d.saldoApos);
-      }
-    }
+    let saldoCarry = Number(saldoInicial);
     let cursor = dataInicio;
     while (cursor <= dataFim) {
       if (diasMap.has(cursor)) {

@@ -55,6 +55,12 @@ data class OperacaoResponse(
     val dataHora: Instant,
 )
 
+/** R5/R8: extrato por período com saldo imediatamente anterior ao intervalo consultado. */
+data class ExtratoResponse(
+    val saldoInicial: BigDecimal,
+    val lancamentos: List<LancamentoExtratoResponse>,
+)
+
 /** R5: item de extrato (um lançamento visto pela conta consultada). */
 data class LancamentoExtratoResponse(
     val movimentacaoId: UUID,

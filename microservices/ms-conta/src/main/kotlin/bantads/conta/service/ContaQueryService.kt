@@ -2,6 +2,7 @@ package bantads.conta.service
 
 import bantads.conta.dto.AgregadoPorGerenteResponse
 import bantads.conta.dto.ContaResponse
+import bantads.conta.dto.ExtratoResponse
 import bantads.conta.dto.LancamentoExtratoResponse
 import bantads.conta.dto.SaldoResponse
 import bantads.conta.exception.ContaNaoEncontradaException
@@ -10,8 +11,10 @@ import bantads.conta.model.Movimentacao
 import bantads.conta.model.TipoMovimentacao
 import bantads.conta.repository.ContaRepository
 import bantads.conta.repository.MovimentacaoRepository
+import org.springframework.data.domain.PageRequest
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
+import java.math.BigDecimal
 import java.time.Instant
 import java.util.UUID
 
@@ -69,10 +72,18 @@ class ContaQueryService(
         }
 
     @Transactional(readOnly = true)
-    fun extrato(numero: String, inicio: Instant, fim: Instant): List<LancamentoExtratoResponse> {
+    fun extrato(numero: String, inicio: Instant, fim: Instant): ExtratoResponse {
         val conta = contaRepository.findByNumero(numero) ?: throw ContaNaoEncontradaException()
-        val movs = movimentacaoRepository.findExtrato(conta.id!!, inicio, fim)
-        return movs.map { m -> m.toLancamento(conta.id!!) }
+        val contaId = conta.id!!
+        val movs = movimentacaoRepository.findExtrato(contaId, inicio, fim)
+        val ultimaAntes = movimentacaoRepository
+            .findUltimaAntesDe(contaId, inicio, PageRequest.of(0, 1))
+            .firstOrNull()
+        val saldoInicial = ultimaAntes?.saldoAposParaConta(contaId) ?: BigDecimal.ZERO
+        return ExtratoResponse(
+            saldoInicial = saldoInicial,
+            lancamentos = movs.map { m -> m.toLancamento(contaId) },
+        )
     }
 
     private fun Conta.toResponse(): ContaResponse = ContaResponse(
@@ -86,6 +97,11 @@ class ContaQueryService(
         dataCriacao = dataCriacao,
     )
 
+    private fun Movimentacao.saldoAposParaConta(contaId: UUID): BigDecimal? {
+        val ehDestino = contaDestinoId == contaId
+        return if (ehDestino) saldoResultanteDestino else saldoResultanteOrigem
+    }
+
     private fun Movimentacao.toLancamento(contaId: UUID): LancamentoExtratoResponse {
         val ehDestino = contaDestinoId == contaId
         val ehOrigem = contaOrigemId == contaId
@@ -96,7 +112,7 @@ class ContaQueryService(
             tipo == TipoMovimentacao.TRANSFERENCIA && ehOrigem -> "SAIDA"
             else -> "SAIDA"
         }
-        val saldoApos = if (ehDestino) saldoResultanteDestino else saldoResultanteOrigem
+        val saldoApos = saldoAposParaConta(contaId)
         val contraparteId = if (ehDestino) contaOrigemId else contaDestinoId
         return LancamentoExtratoResponse(
             movimentacaoId = id!!,

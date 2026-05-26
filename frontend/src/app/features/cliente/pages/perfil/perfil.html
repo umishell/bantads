@@ -225,9 +225,9 @@
             Cancelar
           </button>
 
-          <button type="submit" class="button button--primary" [disabled]="salvando">
-            {{ salvando ? 'Salvando...' : 'Salvar alterações' }}
-          </button>
+          <app-processando-button type="submit" [loading]="salvando" buttonClass="button button--primary">
+            Salvar alterações
+          </app-processando-button>
         </div>
       </form>
 

@@ -77,7 +77,16 @@
       <div *ngIf="erro" class="feedback feedback--error">{{ erro }}</div>
 
       <div class="actions">
-        <button type="button" class="button button--primary" (click)="sacar()">Confirmar saque</button>
+        <form (ngSubmit)="sacar()">
+          <app-processando-button
+            type="submit"
+            [loading]="processando"
+            [disabled]="valor === null || valor <= 0"
+            buttonClass="button button--primary"
+          >
+            Confirmar saque
+          </app-processando-button>
+        </form>
       </div>
     </section>
 

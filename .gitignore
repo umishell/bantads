@@ -21,7 +21,7 @@ data/
 /docs/
 
 # --- Prompts (local, raiz do repositório) ---
-#/prompts/
+/prompts/
 
 # --- Ambiente e segredos ---
 .env
@@ -35,6 +35,8 @@ data/
 *~
 
 # --- IDEs (subprojetos podem ter .gitignore próprio, ex.: frontend) ---
+.cursor/
+.claude/
 .idea/
 *.iml
 *.ipr
@@ -71,5 +73,4 @@ testReports/**
 # --- GitNexus / agentes (gerados localmente; regeneram com `gitnexus analyze`) ---
 AGENTS.md
 CLAUDE.md
-.claude/
 .gitnexus/

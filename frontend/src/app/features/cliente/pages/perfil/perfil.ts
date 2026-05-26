@@ -6,6 +6,7 @@ import { Router, RouterLink } from '@angular/router';
 import { finalize } from 'rxjs';
 
 import { AuthService } from '../../../../core/services/auth.service';
+import { ProcessandoButtonComponent } from '../../../../shared/components/processando-button/processando-button.component';
 import { ClienteService } from '../../../../shared/services/cliente.service';
 import { ClienteModel } from '../../../../shared/models/cliente/cliente.model';
 import { mensagemErroHttp } from '../../../../shared/utils/http-error.util';
@@ -19,7 +20,7 @@ type ClientePerfil = ClienteModel & {
 @Component({
   selector: 'app-perfil',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, RouterLink],
+  imports: [CommonModule, ReactiveFormsModule, RouterLink, ProcessandoButtonComponent],
   templateUrl: './perfil.html',
   styleUrl: './perfil.scss',
 })

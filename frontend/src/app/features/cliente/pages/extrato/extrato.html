@@ -84,9 +84,9 @@
     <div *ngIf="errorMessage" class="feedback feedback--error">{{ errorMessage }}</div>
 
     <div class="form-actions">
-      <button type="submit" class="button button--primary" [disabled]="loading">
-        {{ loading ? 'Consultando...' : 'Consultar extrato' }}
-      </button>
+      <app-processando-button type="submit" [loading]="loading" buttonClass="button button--primary">
+        Consultar extrato
+      </app-processando-button>
       <button type="button" class="button button--secondary" [disabled]="!extrato" (click)="gerarPdf()">
         Gerar PDF
       </button>

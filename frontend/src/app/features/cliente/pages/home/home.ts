@@ -26,7 +26,7 @@ export class HomeComponent implements OnInit {
   private readonly authService = inject(AuthService);
   private readonly router = inject(Router);
 
-  public loading = false;
+  public loading = true;
   public errorMessage = '';
   public cliente: ClienteDashboard | null = null;
   public get numeroConta(): string | null {
@@ -44,6 +44,7 @@ export class HomeComponent implements OnInit {
 
     if (!cpf) {
       this.cliente = null;
+      this.loading = false;
       this.errorMessage = 'Sessão inválida ou CPF ausente. Faça login novamente.';
       return;
     }

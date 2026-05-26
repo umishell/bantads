@@ -61,6 +61,11 @@ export interface LancamentoExtratoDto {
   contraparteContaNumero: string | null;
 }
 
+export interface ExtratoApiResponse {
+  saldoInicial: number;
+  lancamentos: LancamentoExtratoDto[];
+}
+
 export interface ClientePendenteDto {
   id: string;
   cpf: string;

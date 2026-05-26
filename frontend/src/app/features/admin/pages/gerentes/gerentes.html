@@ -84,9 +84,9 @@
         </label>
 
         <div class="inline-actions field-group--full">
-          <button type="submit" class="button button--primary" [disabled]="salvando()">
+          <app-processando-button type="submit" [loading]="salvando()" buttonClass="button button--primary">
             {{ modoEdicao() ? 'Salvar alterações' : 'Cadastrar gerente' }}
-          </button>
+          </app-processando-button>
           <button type="button" class="button button--ghost" (click)="cancelarEdicao()">Limpar</button>
         </div>
       </form>

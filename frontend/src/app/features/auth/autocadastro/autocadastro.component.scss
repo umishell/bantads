@@ -23,6 +23,19 @@
   border: 1px solid #ccc;
 }
 
+.autocadastro-grid .field-error,
+.auth-form .field-error {
+  display: block;
+  margin-top: 0.35rem;
+}
+
+.autocadastro-grid .field-hint {
+  display: block;
+  margin-top: 0.35rem;
+  font-size: 0.82rem;
+  color: #555;
+}
+
 .span-2 {
   grid-column: span 2;
 }

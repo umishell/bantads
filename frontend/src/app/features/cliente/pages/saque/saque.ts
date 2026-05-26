@@ -2,15 +2,17 @@ import { CommonModule } from '@angular/common';
 import { Component, OnInit, inject } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
+import { finalize } from 'rxjs';
 
 import { AuthService } from '../../../../core/services/auth.service';
+import { ProcessandoButtonComponent } from '../../../../shared/components/processando-button/processando-button.component';
 import { ClienteService } from '../../../../shared/services/cliente.service';
 import { ContaService } from '../../../../shared/services/conta.service';
 
 @Component({
   selector: 'app-saque',
   standalone: true,
-  imports: [CommonModule, FormsModule, RouterLink],
+  imports: [CommonModule, FormsModule, RouterLink, ProcessandoButtonComponent],
   templateUrl: './saque.html',
   styleUrl: './saque.scss',
 })
@@ -23,6 +25,7 @@ export class SaqueComponent implements OnInit {
   public valor: number | null = null;
   public mensagem = '';
   public erro = '';
+  public processando = false;
   public ultimoSaque: number | null = null;
   public saldoAtual: number | null = null;
   public limiteAtual: number | null = null;
@@ -65,7 +68,11 @@ export class SaqueComponent implements OnInit {
       return;
     }
 
-    this.contaService.sacar(this.numeroConta, this.valor).subscribe({
+    this.processando = true;
+    this.contaService
+      .sacar(this.numeroConta, this.valor)
+      .pipe(finalize(() => (this.processando = false)))
+      .subscribe({
       next: (response) => {
         this.ultimoSaque = response.valor;
         this.saldoAtual = response.saldo;

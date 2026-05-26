@@ -8,12 +8,13 @@ import { ExtratoDiaModel } from '../../../../shared/models/conta/extrato-dia.mod
 import { ExtratoMovimentacaoModel } from '../../../../shared/models/conta/extrato-movimentacao.model';
 import { ExtratoResponseModel } from '../../../../shared/models/conta/extrato-response.model';
 import { AuthService } from '../../../../core/services/auth.service';
+import { ProcessandoButtonComponent } from '../../../../shared/components/processando-button/processando-button.component';
 import { ContaService } from '../../../../shared/services/conta.service';
 
 @Component({
   selector: 'app-extrato',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, RouterLink],
+  imports: [CommonModule, ReactiveFormsModule, RouterLink, ProcessandoButtonComponent],
   templateUrl: './extrato.html',
   styleUrl: './extrato.scss',
 })

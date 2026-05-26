@@ -58,7 +58,10 @@
 
       <label for="valor-deposito">Valor</label>
       <input id="valor-deposito" type="number" [(ngModel)]="valor" min="0.01" step="0.01"
-        placeholder="Digite o valor do depósito" />
+        placeholder="Digite o valor do depósito" [class.is-invalid]="erro && valorDepositoInvalido()" />
+      <small *ngIf="valorDepositoInvalido() && valor !== null" class="field-error">
+        Informe um valor maior que zero.
+      </small>
 
       <div class="suggestions-row">
         <button type="button" class="button button--secondary" (click)="selecionarValor(50)">R$ 50</button>
@@ -71,9 +74,16 @@
       <div *ngIf="erro" class="feedback feedback--error">{{ erro }}</div>
 
       <div class="actions">
-        <button type="button" class="button button--primary" (click)="depositar()">
-          Confirmar depósito
-        </button>
+        <form (ngSubmit)="depositar()">
+          <app-processando-button
+            type="submit"
+            [loading]="processando"
+            [disabled]="valorDepositoInvalido()"
+            buttonClass="button button--primary"
+          >
+            Confirmar depósito
+          </app-processando-button>
+        </form>
       </div>
     </section>
 

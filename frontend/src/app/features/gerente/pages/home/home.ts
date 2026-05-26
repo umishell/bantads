@@ -11,11 +11,12 @@ import {
   SolicitacaoClienteModel,
 } from '../../../../shared/models/gerente/gerente.model';
 import { GerenteService } from '../../../../shared/services/gerente.service';
+import { ProcessandoButtonComponent } from '../../../../shared/components/processando-button/processando-button.component';
 
 @Component({
   selector: 'app-gerente-home',
   standalone: true,
-  imports: [CommonModule, FormsModule, RouterLink],
+  imports: [CommonModule, FormsModule, RouterLink, ProcessandoButtonComponent],
   templateUrl: './home.html',
   styleUrl: './home.scss',
 })
@@ -31,6 +32,8 @@ export class GerenteHomeComponent implements OnInit {
   public pendencias: SolicitacaoClienteModel[] = [];
   public motivosRecusa: Record<string, string> = {};
   public aprovacaoRecente: AprovacaoClienteModel | null = null;
+  public processandoAcaoId: string | null = null;
+  public processandoAcaoTipo: 'aprovar' | 'recusar' | null = null;
 
   public ngOnInit(): void {
     this.carregarTela();
@@ -73,7 +76,16 @@ export class GerenteHomeComponent implements OnInit {
     this.successMessage = '';
     this.aprovacaoRecente = null;
 
-    this.gerenteService.aprovarCliente(solicitacao.id).subscribe({
+    this.processandoAcaoId = solicitacao.id;
+    this.processandoAcaoTipo = 'aprovar';
+
+    this.gerenteService
+      .aprovarCliente(solicitacao.id)
+      .pipe(finalize(() => {
+        this.processandoAcaoId = null;
+        this.processandoAcaoTipo = null;
+      }))
+      .subscribe({
       next: (response) => {
         this.aprovacaoRecente = {
           ...response,
@@ -100,8 +112,15 @@ export class GerenteHomeComponent implements OnInit {
       return;
     }
 
+    this.processandoAcaoId = solicitacao.id;
+    this.processandoAcaoTipo = 'recusar';
+
     this.gerenteService
       .rejeitarCliente(solicitacao.id, motivo, { cpf: solicitacao.cpf, nome: solicitacao.nome })
+      .pipe(finalize(() => {
+        this.processandoAcaoId = null;
+        this.processandoAcaoTipo = null;
+      }))
       .subscribe({
         next: (response) => {
           this.successMessage = `Solicitação de ${response.nome} recusada em ${this.formatDateTime(response.dataHora)}.`;
@@ -112,6 +131,10 @@ export class GerenteHomeComponent implements OnInit {
           this.errorMessage = error?.message || 'Não foi possível recusar a solicitação.';
         },
       });
+  }
+
+  public isProcessando(solicitacaoId: string, tipo: 'aprovar' | 'recusar'): boolean {
+    return this.processandoAcaoId === solicitacaoId && this.processandoAcaoTipo === tipo;
   }
 
   public formatCurrency(value: number | undefined): string {

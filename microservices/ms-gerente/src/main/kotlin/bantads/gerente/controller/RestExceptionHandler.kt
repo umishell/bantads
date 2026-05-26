@@ -1,6 +1,8 @@
 package bantads.gerente.controller
 
 import bantads.gerente.exception.CpfJaCadastradoException
+import bantads.gerente.exception.EmailJaCadastradoException
+import bantads.gerente.exception.FalhaCredencialAuthException
 import bantads.gerente.exception.GerenteNaoEncontradoException
 import bantads.gerente.exception.UltimoGerenteException
 import org.slf4j.LoggerFactory
@@ -28,6 +30,12 @@ class RestExceptionHandler {
 
     @ExceptionHandler(CpfJaCadastradoException::class)
     fun conflict(ex: CpfJaCadastradoException) = respond(HttpStatus.CONFLICT, ex.message)
+
+    @ExceptionHandler(EmailJaCadastradoException::class)
+    fun emailDuplicado(ex: EmailJaCadastradoException) = respond(HttpStatus.CONFLICT, ex.message)
+
+    @ExceptionHandler(FalhaCredencialAuthException::class)
+    fun authCredencial(ex: FalhaCredencialAuthException) = respond(HttpStatus.CONFLICT, ex.message)
 
     @ExceptionHandler(UltimoGerenteException::class)
     fun business(ex: UltimoGerenteException) = respond(HttpStatus.UNPROCESSABLE_ENTITY, ex.message)

@@ -2,15 +2,17 @@ import { CommonModule } from '@angular/common';
 import { Component, OnInit, inject } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
+import { finalize } from 'rxjs';
 
 import { AuthService } from '../../../../core/services/auth.service';
+import { ProcessandoButtonComponent } from '../../../../shared/components/processando-button/processando-button.component';
 import { ClienteService } from '../../../../shared/services/cliente.service';
 import { ContaService } from '../../../../shared/services/conta.service';
 
 @Component({
   selector: 'app-deposito',
   standalone: true,
-  imports: [CommonModule, FormsModule, RouterLink],
+  imports: [CommonModule, FormsModule, RouterLink, ProcessandoButtonComponent],
   templateUrl: './deposito.html',
   styleUrl: './deposito.scss',
 })
@@ -23,6 +25,7 @@ export class DepositoComponent implements OnInit {
   public valor: number | null = null;
   public mensagem = '';
   public erro = '';
+  public processando = false;
   public ultimoDeposito: number | null = null;
   public saldoAtual: number | null = null;
   public nomeTitular = '';
@@ -49,6 +52,10 @@ export class DepositoComponent implements OnInit {
     this.valor = valor;
   }
 
+  public valorDepositoInvalido(): boolean {
+    return this.valor === null || this.valor === undefined || Number(this.valor) <= 0;
+  }
+
   public depositar(): void {
     this.mensagem = '';
     this.erro = '';
@@ -58,12 +65,16 @@ export class DepositoComponent implements OnInit {
       return;
     }
 
-    if (this.valor === null || this.valor <= 0) {
+    if (this.valorDepositoInvalido()) {
       this.erro = 'Informe um valor válido para depósito.';
       return;
     }
 
-    this.contaService.depositar(this.numeroConta, this.valor).subscribe({
+    this.processando = true;
+    this.contaService
+      .depositar(this.numeroConta, Number(this.valor))
+      .pipe(finalize(() => (this.processando = false)))
+      .subscribe({
       next: (response) => {
         this.ultimoDeposito = response.valor;
         this.saldoAtual = response.saldo;

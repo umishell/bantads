@@ -67,10 +67,14 @@ def test_conta_saldo_extrato_deposito_saque_transferencia(
     )
     assert ex.status_code == 200, ex.text
     extrato = ex.json()
-    assert isinstance(extrato, list)
-    assert len(extrato) >= 1
+    assert isinstance(extrato, dict)
+    assert "saldoInicial" in extrato
+    assert "lancamentos" in extrato
+    rows = extrato["lancamentos"]
+    assert isinstance(rows, list)
+    assert len(rows) >= 1
 
-    xfer_rows = [r for r in extrato if str(r.get("tipo", "")).upper() in ("TRANSFERENCIA", "TRANSFERÊNCIA", "TRANSFER")]
+    xfer_rows = [r for r in rows if str(r.get("tipo", "")).upper() in ("TRANSFERENCIA", "TRANSFERÊNCIA", "TRANSFER")]
     assert xfer_rows, "extrato deve conter lançamento de transferência (R8)"
     row = xfer_rows[0]
     for key in ("dataHora", "tipo", "valor", "contraparteContaNumero", "saldoApos", "natureza"):

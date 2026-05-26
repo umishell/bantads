@@ -5,8 +5,10 @@ import { Router, RouterLink } from '@angular/router';
 import { finalize } from 'rxjs';
 
 import { AuthService } from '../../../../core/services/auth.service';
+import { ProcessandoButtonComponent } from '../../../../shared/components/processando-button/processando-button.component';
 import { ClienteService } from '../../../../shared/services/cliente.service';
 import { ContaService } from '../../../../shared/services/conta.service';
+import { numeroContaQuatroDigitos } from '../../../../shared/services/bantads-mappers';
 
 type Favorecido = {
   cpf: string;
@@ -18,7 +20,7 @@ type Favorecido = {
 @Component({
   selector: 'app-transferencia',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, RouterLink],
+  imports: [CommonModule, ReactiveFormsModule, RouterLink, ProcessandoButtonComponent],
   templateUrl: './transferencia.html',
   styleUrl: './transferencia.scss',
 })
@@ -85,8 +87,10 @@ export class TransferenciaComponent implements OnInit {
     }
 
     const { destino, valor } = this.transferenciaForm.getRawValue();
+    const destinoNorm = numeroContaQuatroDigitos(destino ?? '');
+    const origemNorm = numeroContaQuatroDigitos(this.numeroConta);
 
-    if (destino === this.numeroConta) {
+    if (destinoNorm && origemNorm && destinoNorm === origemNorm) {
       this.errorMessage = 'Você não pode transferir para a sua própria conta.';
       return;
     }
@@ -101,8 +105,7 @@ export class TransferenciaComponent implements OnInit {
       .pipe(finalize(() => (this.loading = false)))
       .subscribe({
         next: (response) => {
-          this.saldoAtual = response.saldo;
-          this.successMessage = `Transferência realizada com sucesso em ${this.formatDateTime(response.data)}. Saldo atual: ${this.formatCurrency(response.saldo)}.`;
+          this.atualizarSaldoPosTransferencia(response);
           this.transferenciaForm.reset();
         },
         error: (error) => {
@@ -140,6 +143,32 @@ export class TransferenciaComponent implements OnInit {
     }).format(new Date(value));
   }
 
+  private atualizarSaldoPosTransferencia(response: {
+    data: string;
+    saldo: number;
+  }): void {
+    const cpf = this.authService.getCpf();
+    const mensagem = (saldo: number) =>
+      `Transferência realizada com sucesso em ${this.formatDateTime(response.data)}. Saldo atual: ${this.formatCurrency(saldo)}.`;
+
+    if (!cpf) {
+      this.saldoAtual = response.saldo;
+      this.successMessage = mensagem(response.saldo);
+      return;
+    }
+
+    this.clienteService.buscarPorCpf(cpf).subscribe({
+      next: (cliente) => {
+        const saldo = cliente.saldo ?? response.saldo;
+        this.saldoAtual = saldo;
+        this.successMessage = mensagem(saldo);
+      },
+      error: () => {
+        this.saldoAtual = response.saldo;
+        this.successMessage = mensagem(response.saldo);
+      },
+    });
+  }
 
   public logout(): void {
     this.authService.sair(this.router);

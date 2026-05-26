@@ -5,9 +5,12 @@ import bantads.gerente.dto.DashboardGerenteItem
 import bantads.gerente.dto.GerenteResponse
 import bantads.gerente.dto.InserirGerenteRequest
 import bantads.gerente.exception.CpfJaCadastradoException
+import bantads.gerente.exception.EmailJaCadastradoException
+import bantads.gerente.exception.FalhaCredencialAuthException
 import bantads.gerente.exception.GerenteNaoEncontradoException
 import bantads.gerente.exception.UltimoGerenteException
 import bantads.gerente.integration.AuthClient
+import bantads.gerente.integration.ClienteClient
 import bantads.gerente.integration.ContaClient
 import bantads.gerente.model.Gerente
 import bantads.gerente.repository.GerenteRepository
@@ -22,6 +25,7 @@ class GerenteService(
     private val repository: GerenteRepository,
     private val contaClient: ContaClient,
     private val authClient: AuthClient,
+    private val clienteClient: ClienteClient,
 ) {
 
     private val log = LoggerFactory.getLogger(javaClass)
@@ -45,20 +49,20 @@ class GerenteService(
     fun inserir(req: InserirGerenteRequest): GerenteResponse {
         val cpf = Cpf.require(req.cpf)
         if (repository.existsByCpf(cpf)) throw CpfJaCadastradoException()
+        val emailNorm = req.email.trim().lowercase()
+        exigirEmailDisponivel(emailNorm)
         val g = Gerente(
             cpf = cpf,
             nome = req.nome.trim(),
-            email = req.email.trim().lowercase(),
+            email = emailNorm,
             telefone = req.telefone.trim(),
             tipo = (req.tipo ?: "GERENTE").uppercase(),
         )
         val saved = repository.save(g)
-        authClient.criarUsuario(
-            email = saved.email,
-            nome = saved.nome,
-            cpf = saved.cpf,
+        sincronizarCredenciaisAuth(
+            emailAnterior = null,
+            gerente = saved,
             senha = req.senha,
-            perfil = saved.tipo,
         )
         if (saved.tipo == "GERENTE") {
             val ativos = repository.findAllByAtivoTrueAndTipoOrderByNomeAsc("GERENTE")
@@ -74,9 +78,26 @@ class GerenteService(
     fun alterar(cpf: String, req: AlterarGerenteRequest): GerenteResponse {
         val g = repository.findByCpf(Cpf.normalize(cpf))
             ?: throw GerenteNaoEncontradoException()
+        val emailAnterior = g.email
         req.nome?.let { g.nome = it.trim() }
-        req.email?.let { g.email = it.trim().lowercase() }
+        req.email?.let { novoEmail ->
+            val emailNorm = novoEmail.trim().lowercase()
+            if (emailNorm != g.email) {
+                exigirEmailDisponivel(emailNorm, cpfExcluir = g.cpf)
+            }
+            g.email = emailNorm
+        }
         val saved = repository.save(g)
+        val senhaInformada = req.senha?.trim()?.takeIf { it.isNotEmpty() }
+        if (emailAnterior != saved.email || senhaInformada != null) {
+            sincronizarCredenciaisAuth(
+                emailAnterior = emailAnterior,
+                gerente = saved,
+                senha = senhaInformada ?: throw FalhaCredencialAuthException(
+                    "Informe a senha ao alterar o e-mail do gerente.",
+                ),
+            )
+        }
         log.info("Gerente alterado id={} cpf={}", saved.id, saved.cpf)
         return saved.toResponse()
     }
@@ -129,6 +150,45 @@ class GerenteService(
                 compareByDescending<DashboardGerenteItem> { it.somaSaldosPositivos }
                     .thenBy { it.nome },
             )
+    }
+
+    private fun exigirEmailDisponivel(email: String, cpfExcluir: String? = null) {
+        val ocupado = if (cpfExcluir == null) {
+            repository.existsByEmailIgnoreCase(email)
+        } else {
+            repository.existsByEmailIgnoreCaseAndCpfNot(email, cpfExcluir)
+        }
+        if (ocupado || authClient.loginExiste(email) || clienteClient.emailExiste(email)) {
+            throw EmailJaCadastradoException()
+        }
+    }
+
+    /**
+     * Garante usuário no ms-auth para login. Em inserção falha a transação se o auth recusar.
+     * Em alteração recria credenciais quando o e-mail muda ou quando o login ainda não existe.
+     */
+    private fun sincronizarCredenciaisAuth(emailAnterior: String?, gerente: Gerente, senha: String) {
+        val emailMudou = emailAnterior != null && emailAnterior != gerente.email
+        if (emailMudou) {
+            authClient.removerUsuario(emailAnterior)
+        }
+
+        if (!emailMudou && emailAnterior != null && authClient.atualizarSenha(gerente.email, senha)) {
+            return
+        }
+
+        val criado = authClient.criarUsuario(
+            email = gerente.email,
+            nome = gerente.nome,
+            cpf = gerente.cpf,
+            senha = senha,
+            perfil = gerente.tipo,
+        )
+        if (!criado) {
+            throw FalhaCredencialAuthException(
+                "Não foi possível criar credenciais de acesso. Verifique se o e-mail já está em uso.",
+            )
+        }
     }
 
     private fun Gerente.toResponse(): GerenteResponse = GerenteResponse(

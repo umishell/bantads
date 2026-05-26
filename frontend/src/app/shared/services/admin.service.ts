@@ -65,7 +65,8 @@ export class AdminService {
       senha: payload.senha,
       tipo: 'GERENTE',
     };
-    return this.http.post<GerenteResponseDto>(`${API_BASE}/gerentes`, body).pipe(
+    // Barra final evita redirect 302 do Spring (POST viraria GET e retornaria a listagem).
+    return this.http.post<GerenteResponseDto>(`${API_BASE}/gerentes/`, body).pipe(
       map((g) => ({
         mensagem: 'Gerente cadastrado com sucesso.',
         gerente: { ...mapGerenteResponseToAdminModel(g), totalClientes: 0, totalSaldoPositivo: 0, totalSaldoNegativo: 0 },

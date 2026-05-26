@@ -2,7 +2,7 @@ package bantads.conta.controller
 
 import bantads.conta.dto.AgregadoPorGerenteResponse
 import bantads.conta.dto.ContaResponse
-import bantads.conta.dto.LancamentoExtratoResponse
+import bantads.conta.dto.ExtratoResponse
 import bantads.conta.dto.SaldoResponse
 import bantads.conta.service.ContaQueryService
 import org.springframework.format.annotation.DateTimeFormat
@@ -49,7 +49,7 @@ class ContaQueryController(
         @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) dataInicio: LocalDate?,
         @RequestParam(required = false)
         @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) dataFim: LocalDate?,
-    ): ResponseEntity<List<LancamentoExtratoResponse>> {
+    ): ResponseEntity<ExtratoResponse> {
         val zona = ZoneId.of("America/Sao_Paulo")
         val hoje = LocalDate.now(zona)
         val inicio = (dataInicio ?: hoje.minusDays(30)).atStartOfDay(zona).toInstant()

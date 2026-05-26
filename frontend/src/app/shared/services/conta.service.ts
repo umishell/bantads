@@ -4,7 +4,7 @@ import { Observable, catchError, map, of } from 'rxjs';
 
 import { API_BASE } from '../../core/config/api-base';
 import { AuthService } from '../../core/services/auth.service';
-import { LancamentoExtratoDto, OperacaoResponseDto, ValorRequestDto } from '../models/api/bantads-api.models';
+import { ExtratoApiResponse, LancamentoExtratoDto, OperacaoResponseDto, ValorRequestDto } from '../models/api/bantads-api.models';
 import { ExtratoFiltroModel } from '../models/conta/extrato-filtro.model';
 import { ExtratoResponseModel } from '../models/conta/extrato-response.model';
 import { TransferenciaRequestModel } from '../models/conta/transferencia-request.model';
@@ -97,10 +97,16 @@ export class ContaService {
       params = params.set('dataFim', filtro.dataFim);
     }
     return this.http
-      .get<LancamentoExtratoDto[]>(`${API_BASE}/contas/${numeroConta}/extrato`, { params })
+      .get<ExtratoApiResponse>(`${API_BASE}/contas/${numeroConta}/extrato`, { params })
       .pipe(
-        map((rows) =>
-          mapExtratoLancamentos(numeroConta, rows, filtro.dataInicio, filtro.dataFim),
+        map((body) =>
+          mapExtratoLancamentos(
+            numeroConta,
+            body.lancamentos,
+            filtro.dataInicio,
+            filtro.dataFim,
+            body.saldoInicial,
+          ),
         ),
       );
   }

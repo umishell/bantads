@@ -19,11 +19,12 @@ class ClienteSchemaPatch {
     @Bean
     @Order(5)
     fun patchClienteSchema(jdbc: JdbcTemplate) = ApplicationRunner {
+        jdbc.execute("DROP INDEX IF EXISTS uk_cliente_email")
         jdbc.execute(
             """
-            CREATE UNIQUE INDEX IF NOT EXISTS uk_cliente_email ON cliente (email);
+            CREATE UNIQUE INDEX uk_cliente_email ON cliente (LOWER(email));
             """.trimIndent(),
         )
-        log.info("Schema patch cliente: índice único de e-mail garantido")
+        log.info("Schema patch cliente: índice único case-insensitive de e-mail garantido")
     }
 }

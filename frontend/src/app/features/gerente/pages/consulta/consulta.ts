@@ -6,12 +6,13 @@ import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { AuthService } from '../../../../core/services/auth.service';
 import { ClienteCarteiraModel } from '../../../../shared/models/gerente/gerente.model';
 import { GerenteService } from '../../../../shared/services/gerente.service';
+import { ProcessandoButtonComponent } from '../../../../shared/components/processando-button/processando-button.component';
 import { mensagemErroHttp } from '../../../../shared/utils/http-error.util';
 
 @Component({
   selector: 'app-gerente-consulta',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, RouterLink],
+  imports: [CommonModule, ReactiveFormsModule, RouterLink, ProcessandoButtonComponent],
   templateUrl: './consulta.html',
   styleUrl: './consulta.scss',
 })

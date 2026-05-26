@@ -19,6 +19,7 @@ import {
 import {
   mapClienteCarteiraDto,
   mapClienteConsultaGerente,
+  mapClienteDetalheConsultaGerente,
   mapGerenteResumo,
   mapPendenteDto,
 } from './bantads-mappers';
@@ -111,10 +112,14 @@ export class GerenteService {
     }).pipe(
       map(({ det, carteira }) => {
         const row = carteira.find((c) => c.cpf === cpf);
-        if (!row) {
-          throw new Error('Cliente não encontrado ou sem conta vinculada.');
+        if (row) {
+          return mapClienteConsultaGerente(det, row);
         }
-        return mapClienteConsultaGerente(det, row);
+        const status = (det.status ?? '').toUpperCase();
+        if (status === 'REJEITADO' || status === 'PENDENTE_APROVACAO' || status === 'PROCESSANDO_APROVACAO') {
+          return mapClienteDetalheConsultaGerente(det);
+        }
+        throw new Error('Cliente não encontrado ou sem conta vinculada.');
       }),
     );
   }
@@ -125,6 +130,9 @@ export class GerenteService {
   ): Observable<ClienteCarteiraModel> {
     return this.consultarClientePorCpf(cpfCliente).pipe(
       map((cliente) => {
+        if (cliente.situacao === 'REJEITADO' || cliente.situacao === 'PENDENTE') {
+          return cliente;
+        }
         if (cliente.gerenteCpf !== gerenteCpf) {
           throw new Error('Cliente não pertence à sua carteira.');
         }

@@ -43,7 +43,14 @@
       </div>
 
       <div class="topbar-actions">
-        <button type="button" class="button button--primary" (click)="carregarClientes()">Pesquisar</button>
+        <app-processando-button
+          type="button"
+          [loading]="loading"
+          buttonClass="button button--primary"
+          (clicked)="carregarClientes()"
+        >
+          Pesquisar
+        </app-processando-button>
         <button type="button" class="button button--ghost" (click)="limparFiltro()">Limpar</button>
       </div>
     </div>

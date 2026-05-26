@@ -27,6 +27,12 @@ class GerenteSchemaPatch {
             ADD COLUMN IF NOT EXISTS tipo varchar(20) NOT NULL DEFAULT 'GERENTE';
             """.trimIndent(),
         )
-        log.info("Schema patch gerente: colunas telefone e tipo garantidas")
+        jdbc.execute("DROP INDEX IF EXISTS uk_gerente_email")
+        jdbc.execute(
+            """
+            CREATE UNIQUE INDEX uk_gerente_email ON gerente (LOWER(email));
+            """.trimIndent(),
+        )
+        log.info("Schema patch gerente: colunas telefone/tipo e índice case-insensitive de e-mail garantidos")
     }
 }
