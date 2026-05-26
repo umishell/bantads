@@ -1,0 +1,18 @@
+<button
+  [attr.type]="type"
+  [class]="buttonClass"
+  [disabled]="loading || disabled"
+  [attr.aria-busy]="loading"
+  (click)="handleClick($event)"
+>
+  @if (loading) {
+    <span class="processando-wave" aria-hidden="true">
+      @for (ch of chars; track $index) {
+        <span class="processando-wave__char" [style.animationDelay.ms]="$index * 85">{{ ch }}</span>
+      }
+    </span>
+    <span class="sr-only">Processando</span>
+  } @else {
+    <ng-content />
+  }
+</button>
