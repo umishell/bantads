@@ -9,7 +9,9 @@ import bantads.cliente.dto.RejeitarClienteRequest
 import bantads.cliente.exception.CpfJaCadastradoException
 import bantads.cliente.exception.EmailJaCadastradoException
 import bantads.cliente.exception.EstadoClienteInvalidoException
+import bantads.cliente.integration.AuthClient
 import bantads.cliente.integration.ContaOperacoesClient
+import bantads.cliente.integration.GerenteClient
 import bantads.cliente.messaging.ClienteSagaPublisher
 import bantads.cliente.model.Cliente
 import bantads.cliente.model.StatusCliente
@@ -25,6 +27,8 @@ class ClienteService(
     private val repository: ClienteRepository,
     private val sagaPublisher: ClienteSagaPublisher,
     private val contaOperacoesClient: ContaOperacoesClient,
+    private val authClient: AuthClient,
+    private val gerenteClient: GerenteClient,
 ) {
 
     @Transactional
@@ -36,9 +40,7 @@ class ClienteService(
             throw CpfJaCadastradoException()
         }
         val emailNorm = req.email.trim().lowercase()
-        if (repository.existsByEmailIgnoreCase(emailNorm)) {
-            throw EmailJaCadastradoException()
-        }
+        exigirEmailDisponivel(emailNorm)
 
         val correlationId = UUID.randomUUID().toString()
         val sagaId = UUID.randomUUID().toString()
@@ -92,7 +94,13 @@ class ClienteService(
         val c = repository.findByCpf(cpf) ?: throw EstadoClienteInvalidoException("Cliente não encontrado")
         val salarioAnterior = c.salario
         req.nome?.let { c.nome = it.trim() }
-        req.email?.let { c.email = it.trim().lowercase() }
+        req.email?.let { raw ->
+            val emailNorm = raw.trim().lowercase()
+            if (emailNorm != c.email) {
+                exigirEmailDisponivel(emailNorm, cpfExcluir = cpf)
+            }
+            c.email = emailNorm
+        }
         req.telefone?.let { c.telefone = it.trim() }
         req.salario?.let { c.salario = it }
         req.endereco?.let { c.endereco = it.trim() }
@@ -188,5 +196,16 @@ class ClienteService(
                 "motivo" to body.motivo.trim(),
             ),
         )
+    }
+
+    private fun exigirEmailDisponivel(email: String, cpfExcluir: String? = null) {
+        val ocupado = if (cpfExcluir == null) {
+            repository.existsByEmailIgnoreCase(email)
+        } else {
+            repository.existsByEmailIgnoreCaseAndCpfNot(email, cpfExcluir)
+        }
+        if (ocupado || authClient.loginExiste(email) || gerenteClient.emailExiste(email)) {
+            throw EmailJaCadastradoException()
+        }
     }
 }

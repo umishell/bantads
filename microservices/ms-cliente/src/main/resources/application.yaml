@@ -31,6 +31,8 @@ management:
         include: health,info
 
 bantads:
+  auth-service:
+    base-url: ${BANTADS_AUTH_SERVICE_BASE_URL:http://localhost:8081/auth}
   integration:
     # Chamadas server-to-server (mesmo Bearer do request). Docker: hostnames dos serviços.
     conta-base-url: ${BANTADS_MS_CONTA_BASE_URL:http://localhost:8083/contas}

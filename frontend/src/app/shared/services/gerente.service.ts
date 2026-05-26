@@ -6,6 +6,7 @@ import { API_BASE } from '../../core/config/api-base';
 import { AuthService } from '../../core/services/auth.service';
 import {
   ClienteCarteiraDto,
+  ClienteDetalheDto,
   ClientePendenteDto,
 } from '../models/api/bantads-api.models';
 import {
@@ -17,6 +18,8 @@ import {
 } from '../models/gerente/gerente.model';
 import {
   mapClienteCarteiraDto,
+  mapClienteConsultaGerente,
+  mapClienteDetalheConsultaGerente,
   mapGerenteResumo,
   mapPendenteDto,
 } from './bantads-mappers';
@@ -95,7 +98,28 @@ export class GerenteService {
             return matchNome || matchCpf;
           });
         }
-        return list;
+        return list.sort((a, b) => a.nome.localeCompare(b.nome, 'pt-BR'));
+      }),
+    );
+  }
+
+  /** R13 — consulta por CPF via API + merge com dados da carteira. */
+  public consultarClientePorCpf(cpfCliente: string): Observable<ClienteCarteiraModel> {
+    const cpf = cpfCliente.replace(/\D/g, '');
+    return forkJoin({
+      det: this.http.get<ClienteDetalheDto>(`${API_BASE}/clientes/${cpf}`),
+      carteira: this.http.get<ClienteCarteiraDto[]>(`${API_BASE}/clientes`),
+    }).pipe(
+      map(({ det, carteira }) => {
+        const row = carteira.find((c) => c.cpf === cpf);
+        if (row) {
+          return mapClienteConsultaGerente(det, row);
+        }
+        const status = (det.status ?? '').toUpperCase();
+        if (status === 'REJEITADO' || status === 'PENDENTE_APROVACAO' || status === 'PROCESSANDO_APROVACAO') {
+          return mapClienteDetalheConsultaGerente(det);
+        }
+        throw new Error('Cliente não encontrado ou sem conta vinculada.');
       }),
     );
   }
@@ -104,24 +128,23 @@ export class GerenteService {
     gerenteCpf: string,
     cpfCliente: string,
   ): Observable<ClienteCarteiraModel> {
-    return this.listarClientesDaCarteira(gerenteCpf).pipe(
-      map((list) => {
-        const found = list.find((c) => c.cpf === cpfCliente);
-        if (!found) {
-          throw new Error('Cliente não encontrado na carteira.');
+    return this.consultarClientePorCpf(cpfCliente).pipe(
+      map((cliente) => {
+        if (cliente.situacao === 'REJEITADO' || cliente.situacao === 'PENDENTE') {
+          return cliente;
         }
-        return found;
+        if (cliente.gerenteCpf !== gerenteCpf) {
+          throw new Error('Cliente não pertence à sua carteira.');
+        }
+        return cliente;
       }),
     );
   }
 
-  public listarMelhoresClientes(gerenteCpf: string): Observable<ClienteCarteiraModel[]> {
+  /** R14 — top 3 global por saldo (sem filtrar pela carteira do gerente). */
+  public listarMelhoresClientes(_gerenteCpf: string): Observable<ClienteCarteiraModel[]> {
     return this.http
       .get<ClienteCarteiraDto[]>(`${API_BASE}/clientes?filtro=melhores_clientes`)
-      .pipe(
-        map((rows) =>
-          rows.filter((c) => c.gerenteCpf === gerenteCpf).map((c) => mapClienteCarteiraDto(c)),
-        ),
-      );
+      .pipe(map((rows) => rows.map((c) => mapClienteCarteiraDto(c))));
   }
 }

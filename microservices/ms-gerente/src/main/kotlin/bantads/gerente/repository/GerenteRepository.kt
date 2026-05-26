@@ -10,5 +10,7 @@ interface GerenteRepository : JpaRepository<Gerente, UUID> {
     fun findAllByAtivoTrueAndTipoOrderByNomeAsc(tipo: String): List<Gerente>
     fun findByCpf(cpf: String): Gerente?
     fun existsByCpf(cpf: String): Boolean
+    fun existsByEmailIgnoreCase(email: String): Boolean
+    fun existsByEmailIgnoreCaseAndCpfNot(email: String, cpf: String): Boolean
     fun countByAtivoTrueAndTipo(tipo: String): Long
 }

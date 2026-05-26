@@ -73,4 +73,12 @@ describe('DepositoComponent', () => {
     expect(contaServiceSpy.depositar).toHaveBeenCalledWith('1291', 100);
     expect(component.saldoAtual).toBe(900);
   });
+
+  it('deve bloquear depósito com valor zero', () => {
+    component.valor = 0;
+    component.depositar();
+
+    expect(contaServiceSpy.depositar).not.toHaveBeenCalled();
+    expect(component.erro).toContain('valor válido');
+  });
 });

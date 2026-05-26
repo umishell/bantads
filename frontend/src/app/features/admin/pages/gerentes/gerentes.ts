@@ -9,11 +9,13 @@ import {
   AdminGerenteModel,
 } from '../../../../shared/models/admin/admin.model';
 import { AdminService } from '../../../../shared/services/admin.service';
+import { ProcessandoButtonComponent } from '../../../../shared/components/processando-button/processando-button.component';
+import { mensagemErroHttp } from '../../../../shared/utils/http-error.util';
 
 @Component({
   selector: 'app-admin-gerentes',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, RouterLink],
+  imports: [CommonModule, ReactiveFormsModule, RouterLink, ProcessandoButtonComponent],
   templateUrl: './gerentes.html',
   styleUrl: './gerentes.scss',
 })
@@ -113,7 +115,7 @@ export class AdminGerentesComponent implements OnInit {
       this.adminService
         .atualizarGerente(this.gerenteEditandoCpf()!, {
           nome: raw.nome ?? '',
-          email: raw.email ?? '',
+          email: (raw.email ?? '').trim().toLowerCase(),
           senha: raw.senha ?? 'tads',
         })
         .subscribe({
@@ -133,7 +135,7 @@ export class AdminGerentesComponent implements OnInit {
     const payload: AdminGerenteFormModel = {
       cpf: (raw.cpf ?? '').replace(/\D/g, ''),
       nome: raw.nome ?? '',
-      email: raw.email ?? '',
+      email: (raw.email ?? '').trim().toLowerCase(),
       telefone: raw.telefone ?? '',
       senha: raw.senha ?? 'tads',
     };
@@ -145,10 +147,10 @@ export class AdminGerentesComponent implements OnInit {
         this.carregarGerentes();
         this.iniciarCadastro();
       },
-      error: (error) => {
-        this.errorMessage.set(error?.message || 'Não foi possível inserir o gerente.');
-        this.salvando.set(false);
-      },
+          error: (error) => {
+            this.errorMessage.set(mensagemErroHttp(error, 'Não foi possível inserir o gerente.'));
+            this.salvando.set(false);
+          },
     });
   }
 
@@ -170,7 +172,7 @@ export class AdminGerentesComponent implements OnInit {
         this.carregarGerentes();
       },
       error: (error) => {
-        this.errorMessage.set(error?.message || 'Não foi possível remover o gerente.');
+        this.errorMessage.set(mensagemErroHttp(error, 'Não foi possível remover o gerente.'));
       },
     });
   }
@@ -203,7 +205,6 @@ export class AdminGerentesComponent implements OnInit {
   }
 
   public logout(): void {
-    this.authService.logout();
-    void this.router.navigate(['/auth/login']);
+    this.authService.sair(this.router);
   }
 }

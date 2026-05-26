@@ -22,7 +22,7 @@ class Cliente(
     @Column(nullable = false, unique = true, length = 11)
     var cpf: String,
 
-    @Column(nullable = false)
+    @Column(nullable = false, unique = true)
     var email: String,
 
     @Column(nullable = false)

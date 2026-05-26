@@ -12,6 +12,14 @@ export interface ClienteDetalheDto {
   endereco: string;
   cep: string;
   status: string;
+  /** R11 — motivo da rejeição (quando aplicável). */
+  motivoRejeicao?: string | null;
+  /** R11 — data/hora da decisão do gerente. */
+  decisaoGerenteEm?: string | null;
+  /** R4 — gerente responsável (quando aprovado). */
+  gerenteCpf?: string | null;
+  gerenteNome?: string | null;
+  gerenteEmail?: string | null;
 }
 
 export interface ContaResponseDto {
@@ -51,6 +59,11 @@ export interface LancamentoExtratoDto {
   valor: number;
   saldoApos: number | null;
   contraparteContaNumero: string | null;
+}
+
+export interface ExtratoApiResponse {
+  saldoInicial: number;
+  lancamentos: LancamentoExtratoDto[];
 }
 
 export interface ClientePendenteDto {

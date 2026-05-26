@@ -25,3 +25,12 @@ data class RemoverUsuarioInternoRequest(
     @field:Email
     val email: String,
 )
+
+data class AlterarSenhaInternoRequest(
+    @field:NotBlank
+    @field:Email
+    val email: String,
+    @field:NotBlank
+    @field:Size(min = 4, max = 64)
+    val senha: String,
+)

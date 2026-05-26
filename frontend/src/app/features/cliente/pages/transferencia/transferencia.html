@@ -102,9 +102,9 @@
       <div *ngIf="successMessage" class="feedback feedback--success">{{ successMessage }}</div>
 
       <div class="form-actions">
-        <button type="submit" class="button button--primary" [disabled]="loading">
-          {{ loading ? 'Transferindo...' : 'Confirmar transferência' }}
-        </button>
+        <app-processando-button type="submit" [loading]="loading" buttonClass="button button--primary">
+          Confirmar transferência
+        </app-processando-button>
       </div>
     </form>
 

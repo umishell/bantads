@@ -1,6 +1,6 @@
 import { Injectable, computed, inject, signal } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { catchError, map, Observable, of, switchMap, tap } from 'rxjs';
+import { catchError, finalize, map, Observable, of, switchMap, tap } from 'rxjs';
 
 import { API_BASE } from '../config/api-base';
 import { ClienteDetalheDto, ContaResponseDto } from '../../shared/models/api/bantads-api.models';
@@ -70,11 +70,18 @@ export class AuthService {
   public login(credenciais: LoginRequest): Observable<LoginResponse> {
     return this.http.post<LoginApiResponse>(`${API_BASE}/auth/login`, credenciais).pipe(
       map((res) => this.mapLoginApiToLoginResponse(res)),
+      tap((lr) => this.persistToken(lr.token)),
       switchMap((lr) => this.enriquecerClienteComConta(lr)),
       tap((lr) => {
         this.saveSession(lr.usuario, lr.token);
       }),
     );
+  }
+
+  /** Grava só o JWT antes do enriquecimento pós-login (interceptor precisa do Bearer). */
+  private persistToken(token: string): void {
+    sessionStorage.setItem(this.tokenKey, token);
+    this._token.set(token);
   }
 
   /** Após login, CLIENTE: busca cadastro + conta para preencher `numeroConta` e `clienteId`. */
@@ -143,11 +150,38 @@ export class AuthService {
     this._usuario.set(usuario);
   }
 
-  public logout(): void {
+  /** Limpa sessão local (sem chamar API). */
+  public clearSessionLocal(): void {
     sessionStorage.removeItem(this.tokenKey);
     sessionStorage.removeItem(this.userKey);
     this._token.set(null);
     this._usuario.set(null);
+  }
+
+  /** R2 — revoga token no ms-auth e limpa sessão local. */
+  public logout(): Observable<void> {
+    const token = this.getToken();
+    if (!token) {
+      this.clearSessionLocal();
+      return of(undefined);
+    }
+    return this.http.post(`${API_BASE}/auth/logout`, {}).pipe(
+      catchError(() => of(null)),
+      finalize(() => this.clearSessionLocal()),
+      map(() => undefined),
+    );
+  }
+
+  /** Alias semântico para logout com API. */
+  public encerrarSessao(): Observable<void> {
+    return this.logout();
+  }
+
+  /** Logout + navegação para login (uso nos componentes). */
+  public sair(router: { navigate: (commands: string[]) => unknown }): void {
+    this.logout().subscribe(() => {
+      void router.navigate(['/auth/login']);
+    });
   }
 
   private getUsuarioDoStorage(): UsuarioLogado | null {
@@ -160,7 +194,7 @@ export class AuthService {
     try {
       return JSON.parse(rawUser) as UsuarioLogado;
     } catch {
-      this.logout();
+      this.clearSessionLocal();
       return null;
     }
   }

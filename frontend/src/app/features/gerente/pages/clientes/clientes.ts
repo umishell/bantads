@@ -6,11 +6,12 @@ import { Router, RouterLink } from '@angular/router';
 import { AuthService } from '../../../../core/services/auth.service';
 import { ClienteCarteiraModel } from '../../../../shared/models/gerente/gerente.model';
 import { GerenteService } from '../../../../shared/services/gerente.service';
+import { ProcessandoButtonComponent } from '../../../../shared/components/processando-button/processando-button.component';
 
 @Component({
   selector: 'app-gerente-clientes',
   standalone: true,
-  imports: [CommonModule, FormsModule, RouterLink],
+  imports: [CommonModule, FormsModule, RouterLink, ProcessandoButtonComponent],
   templateUrl: './clientes.html',
   styleUrl: './clientes.scss',
 })
@@ -64,7 +65,6 @@ export class GerenteClientesComponent implements OnInit {
   }
 
   public logout(): void {
-    this.authService.logout();
-    void this.router.navigate(['/auth/login']);
+    this.authService.sair(this.router);
   }
 }

@@ -142,12 +142,22 @@
               ></textarea>
 
               <div class="inline-actions">
-                <button type="button" class="button button--primary" (click)="aprovar(solicitacao)">
+                <app-processando-button
+                  type="button"
+                  [loading]="isProcessando(solicitacao.id, 'aprovar')"
+                  buttonClass="button button--primary"
+                  (clicked)="aprovar(solicitacao)"
+                >
                   Aprovar
-                </button>
-                <button type="button" class="button button--danger" (click)="recusar(solicitacao)">
+                </app-processando-button>
+                <app-processando-button
+                  type="button"
+                  [loading]="isProcessando(solicitacao.id, 'recusar')"
+                  buttonClass="button button--danger"
+                  (clicked)="recusar(solicitacao)"
+                >
                   Recusar
-                </button>
+                </app-processando-button>
               </div>
             </div>
           </div>

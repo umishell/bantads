@@ -26,10 +26,12 @@ export class HomeComponent implements OnInit {
   private readonly authService = inject(AuthService);
   private readonly router = inject(Router);
 
-  public loading = false;
+  public loading = true;
   public errorMessage = '';
   public cliente: ClienteDashboard | null = null;
-  public readonly numeroConta = this.authService.getNumeroConta();
+  public get numeroConta(): string | null {
+    return this.authService.getNumeroConta();
+  }
 
   private readonly agenciaPadrao = '0001';
 
@@ -42,6 +44,7 @@ export class HomeComponent implements OnInit {
 
     if (!cpf) {
       this.cliente = null;
+      this.loading = false;
       this.errorMessage = 'Sessão inválida ou CPF ausente. Faça login novamente.';
       return;
     }
@@ -168,12 +171,7 @@ export class HomeComponent implements OnInit {
     return this.cliente?.agencia ?? this.agenciaPadrao;
   }
 
-  public getModoVisualLabel(): string {
-    return 'Dados do servidor (API)';
-  }
-
   public logout(): void {
-    this.authService.logout();
-    void this.router.navigate(['/auth/login']);
+    this.authService.sair(this.router);
   }
 }

@@ -8,12 +8,13 @@ import { ExtratoDiaModel } from '../../../../shared/models/conta/extrato-dia.mod
 import { ExtratoMovimentacaoModel } from '../../../../shared/models/conta/extrato-movimentacao.model';
 import { ExtratoResponseModel } from '../../../../shared/models/conta/extrato-response.model';
 import { AuthService } from '../../../../core/services/auth.service';
+import { ProcessandoButtonComponent } from '../../../../shared/components/processando-button/processando-button.component';
 import { ContaService } from '../../../../shared/services/conta.service';
 
 @Component({
   selector: 'app-extrato',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, RouterLink],
+  imports: [CommonModule, ReactiveFormsModule, RouterLink, ProcessandoButtonComponent],
   templateUrl: './extrato.html',
   styleUrl: './extrato.scss',
 })
@@ -23,7 +24,9 @@ export class ExtratoComponent implements OnInit {
   private readonly authService = inject(AuthService);
   private readonly router = inject(Router);
 
-  public readonly numeroConta = this.authService.getNumeroConta();
+  public get numeroConta(): string | null {
+    return this.authService.getNumeroConta();
+  }
   public readonly agencia = '0001';
 
   public readonly filtroForm = this.fb.group({
@@ -252,7 +255,6 @@ export class ExtratoComponent implements OnInit {
 
 
   public logout(): void {
-    this.authService.logout();
-    void this.router.navigate(['/auth/login']);
+    this.authService.sair(this.router);
   }
 }

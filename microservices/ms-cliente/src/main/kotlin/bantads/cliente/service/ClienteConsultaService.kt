@@ -34,6 +34,7 @@ class ClienteConsultaService(
     fun obterPorCpf(cpfRaw: String): ClienteDetalheResponse {
         val cpf = Cpf.require(cpfRaw)
         val c = repository.findByCpf(cpf) ?: throw ResponseStatusException(HttpStatus.NOT_FOUND, "Cliente não encontrado")
+        val gerente = resolverGerenteDoCliente(c)
         return ClienteDetalheResponse(
             id = c.id!!,
             cpf = c.cpf,
@@ -48,7 +49,44 @@ class ClienteConsultaService(
             status = c.status,
             motivoRejeicao = c.motivoRejeicao,
             decisaoGerenteEm = c.decisaoGerenteEm,
+            gerenteCpf = gerente?.cpf,
+            gerenteNome = gerente?.nome,
+            gerenteEmail = gerente?.email,
         )
+    }
+
+    /** R4 — enriquece detalhe com gerente da conta (chamada interna entre microsserviços). */
+    private fun resolverGerenteDoCliente(cliente: Cliente): GerenteUpstreamDto? {
+        if (cliente.status != StatusCliente.APROVADO) {
+            return null
+        }
+        return try {
+            val conta = fetchContaPorClienteId(cliente.id!!) ?: return null
+            fetchGerentesInterno().find { it.id == conta.gerenteId }
+        } catch (_: Exception) {
+            null
+        }
+    }
+
+    private fun fetchContaPorClienteId(clienteId: UUID): ContaUpstreamDto? {
+        val url = "${contaBaseUrl.trimEnd('/')}/por-cliente/$clienteId"
+        return RestClient.builder()
+            .build()
+            .get()
+            .uri(url)
+            .retrieve()
+            .body(ContaUpstreamDto::class.java)
+    }
+
+    private fun fetchGerentesInterno(): List<GerenteUpstreamDto> {
+        val url = "${gerenteBaseUrl.trimEnd('/')}/"
+        return RestClient.builder()
+            .build()
+            .get()
+            .uri(url)
+            .retrieve()
+            .body(listGerenteType)
+            ?: emptyList()
     }
 
     @Transactional(readOnly = true)

@@ -13,31 +13,34 @@
 
     <div *ngIf="erro" class="feedback feedback--error">{{ erro }}</div>
 
-    <form (ngSubmit)="enviar()" #f="ngForm" class="auth-form">
+    <form [formGroup]="form" (ngSubmit)="enviar()" class="auth-form">
       <label>
         <span>E-mail (login)</span>
         <input
           type="email"
-          name="login"
-          [(ngModel)]="credenciais.login"
+          formControlName="login"
           autocomplete="username"
-          required
+          inputmode="email"
+          placeholder="usuario@bantads.com.br"
+          [class.is-invalid]="isInvalid('login')"
+          (blur)="normalizarLogin()"
         />
+        <small *ngIf="isInvalid('login')" class="field-error">{{ getErrorMessage('login') }}</small>
       </label>
       <label>
         <span>Senha</span>
         <input
           type="password"
-          name="senha"
-          [(ngModel)]="credenciais.senha"
+          formControlName="senha"
           autocomplete="current-password"
-          required
-          minlength="4"
+          placeholder="Mínimo 4 caracteres"
+          [class.is-invalid]="isInvalid('senha')"
         />
+        <small *ngIf="isInvalid('senha')" class="field-error">{{ getErrorMessage('senha') }}</small>
       </label>
-      <button type="submit" class="button button--primary" [disabled]="carregando || f.invalid">
-        {{ carregando ? 'Entrando…' : 'Entrar' }}
-      </button>
+      <app-processando-button type="submit" [loading]="carregando" buttonClass="button button--primary">
+        Entrar
+      </app-processando-button>
     </form>
 
     <p class="auth-footer">

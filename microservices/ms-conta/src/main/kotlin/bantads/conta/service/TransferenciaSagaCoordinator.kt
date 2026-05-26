@@ -76,8 +76,15 @@ class TransferenciaSagaCoordinator(
             movimentacaoId = UUID.fromString(node.path("movimentacaoId").asText()),
             tipo = TipoMovimentacao.TRANSFERENCIA,
             valor = node.path("valor").decimalValue(),
-            saldoOrigem = node.path("saldoOrigem").decimalValue(),
-            saldoDestino = node.path("saldoDestino").decimalValue(),
+            saldoOrigem = jsonDecimalOrNull(node, "saldoOrigem"),
+            saldoDestino = jsonDecimalOrNull(node, "saldoDestino"),
             dataHora = Instant.parse(node.path("dataHora").asText()),
         )
+
+    /** MissingNode.decimalValue() vira ZERO — tratar como null para o front não confundir com saldo real. */
+    private fun jsonDecimalOrNull(node: JsonNode, field: String): java.math.BigDecimal? {
+        val value = node.path(field)
+        if (value.isMissingNode || value.isNull) return null
+        return value.decimalValue()
+    }
 }

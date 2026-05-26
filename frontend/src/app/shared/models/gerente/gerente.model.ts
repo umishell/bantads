@@ -44,6 +44,8 @@ export interface ClienteCarteiraModel {
   gerenteNome: string;
   gerenteEmail?: string;
   cep?: string;
+  motivoRejeicao?: string | null;
+  decisaoGerenteEm?: string | null;
 }
 
 export interface AprovacaoClienteModel {

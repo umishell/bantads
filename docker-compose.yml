@@ -128,6 +128,7 @@ services:
       SPRING_RABBITMQ_PASSWORD: ${RABBITMQ_PASSWORD:-guest}
       BANTADS_MS_CONTA_BASE_URL: http://ms-conta:8083/contas
       BANTADS_MS_GERENTE_BASE_URL: http://ms-gerente:8084/gerentes
+      BANTADS_AUTH_SERVICE_BASE_URL: http://ms-auth:8081/auth
     depends_on:
       db-cliente:
         condition: service_healthy
@@ -136,6 +137,8 @@ services:
       ms-conta:
         condition: service_started
       ms-gerente:
+        condition: service_started
+      ms-auth:
         condition: service_started
     networks:
       - bantads-net
@@ -174,6 +177,7 @@ services:
       SPRING_RABBITMQ_PASSWORD: ${RABBITMQ_PASSWORD:-guest}
       BANTADS_CONTA_SERVICE_BASE_URL: http://ms-conta:8083/contas
       BANTADS_AUTH_SERVICE_BASE_URL: http://ms-auth:8081/auth
+      BANTADS_MS_CLIENTE_BASE_URL: http://ms-cliente:8082/clientes
     depends_on:
       db-gerente:
         condition: service_healthy

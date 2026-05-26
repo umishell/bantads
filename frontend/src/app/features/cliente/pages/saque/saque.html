@@ -28,7 +28,7 @@
         <span class="chip">Saque</span>
         <h1>Retire valores da sua conta</h1>
         <p>
-          O protótipo já valida limite, saldo disponível e registra a saída no extrato com impacto
+          A operação valida limite, saldo disponível e registra a saída no extrato com impacto
           imediato na home do cliente.
         </p>
 
@@ -77,7 +77,16 @@
       <div *ngIf="erro" class="feedback feedback--error">{{ erro }}</div>
 
       <div class="actions">
-        <button type="button" class="button button--primary" (click)="sacar()">Confirmar saque</button>
+        <form (ngSubmit)="sacar()">
+          <app-processando-button
+            type="submit"
+            [loading]="processando"
+            [disabled]="valor === null || valor <= 0"
+            buttonClass="button button--primary"
+          >
+            Confirmar saque
+          </app-processando-button>
+        </form>
       </div>
     </section>
 

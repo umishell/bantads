@@ -21,7 +21,7 @@ class Gerente(
     @Column(nullable = false, length = 200)
     var nome: String,
 
-    @Column(nullable = false, length = 200)
+    @Column(nullable = false, unique = true, length = 200)
     var email: String,
 
     @Column(nullable = false, length = 20)

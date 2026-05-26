@@ -20,6 +20,7 @@ import { ClienteCarteiraModel, GerenteResumoModel, SolicitacaoClienteModel } fro
 export function mapClienteDetalheAndContaToClienteModel(
   det: ClienteDetalheDto,
   conta: ContaResponseDto | null,
+  extras?: { gerenteNome?: string; gerenteEmail?: string },
 ): ClienteModel {
   const situacao = mapStatusCliente(det.status);
   return {
@@ -34,9 +35,48 @@ export function mapClienteDetalheAndContaToClienteModel(
     conta: conta?.numero,
     saldo: conta != null ? Number(conta.saldo) : undefined,
     limite: conta != null ? Number(conta.limite) : undefined,
-    gerente_nome: '-',
+    gerente_nome: extras?.gerenteNome ?? det.gerenteNome ?? '—',
+    gerente_email: extras?.gerenteEmail ?? det.gerenteEmail ?? undefined,
     cep: det.cep,
     situacao,
+  };
+}
+
+/** R13/R11 — detalhe API + linha da carteira (conta, saldo, gerente). */
+export function mapClienteConsultaGerente(
+  det: ClienteDetalheDto,
+  carteira: ClienteCarteiraDto,
+): ClienteCarteiraModel {
+  const base = mapClienteCarteiraDto(carteira);
+  return {
+    ...base,
+    motivoRejeicao: det.motivoRejeicao ?? null,
+    decisaoGerenteEm: det.decisaoGerenteEm ?? null,
+  };
+}
+
+/** R11 — cliente rejeitado/pendente sem conta: consulta só pelo detalhe da API. */
+export function mapClienteDetalheConsultaGerente(det: ClienteDetalheDto): ClienteCarteiraModel {
+  return {
+    cpf: det.cpf,
+    nome: det.nome,
+    email: det.email,
+    telefone: det.telefone,
+    cidade: det.cidade,
+    estado: det.estado,
+    endereco: det.endereco,
+    salario: Number(det.salario),
+    conta: '—',
+    agencia: '0001',
+    saldo: 0,
+    limite: 0,
+    situacao: mapStatusCliente(det.status),
+    gerenteCpf: det.gerenteCpf ?? '',
+    gerenteNome: det.gerenteNome ?? '—',
+    gerenteEmail: det.gerenteEmail ?? undefined,
+    cep: det.cep,
+    motivoRejeicao: det.motivoRejeicao ?? null,
+    decisaoGerenteEm: det.decisaoGerenteEm ?? null,
   };
 }
 
@@ -47,11 +87,23 @@ function mapStatusCliente(status: string): ClienteModel['situacao'] {
   return 'PENDENTE';
 }
 
+function saldoPosOperacaoNaConta(body: OperacaoResponseDto): number {
+  const origem = body.saldoOrigem;
+  if (origem !== null && origem !== undefined) {
+    return Number(origem);
+  }
+  const destino = body.saldoDestino;
+  if (destino !== null && destino !== undefined) {
+    return Number(destino);
+  }
+  return 0;
+}
+
 export function mapOperacaoDepositoSaque(
   numeroConta: string,
   body: OperacaoResponseDto,
 ): { conta: string; data: string; saldo: number; valor: number } {
-  const saldo = body.saldoOrigem ?? body.saldoDestino ?? 0;
+  const saldo = saldoPosOperacaoNaConta(body);
   return {
     conta: numeroConta,
     data: body.dataHora,
@@ -65,7 +117,7 @@ export function mapOperacaoTransferencia(
   destino: string,
   body: OperacaoResponseDto,
 ): TransferenciaResponseModel {
-  const saldo = body.saldoOrigem ?? body.saldoDestino ?? 0;
+  const saldo = saldoPosOperacaoNaConta(body);
   return {
     conta: numeroOrigem,
     destino,
@@ -75,7 +127,13 @@ export function mapOperacaoTransferencia(
   };
 }
 
-export function mapExtratoLancamentos(numeroConta: string, lancs: LancamentoExtratoDto[]): ExtratoResponseModel {
+export function mapExtratoLancamentos(
+  numeroConta: string,
+  lancs: LancamentoExtratoDto[],
+  dataInicio?: string,
+  dataFim?: string,
+  saldoInicial = 0,
+): ExtratoResponseModel {
   const sorted = [...lancs].sort((a, b) => a.dataHora.localeCompare(b.dataHora));
   const diasMap = new Map<string, ExtratoDiaModel>();
 
@@ -100,14 +158,36 @@ export function mapExtratoLancamentos(numeroConta: string, lancs: LancamentoExtr
     }
   }
 
+  if (dataInicio && dataFim && dataInicio <= dataFim) {
+    let saldoCarry = Number(saldoInicial);
+    let cursor = dataInicio;
+    while (cursor <= dataFim) {
+      if (diasMap.has(cursor)) {
+        saldoCarry = diasMap.get(cursor)!.saldoConsolidado;
+      } else {
+        diasMap.set(cursor, { data: cursor, saldoConsolidado: saldoCarry, movimentacoes: [] });
+      }
+      cursor = addDaysIso(cursor, 1);
+    }
+  }
+
   const dias = Array.from(diasMap.values()).sort((a, b) => a.data.localeCompare(b.data));
-  const ultimoSaldo = sorted.length ? Number(sorted[sorted.length - 1].saldoApos ?? 0) : undefined;
+  const ultimoSaldo = dias.length ? dias[dias.length - 1].saldoConsolidado : undefined;
 
   return {
     conta: numeroConta,
     saldo: ultimoSaldo,
     dias,
   };
+}
+
+function addDaysIso(isoDate: string, days: number): string {
+  const d = new Date(`${isoDate}T12:00:00`);
+  d.setDate(d.getDate() + days);
+  const y = d.getFullYear();
+  const m = String(d.getMonth() + 1).padStart(2, '0');
+  const day = String(d.getDate()).padStart(2, '0');
+  return `${y}-${m}-${day}`;
 }
 
 export function mapClienteCarteiraDto(row: ClienteCarteiraDto): ClienteCarteiraModel {
@@ -199,27 +279,31 @@ export function mapAdminRelatorioDto(rows: AdminRelatorioClienteDto[]): AdminRel
   }));
 }
 
-export function mapDashboardFromStats(rows: DashboardGerenteItemDto[]): AdminDashboardModel {
-  const gerentes: AdminDashboardGerenteItem[] = rows.map((r) => ({
+export function mapDashboardFromStats(
+  rows: DashboardGerenteItemDto[],
+  gerentes?: GerenteResponseDto[],
+): AdminDashboardModel {
+  const telPorCpf = new Map((gerentes ?? []).map((g) => [g.cpf, g.telefone]));
+  const gerentesItems: AdminDashboardGerenteItem[] = rows.map((r) => ({
     cpf: r.cpf,
     nome: r.nome,
     email: r.email,
-    telefone: '-',
+    telefone: telPorCpf.get(r.cpf) ?? '—',
     totalClientes: Number(r.totalClientes),
     totalSaldoPositivo: Number(r.somaSaldosPositivos),
     totalSaldoNegativo: Number(r.somaSaldosNegativos),
   }));
 
-  const totalClientes = gerentes.reduce((acc, g) => acc + g.totalClientes, 0);
-  const totalSaldoPositivo = gerentes.reduce((acc, g) => acc + g.totalSaldoPositivo, 0);
-  const totalSaldoNegativo = gerentes.reduce((acc, g) => acc + g.totalSaldoNegativo, 0);
+  const totalClientes = gerentesItems.reduce((acc, g) => acc + g.totalClientes, 0);
+  const totalSaldoPositivo = gerentesItems.reduce((acc, g) => acc + g.totalSaldoPositivo, 0);
+  const totalSaldoNegativo = gerentesItems.reduce((acc, g) => acc + g.totalSaldoNegativo, 0);
 
   return {
-    totalGerentes: gerentes.length,
+    totalGerentes: gerentesItems.length,
     totalClientes,
     totalSaldoPositivo,
     totalSaldoNegativo,
-    gerentes,
+    gerentes: gerentesItems,
   };
 }
 

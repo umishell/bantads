@@ -67,9 +67,9 @@ function Write-DockerComposeSnapshot {
         [string]$ComposeFilePath
     )
     $header = @(
-        "# Docker Compose — snapshot pós-testes de integração",
+        "# Docker Compose - snapshot pos-testes de integracao",
         "# Gerado: $(Get-Date -Format 'yyyy-MM-dd HH:mm:ss')",
-        "# Comando base: docker compose logs --tail=$Tail --timestamps <serviço>",
+        "# Comando base: docker compose logs --tail=$Tail --timestamps <servico>",
         ""
     )
     Set-Content -LiteralPath $OutFile -Value ($header -join "`n") -Encoding utf8
