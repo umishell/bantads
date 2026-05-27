@@ -1074,6 +1074,137 @@ Isso facilita entendimento do projeto por novos colaboradores e avaliadores da d
 
 ---
 
+## 🛠️ Boas práticas adotadas durante o desenvolvimento
+
+Durante a implementação do sistema, algumas boas práticas foram consideradas para manter a organização do projeto e facilitar futuras manutenções.
+
+A adoção dessas práticas ajuda a reduzir problemas comuns encontrados em projetos maiores e melhora a legibilidade geral do código.
+
+Entre as principais decisões tomadas durante o desenvolvimento estão:
+
+- Padronização de nomes de arquivos
+- Separação por responsabilidade
+- Utilização de componentes reutilizáveis
+- Organização modular
+- Controle de acesso por perfis
+- Estruturação por camadas
+
+A padronização ajuda novos desenvolvedores a compreender rapidamente a estrutura do projeto.
+
+Além disso, a organização consistente reduz tempo gasto durante correções e implementações futuras.
+
+---
+
+## 🔄 Fluxo geral da aplicação
+
+De forma resumida, o fluxo principal do sistema ocorre seguindo etapas bem definidas.
+
+O usuário acessa a aplicação por meio da interface frontend.
+
+As requisições realizadas pelo frontend passam inicialmente pelo gateway da aplicação.
+
+O gateway é responsável por validar permissões e encaminhar solicitações para os serviços apropriados.
+
+Após isso, cada microsserviço executa sua responsabilidade específica.
+
+Em alguns casos, os serviços podem trocar mensagens assíncronas utilizando RabbitMQ.
+
+Quando operações distribuídas são necessárias, o padrão Saga atua coordenando as etapas do processo.
+
+Essa abordagem ajuda a evitar inconsistências entre diferentes serviços.
+
+---
+
+## 📊 Benefícios da arquitetura adotada
+
+A arquitetura baseada em microsserviços apresenta diversas vantagens.
+
+Entre os benefícios observados estão:
+
+- Melhor separação de responsabilidades
+- Escalabilidade independente
+- Facilidade de manutenção
+- Flexibilidade tecnológica
+- Maior organização
+- Possibilidade de expansão
+
+Cada serviço pode evoluir de maneira mais independente.
+
+Isso reduz impactos em outras partes do sistema.
+
+Além disso, a divisão em serviços menores facilita testes específicos.
+
+---
+
+## 🧩 Componentização e reutilização
+
+A reutilização de componentes foi considerada durante a organização do frontend.
+
+Essa prática busca evitar duplicação de código e melhorar consistência visual.
+
+Componentes reutilizáveis ajudam a:
+
+- reduzir código repetido
+- facilitar manutenção
+- melhorar organização
+- acelerar desenvolvimento
+
+Essa abordagem também torna futuras alterações mais simples.
+
+Mudanças realizadas em um componente compartilhado podem refletir automaticamente em diversas áreas da aplicação.
+
+---
+
+## ⚠️ Tratamento de erros
+
+O tratamento adequado de erros possui papel importante em qualquer sistema.
+
+Durante o desenvolvimento foram consideradas estratégias para lidar com possíveis falhas.
+
+Entre elas:
+
+- validação de dados recebidos
+- mensagens de erro padronizadas
+- captura de exceções
+- respostas apropriadas ao usuário
+
+Essas medidas ajudam a tornar o sistema mais confiável.
+
+Além disso, melhoram a experiência do usuário durante utilização da aplicação.
+
+---
+
+## 📈 Escalabilidade futura
+
+A estrutura atual foi planejada pensando em futuras expansões.
+
+Novos módulos podem ser adicionados sem necessidade de grandes mudanças estruturais.
+
+Entre possíveis evoluções futuras estão:
+
+- integração com APIs externas
+- geração de relatórios
+- monitoramento centralizado
+- autenticação avançada
+- notificações em tempo real
+- dashboards administrativos
+
+A arquitetura atual permite que essas melhorias sejam incorporadas gradualmente.
+
+---
+
+## 🎯 Considerações finais
+
+O desenvolvimento deste projeto representa uma aplicação prática dos conceitos estudados ao longo da disciplina.
+
+Além do aprendizado técnico, o projeto também contribui para desenvolvimento de habilidades relacionadas à organização, planejamento e trabalho colaborativo.
+
+A evolução contínua do sistema permitirá incorporar novos conhecimentos adquiridos futuramente.
+
+A documentação será mantida atualizada conforme o crescimento do projeto.
+
+---
+
 ## Autores
 
 Gabriela Harres Rodrigues           - GRR20246215 -         gabrielahrodrigus101@gmail.com
