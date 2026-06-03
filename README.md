@@ -1096,107 +1096,6 @@ Mensagens entre microsserviços de negócio passam pela **saga** (filas `cmd.*` 
 
 ---
 
-## 📝 Notas adicionais de desenvolvimento
-
-Este projeto foi desenvolvido com foco em organização, clareza de código e separação de responsabilidades entre os componentes.
-
-Durante a implementação, buscou-se manter uma estrutura limpa e de fácil entendimento, permitindo que novos desenvolvedores consigam compreender rapidamente o funcionamento geral da aplicação.
-
-Além disso, foram consideradas boas práticas de desenvolvimento, como padronização de nomenclatura, modularização de funcionalidades e reutilização de código sempre que possível.
-
----
-
-## 🔍 Observações técnicas
-
-- O sistema foi estruturado visando facilitar manutenção futura
-- As funcionalidades foram separadas em módulos independentes
-- O código foi organizado para melhorar legibilidade
-- Foram utilizados padrões comuns de desenvolvimento
-- A estrutura permite fácil expansão do sistema
-
----
-
-## 📌 Considerações sobre o projeto
-
-Este projeto tem caráter acadêmico e foi desenvolvido com o objetivo de aplicar conceitos estudados em sala de aula.
-
-As decisões de arquitetura e implementação foram tomadas considerando o escopo proposto e o tempo disponível para desenvolvimento.
-
----
-
-## ⚙️ Organização geral
-
-A organização do projeto segue uma lógica simples e eficiente:
-
-- Separação entre lógica de negócio e interface
-- Estrutura modular
-- Componentes reutilizáveis
-- Código dividido por responsabilidade
-
----
-
-## 💡 Sobre o desenvolvimento
-
-Durante o desenvolvimento, foram enfrentados desafios relacionados à integração entre diferentes partes do sistema.
-
-Esses desafios contribuíram para o aprendizado prático de conceitos importantes, como:
-
-- Comunicação entre componentes
-- Tratamento de erros
-- Estruturação de projetos maiores
-
----
-
-## 📚 Objetivo educacional
-
-O principal objetivo deste projeto é consolidar conhecimentos adquiridos ao longo da disciplina.
-
-Entre os principais tópicos trabalhados estão:
-
-- Estruturação de sistemas
-- Organização de código
-- Boas práticas de desenvolvimento
-- Versionamento com Git
-
----
-
-## 🧩 Expansão futura
-
-O projeto pode ser expandido futuramente com novas funcionalidades e melhorias, como:
-
-- Interface mais elaborada
-- Novos módulos
-- Melhor tratamento de erros
-- Otimizações de desempenho
-
----
-
-## 🔄 Manutenção
-
-A manutenção do sistema pode ser realizada de forma simples devido à sua estrutura organizada.
-
-Alterações podem ser feitas sem impactar significativamente outras partes do sistema.
-
----
-
-## 📈 Evolução do projeto
-
-Este projeto pode evoluir com o tempo, recebendo melhorias contínuas conforme novas necessidades surgirem.
-
-A base atual permite crescimento progressivo sem necessidade de reestruturações complexas.
-
----
-
-## 🧠 Aprendizado contínuo
-
-O desenvolvimento deste projeto reforça a importância da prática no processo de aprendizado.
-
-A experiência adquirida aqui pode ser aplicada em projetos futuros de maior complexidade.
-
----
-
----
-
 ## 🔐 Controle de acesso e permissões
 
 O sistema possui separação de permissões baseada em perfis de usuário.
@@ -1536,40 +1435,22 @@ A utilização do padrão Saga complementa esse processo ao coordenar operaçõe
 
 ---
 
-## 📋 Convenções de Desenvolvimento
+## 📌 Considerações de Desenvolvimento
 
-Para manter a consistência do projeto, algumas convenções foram adotadas durante a implementação.
+O projeto foi desenvolvido utilizando uma arquitetura baseada em microsserviços, priorizando separação de responsabilidades, escalabilidade e facilidade de manutenção.
 
-Entre elas:
+Durante a implementação foram adotadas boas práticas como:
 
-- Organização padronizada de diretórios
-- Separação de responsabilidades
-- Estrutura modular
-- Nomenclatura consistente
-- Reutilização de componentes
+- Organização modular do código;
+- Separação por camadas;
+- Reutilização de componentes;
+- Controle de acesso baseado em perfis;
+- Comunicação assíncrona com RabbitMQ;
+- Documentação contínua do sistema.
 
-Essas práticas facilitam o entendimento do código e reduzem a complexidade da manutenção.
+A estrutura atual permite a adição de novos módulos e funcionalidades sem necessidade de alterações significativas na arquitetura existente.
 
-Além disso, contribuem para a colaboração entre diferentes membros da equipe.
-
----
-
-## 🎓 Aprendizados Obtidos
-
-O desenvolvimento deste projeto proporcionou experiência prática em diversas tecnologias e conceitos estudados durante a disciplina.
-
-Entre os principais aprendizados destacam-se:
-
-- Desenvolvimento com Angular
-- Microsserviços com Spring Boot
-- Comunicação assíncrona com RabbitMQ
-- Utilização de Docker
-- Implementação de autenticação JWT
-- Integração entre sistemas distribuídos
-
-Além do conhecimento técnico, o projeto também contribuiu para o desenvolvimento de habilidades relacionadas à organização, documentação e trabalho em equipe.
-
-A continuidade do projeto permitirá aprofundar ainda mais esses conhecimentos em futuras etapas de desenvolvimento.
+Além dos objetivos acadêmicos da disciplina, o projeto contribuiu para o aprofundamento de conhecimentos relacionados a Angular, Spring Boot, RabbitMQ, Docker, JWT e integração entre microsserviços.
 
 ---
 
