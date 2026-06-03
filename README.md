@@ -1477,6 +1477,102 @@ A documentação será mantida atualizada conforme o crescimento do projeto.
 
 ---
 
+## 📊 Monitoramento e Observabilidade
+
+A observabilidade é um aspecto importante em arquiteturas distribuídas baseadas em microsserviços.
+
+Embora o foco atual do projeto esteja concentrado na implementação das funcionalidades previstas pela disciplina, a estrutura foi planejada considerando futuras estratégias de monitoramento.
+
+Alguns recursos que podem ser incorporados futuramente incluem:
+
+- Centralização de logs
+- Monitoramento de filas RabbitMQ
+- Coleta de métricas
+- Dashboards de acompanhamento
+- Rastreamento de requisições
+
+Essas ferramentas auxiliam na identificação de falhas e na análise de desempenho da aplicação.
+
+Além disso, permitem acompanhar o comportamento dos microsserviços em ambientes mais complexos.
+
+---
+
+## 🔒 Estratégias de Segurança
+
+A segurança foi considerada desde as etapas iniciais do desenvolvimento.
+
+O sistema utiliza autenticação baseada em JWT para controle de acesso.
+
+Entre as medidas adotadas estão:
+
+- Autenticação por token
+- Validação de permissões
+- Proteção de rotas
+- Separação por perfis de usuário
+- Validação de dados recebidos
+
+Essas estratégias ajudam a reduzir riscos relacionados a acessos indevidos.
+
+Também contribuem para garantir maior integridade das informações processadas pelo sistema.
+
+---
+
+## 🌐 Integração entre Microsserviços
+
+A comunicação entre os diferentes componentes da aplicação ocorre por meio de mecanismos síncronos e assíncronos.
+
+Quando necessário, os serviços podem realizar chamadas HTTP internas.
+
+Para fluxos distribuídos mais complexos, a comunicação utiliza RabbitMQ.
+
+Esse modelo oferece vantagens como:
+
+- Menor acoplamento
+- Melhor escalabilidade
+- Maior tolerância a falhas
+- Facilidade de expansão
+
+A utilização do padrão Saga complementa esse processo ao coordenar operações distribuídas.
+
+---
+
+## 📋 Convenções de Desenvolvimento
+
+Para manter a consistência do projeto, algumas convenções foram adotadas durante a implementação.
+
+Entre elas:
+
+- Organização padronizada de diretórios
+- Separação de responsabilidades
+- Estrutura modular
+- Nomenclatura consistente
+- Reutilização de componentes
+
+Essas práticas facilitam o entendimento do código e reduzem a complexidade da manutenção.
+
+Além disso, contribuem para a colaboração entre diferentes membros da equipe.
+
+---
+
+## 🎓 Aprendizados Obtidos
+
+O desenvolvimento deste projeto proporcionou experiência prática em diversas tecnologias e conceitos estudados durante a disciplina.
+
+Entre os principais aprendizados destacam-se:
+
+- Desenvolvimento com Angular
+- Microsserviços com Spring Boot
+- Comunicação assíncrona com RabbitMQ
+- Utilização de Docker
+- Implementação de autenticação JWT
+- Integração entre sistemas distribuídos
+
+Além do conhecimento técnico, o projeto também contribuiu para o desenvolvimento de habilidades relacionadas à organização, documentação e trabalho em equipe.
+
+A continuidade do projeto permitirá aprofundar ainda mais esses conhecimentos em futuras etapas de desenvolvimento.
+
+---
+
 ## Autores
 
 Gabriela Harres Rodrigues           - GRR20246215 -         gabrielahrodrigus101@gmail.com
