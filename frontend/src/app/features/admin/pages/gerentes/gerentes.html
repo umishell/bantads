@@ -55,7 +55,15 @@
       <form class="form-grid" [formGroup]="gerenteForm" (ngSubmit)="salvar()">
         <label class="field-group">
           <span>CPF</span>
-          <input type="text" formControlName="cpf" placeholder="Somente números" />
+          <input
+            type="text"
+            formControlName="cpf"
+            inputmode="numeric"
+            autocomplete="off"
+            placeholder="000.000.000-00"
+            (input)="onCpfInput($event)"
+            (blur)="aplicarMascaras()"
+          />
           <small class="error-text" *ngIf="isInvalid('cpf')">{{ getErrorMessage('cpf') }}</small>
         </label>
 
@@ -67,19 +75,39 @@
 
         <label class="field-group">
           <span>E-mail</span>
-          <input type="email" formControlName="email" placeholder="gerente@bantads.com.br" />
+          <input
+            type="email"
+            formControlName="email"
+            inputmode="email"
+            maxlength="200"
+            placeholder="gerente@bantads.com.br"
+            (blur)="normalizarCampos()"
+          />
           <small class="error-text" *ngIf="isInvalid('email')">{{ getErrorMessage('email') }}</small>
         </label>
 
         <label class="field-group">
           <span>Telefone</span>
-          <input type="text" formControlName="telefone" placeholder="(41) 99999-9999" />
+          <input
+            type="text"
+            formControlName="telefone"
+            inputmode="numeric"
+            autocomplete="tel"
+            placeholder="(41) 99999-9999"
+            (input)="onTelefoneInput($event)"
+            (blur)="aplicarMascaras()"
+          />
           <small class="error-text" *ngIf="isInvalid('telefone')">{{ getErrorMessage('telefone') }}</small>
         </label>
 
         <label class="field-group field-group--full">
           <span>Senha</span>
-          <input type="text" formControlName="senha" placeholder="Senha do gerente" />
+          <input
+            type="password"
+            formControlName="senha"
+            autocomplete="new-password"
+            [placeholder]="modoEdicao() ? 'Nova senha (deixe vazio para manter a atual)' : 'Mínimo 4 caracteres'"
+          />
           <small class="error-text" *ngIf="isInvalid('senha')">{{ getErrorMessage('senha') }}</small>
         </label>
 
