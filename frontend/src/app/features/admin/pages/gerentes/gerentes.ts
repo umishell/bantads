@@ -10,7 +10,22 @@ import {
 } from '../../../../shared/models/admin/admin.model';
 import { AdminService } from '../../../../shared/services/admin.service';
 import { ProcessandoButtonComponent } from '../../../../shared/components/processando-button/processando-button.component';
+import {
+  digitsOnlyCpf,
+  normalizeEmail,
+  normalizeTelefone,
+} from '../../../../shared/utils/bantads-input.util';
+import { formatCpfInput, formatTelefoneInput } from '../../../../shared/utils/bantads-mask.util';
+import { getFieldErrorMessage, isFieldInvalid } from '../../../../shared/utils/form-field.util';
 import { mensagemErroHttp } from '../../../../shared/utils/http-error.util';
+import {
+  bantadsEmailValidators,
+  bantadsSenhaValidators,
+  cpfValidator,
+  telefoneValidator,
+} from '../../../../shared/validators/bantads-form.validators';
+
+type GerenteFormField = 'cpf' | 'nome' | 'email' | 'telefone' | 'senha';
 
 @Component({
   selector: 'app-admin-gerentes',
@@ -34,11 +49,11 @@ export class AdminGerentesComponent implements OnInit {
   public readonly gerenteEditandoCpf = signal<string | null>(null);
 
   public readonly gerenteForm = this.fb.group({
-    cpf: ['', [Validators.required, Validators.minLength(11)]],
+    cpf: ['', [Validators.required, cpfValidator()]],
     nome: ['', [Validators.required]],
-    email: ['', [Validators.required, Validators.email]],
-    telefone: ['', [Validators.required]],
-    senha: ['', [Validators.required, Validators.minLength(4)]],
+    email: ['', bantadsEmailValidators],
+    telefone: ['', [Validators.required, Validators.maxLength(15), telefoneValidator()]],
+    senha: ['', bantadsSenhaValidators],
   });
 
   public ngOnInit(): void {
@@ -71,24 +86,26 @@ export class AdminGerentesComponent implements OnInit {
       nome: '',
       email: '',
       telefone: '',
-      senha: 'tads',
+      senha: '',
     });
+    this.configurarValidacaoSenha(false);
     this.gerenteForm.get('cpf')?.enable();
     this.gerenteForm.get('telefone')?.enable();
   }
 
   public editarGerente(gerente: AdminGerenteModel): void {
     this.modoEdicao.set(true);
-    this.gerenteEditandoCpf.set(gerente.cpf);
+    this.gerenteEditandoCpf.set(digitsOnlyCpf(gerente.cpf));
     this.successMessage.set('');
     this.errorMessage.set('');
     this.gerenteForm.patchValue({
-      cpf: gerente.cpf,
+      cpf: formatCpfInput(gerente.cpf),
       nome: gerente.nome,
       email: gerente.email,
-      telefone: gerente.telefone,
-      senha: 'tads',
+      telefone: formatTelefoneInput(gerente.telefone),
+      senha: '',
     });
+    this.configurarValidacaoSenha(true);
     this.gerenteForm.get('cpf')?.disable();
     this.gerenteForm.get('telefone')?.disable();
     this.successMessage.set(`Editando gerente ${gerente.nome}. O formulário foi levado para o topo.`);
@@ -102,6 +119,8 @@ export class AdminGerentesComponent implements OnInit {
   public salvar(): void {
     this.errorMessage.set('');
     this.successMessage.set('');
+    this.aplicarMascaras();
+    this.normalizarCampos();
 
     if (this.gerenteForm.invalid) {
       this.gerenteForm.markAllAsTouched();
@@ -110,19 +129,21 @@ export class AdminGerentesComponent implements OnInit {
 
     this.salvando.set(true);
     const raw = this.gerenteForm.getRawValue();
+    const senhaInformada = (raw.senha ?? '').trim();
 
     if (this.modoEdicao() && this.gerenteEditandoCpf()) {
       this.adminService
         .atualizarGerente(this.gerenteEditandoCpf()!, {
           nome: raw.nome ?? '',
-          email: (raw.email ?? '').trim().toLowerCase(),
-          senha: raw.senha ?? 'tads',
+          email: normalizeEmail(raw.email ?? ''),
+          senha: senhaInformada.length > 0 ? senhaInformada : undefined,
         })
         .subscribe({
           next: (response) => {
             this.successMessage.set(response.mensagem);
             this.salvando.set(false);
             this.carregarGerentes();
+            this.gerenteForm.patchValue({ senha: '' }, { emitEvent: false });
           },
           error: (error) => {
             this.errorMessage.set(error?.message || 'Não foi possível atualizar o gerente.');
@@ -133,11 +154,11 @@ export class AdminGerentesComponent implements OnInit {
     }
 
     const payload: AdminGerenteFormModel = {
-      cpf: (raw.cpf ?? '').replace(/\D/g, ''),
+      cpf: digitsOnlyCpf(raw.cpf ?? ''),
       nome: raw.nome ?? '',
-      email: (raw.email ?? '').trim().toLowerCase(),
-      telefone: raw.telefone ?? '',
-      senha: raw.senha ?? 'tads',
+      email: normalizeEmail(raw.email ?? ''),
+      telefone: normalizeTelefone(raw.telefone ?? ''),
+      senha: senhaInformada,
     };
 
     this.adminService.inserirGerente(payload).subscribe({
@@ -184,18 +205,71 @@ export class AdminGerentesComponent implements OnInit {
     }).format(value ?? 0);
   }
 
-  public isInvalid(controlName: string): boolean {
-    const control = this.gerenteForm.get(controlName);
-    return !!control && control.invalid && (control.touched || control.dirty);
+  public onCpfInput(event: Event): void {
+    this.aplicarMascaraCampo(event, 'cpf', formatCpfInput);
   }
 
-  public getErrorMessage(controlName: string): string {
-    const control = this.gerenteForm.get(controlName);
-    if (!control || !control.errors) return '';
-    if (control.errors['required']) return 'Campo obrigatório.';
-    if (control.errors['email']) return 'Informe um e-mail válido.';
-    if (control.errors['minlength']) return 'Valor inválido.';
-    return 'Valor inválido.';
+  public onTelefoneInput(event: Event): void {
+    this.aplicarMascaraCampo(event, 'telefone', formatTelefoneInput);
+  }
+
+  public aplicarMascaras(): void {
+    this.gerenteForm.patchValue(
+      {
+        cpf: formatCpfInput(this.gerenteForm.controls.cpf.value ?? ''),
+        telefone: formatTelefoneInput(this.gerenteForm.controls.telefone.value ?? ''),
+      },
+      { emitEvent: false },
+    );
+  }
+
+  public normalizarCampos(): void {
+    this.gerenteForm.patchValue(
+      {
+        email: normalizeEmail(this.gerenteForm.controls.email.value ?? ''),
+      },
+      { emitEvent: false },
+    );
+    this.gerenteForm.updateValueAndValidity({ emitEvent: false });
+  }
+
+  public isInvalid(controlName: GerenteFormField): boolean {
+    return isFieldInvalid(this.gerenteForm.get(controlName));
+  }
+
+  public getErrorMessage(controlName: GerenteFormField): string {
+    const custom: Record<string, string> = {
+      cpf: 'Informe um CPF válido com 11 dígitos.',
+      telefone: 'Informe um telefone válido (DDD + número).',
+      pattern: 'Formato inválido.',
+    };
+
+    if (controlName === 'email') {
+      custom['pattern'] = 'Informe um e-mail válido (ex.: gerente@bantads.com.br).';
+    }
+
+    if (controlName === 'senha') {
+      custom['minlength'] = 'A senha deve ter pelo menos 4 caracteres.';
+    }
+
+    return getFieldErrorMessage(this.gerenteForm.get(controlName), custom);
+  }
+
+  private configurarValidacaoSenha(edicao: boolean): void {
+    const senhaCtrl = this.gerenteForm.controls.senha;
+    senhaCtrl.setValidators(edicao ? [Validators.minLength(4)] : bantadsSenhaValidators);
+    senhaCtrl.updateValueAndValidity({ emitEvent: false });
+  }
+
+  private aplicarMascaraCampo(
+    event: Event,
+    controlName: 'cpf' | 'telefone',
+    formatter: (raw: string) => string,
+  ): void {
+    const input = event.target as HTMLInputElement;
+    const formatted = formatter(input.value);
+    this.gerenteForm.controls[controlName].setValue(formatted, { emitEvent: false });
+    input.value = formatted;
   }
 
   private scrollToFormulario(): void {

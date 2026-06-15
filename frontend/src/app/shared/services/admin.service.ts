@@ -62,7 +62,7 @@ export class AdminService {
       nome: payload.nome,
       email: payload.email,
       telefone: payload.telefone,
-      senha: payload.senha,
+      senha: payload.senha.trim(),
       tipo: 'GERENTE',
     };
     // Barra final evita redirect 302 do Spring (POST viraria GET e retornaria a listagem).
@@ -77,13 +77,16 @@ export class AdminService {
 
   public atualizarGerente(
     cpf: string,
-    payload: Pick<AdminGerenteFormModel, 'nome' | 'email' | 'senha'>,
+    payload: Pick<AdminGerenteFormModel, 'nome' | 'email'> & { senha?: string },
   ): Observable<AdminGerenteMutationResponse> {
     const body: AlterarGerenteRequestDto = {
       nome: payload.nome || null,
       email: payload.email || null,
-      senha: payload.senha || null,
     };
+    const senha = payload.senha?.trim();
+    if (senha) {
+      body.senha = senha;
+    }
     return this.http.put<GerenteResponseDto>(`${API_BASE}/gerentes/${cpf}`, body).pipe(
       map((g) => ({
         mensagem: 'Gerente atualizado com sucesso.',
