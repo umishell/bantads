@@ -10,11 +10,9 @@ Este documento explica o fluxo de autenticação do projeto **BANTADS**: do logi
 
 1. O **Angular** envia `POST /api/auth/login` com corpo `{ login, senha }`.
 2. O **API Gateway** (Fastify) identifica a rota como **pública** e **não** exige header `Authorization`.
-3. O gateway **encaminha** a requisição ao **ms-auth** como `POST /auth/login` (reescrita de prefixo: `/api/auth` → `/auth` no upstream).
-4. O **ms-auth** valida credenciais no **MongoDB**, gera um **JWT assinado (HS512)** e devolve JSON no estilo OAuth2 (`access_token`, `token_type`, `tipo`, `usuario`).
-5. O **Angular** persiste `access_token` e o usuário mapeado no **`sessionStorage`** e atualiza **signals** no `AuthService`.
-6. Nas requisições seguintes (`/api/clientes`, `/api/contas`, …), o **interceptor HTTP** anexa `Authorization: Bearer <token>`.
-7. O **gateway** valida o JWT **antes** de repassar aos microsserviços (exceto rotas públicas definidas em `gateway/src/public-routes.js`).
+3. O gateway **encaminha** a requisição ao **ms-auth** como `POST /auth/login` (reescrita de prefixo: `/api/auth` → `/auth` no upstream)./ **Angular** persiste `access_token` e o usuário mapeado no `**sessionStorage`** e atualiza **signals** no `AuthService`.
+4. Nas requisições seguintes (`/api/clientes`, `/api/contas`, …), o **interceptor HTTP** anexa `Authorization: Bearer <token>`.
+5. O **gateway** valida o JWT **antes** de repassar aos microsserviços (exceto rotas públicas definidas em `gateway/src/public-routes.js`).
 
 Isso atende à regra acadêmica: **o front-end só conversa com o gateway**; o gateway roteia para os microsserviços.
 
@@ -54,12 +52,14 @@ provideHttpClient(withInterceptors([authInterceptor])),
 
 **Arquivo:** `frontend/src/app/shared/models/auth/auth.model.ts`
 
-| Interface | Papel |
-|-----------|--------|
-| `LoginRequest` | Corpo enviado no `POST` — espelha o DTO Kotlin `LoginRequest`. |
+
+| Interface          | Papel                                                                              |
+| ------------------ | ---------------------------------------------------------------------------------- |
+| `LoginRequest`     | Corpo enviado no `POST` — espelha o DTO Kotlin `LoginRequest`.                     |
 | `LoginApiResponse` | Forma **exata** da resposta JSON do servidor (`access_token`, `token_type`, etc.). |
-| `LoginResponse` | Forma **interna** após mapeamento (`token`, `usuario: UsuarioLogado`). |
-| `UsuarioLogado` | Estado do usuário na UI (inclui `perfil` como `'CLIENTE' \| 'GERENTE' \| 'ADMIN'`). |
+| `LoginResponse`    | Forma **interna** após mapeamento (`token`, `usuario: UsuarioLogado`).             |
+| `UsuarioLogado`    | Estado do usuário na UI (inclui `perfil` como `'CLIENTE' | 'GERENTE' | 'ADMIN'`).  |
+
 
 **Por quê separar `LoginApiResponse` de `LoginResponse`:** o contrato da API (snake_case, `ADMINISTRADOR`) não precisa poluir o restante do app; o `AuthService` faz o mapeamento.
 
@@ -71,7 +71,7 @@ provideHttpClient(withInterceptors([authInterceptor])),
 
 **Login via gateway:**
 
-- `POST` relativo: `'/api/auth/login'` — mesma origem quando o browser fala com o gateway (Compose: **`http://localhost`** na porta **80**; desenvolvimento local direto ao Angular pode ser **`http://localhost:4200`**, mas aí o caminho da API depende do proxy do `ng serve`).
+- `POST` relativo: `'/api/auth/login'` — mesma origem quando o browser fala com o gateway (Compose: `**http://localhost`** na porta **80**; desenvolvimento local direto ao Angular pode ser `**http://localhost:4200`**, mas aí o caminho da API depende do proxy do `ng serve`).
 - Tipagem da resposta: `HttpClient.post<LoginApiResponse>(...)`.
 - `tap`: ao receber resposta, chama `saveSession(usuario, raw.access_token)`.
 - `map`: converte para `LoginResponse` com `token: raw.access_token`.
@@ -84,7 +84,7 @@ provideHttpClient(withInterceptors([authInterceptor])),
 
 **Sessão:**
 
-- Chaves: `bantads_token`, `bantads_user` no **`sessionStorage`** (não `localStorage`, alinhado às regras da disciplina).
+- Chaves: `bantads_token`, `bantads_user` no `**sessionStorage`** (não `localStorage`, alinhado às regras da disciplina).
 - Estado reativo: `signal` para token e usuário; `computed` para `isAuthenticated`, `userRole`, etc.
 
 **Expiração do JWT (`readJwtExpSeconds`):**
@@ -98,7 +98,7 @@ provideHttpClient(withInterceptors([authInterceptor])),
 
 **Arquivo:** `frontend/src/app/core/interceptors/auth.interceptor.ts`
 
-- Se existe token: `req.clone({ setHeaders: { Authorization: \`Bearer ${token}\` } })`.
+- Se existe token: `req.clone({ setHeaders: { Authorization: \`Bearer ${token} } })`.
 - Em erro `401` com token presente e URL **não** é login: `logout()` + navegação para `/auth/login`.
 
 **Por quê excluir `/api/auth/login`:** evitar loop ou logout indevido se o próprio login falhar.
@@ -117,7 +117,7 @@ Exemplos públicos (sem `Authorization`):
 - `GET /api/auth/reboot` (se existir no auth)
 - `POST /api/clientes` (autocadastro R1)
 
-Demais `/api/*` exigem `Bearer` válido.
+Demais `/api/`* exigem `Bearer` válido.
 
 ---
 
@@ -156,7 +156,7 @@ Variável de ambiente típica: `UPSTREAM_AUTH` (ex.: `http://ms-auth:8081` no Do
 **Arquivo:** `gateway/src/jwt.js`
 
 - Deriva a chave HMAC: **SHA-512 do segredo UTF-8**, igual ao comentário e à implementação em `JwtService` do Kotlin.
-- `jwt.verify` com algoritmo **`HS512`**.
+- `jwt.verify` com algoritmo `**HS512`**.
 
 **Importante:** `JWT_SECRET` no gateway deve ser o **mesmo** valor lógico que `jwt.secret` no `ms-auth` (`application.yaml` / env), senão todos os tokens serão rejeitados com401.
 
@@ -175,7 +175,7 @@ server:
     context-path: /auth
 ```
 
-O controller mapeia `/login` → URL absoluta base **`/auth/login`**.
+O controller mapeia `/login` → URL absoluta base `**/auth/login**`.
 
 ---
 
@@ -219,8 +219,8 @@ A entidade persistida é `User` (MongoDB); o cliente recebe apenas DTOs.
 
 **Arquivo:** `microservices/ms-auth/src/main/kotlin/bantads/auth/dto/LoginResponse.kt`
 
-- `accessToken` serializado como **`access_token`** via `@JsonProperty("access_token")`.
-- `tokenType` como **`token_type`** (padrão `Bearer`).
+- `accessToken` serializado como `**access_token`** via `@JsonProperty("access_token")`.
+- `tokenType` como `**token_type**` (padrão `Bearer`).
 
 **Arquivo:** `microservices/ms-auth/src/main/kotlin/bantads/auth/dto/UsuarioLoginResponse.kt`
 
@@ -238,9 +238,9 @@ A entidade persistida é `User` (MongoDB); o cliente recebe apenas DTOs.
 
 Claims principais:
 
-- **`sub` (subject):** login do usuário (e-mail) — usado pelo gateway como `payload.sub`.
-- **`perfil` e `tipo`:** perfil armazenado (redundância útil para o gateway ler `tipo` ou `perfil`).
-- **`exp`:** expiração; duração configurável (`jwt.expiration` em ms no `application.yaml`).
+- `**sub` (subject):** login do usuário (e-mail) — usado pelo gateway como `payload.sub`.
+- `**perfil` e `tipo`:** perfil armazenado (redundância útil para o gateway ler `tipo` ou `perfil`).
+- `**exp`:** expiração; duração configurável (`jwt.expiration` em ms no `application.yaml`).
 
 Chave de assinatura: derivada por **SHA-512** do segredo UTF-8, compatível com `gateway/src/jwt.js`.
 
@@ -266,12 +266,14 @@ Chave de assinatura: derivada por **SHA-512** do segredo UTF-8, compatível com 
 
 ## 5. DTOs: papel na transferência de dados
 
-| Camada | Exemplo | Função |
-|--------|---------|--------|
-| HTTP JSON → Kotlin | `LoginRequest` | Deserialização + validação; não expõe entidade. |
-| Kotlin → HTTP JSON | `LoginResponse`, `UsuarioLoginResponse` | Contrato estável com o front/Swagger; nomes JSON via `@JsonProperty`. |
-| HTTP JSON → TypeScript | `LoginApiResponse` | Tipagem fiel ao wire format. |
-| Domínio Angular | `UsuarioLogado`, `LoginResponse` | Modelo da aplicação; isolado de mudanças de nomenclatura da API. |
+
+| Camada                 | Exemplo                                 | Função                                                                |
+| ---------------------- | --------------------------------------- | --------------------------------------------------------------------- |
+| HTTP JSON → Kotlin     | `LoginRequest`                          | Deserialização + validação; não expõe entidade.                       |
+| Kotlin → HTTP JSON     | `LoginResponse`, `UsuarioLoginResponse` | Contrato estável com o front/Swagger; nomes JSON via `@JsonProperty`. |
+| HTTP JSON → TypeScript | `LoginApiResponse`                      | Tipagem fiel ao wire format.                                          |
+| Domínio Angular        | `UsuarioLogado`, `LoginResponse`        | Modelo da aplicação; isolado de mudanças de nomenclatura da API.      |
+
 
 **Princípio:** entidades (`User`) ficam no persistence layer; **DTOs** cruzam a fronteira HTTP.
 
@@ -299,33 +301,37 @@ O Angular guarda **CPF** a partir do JSON de login, não do payload do JWT. Se o
 
 ## 8. Checklist rápido para debug
 
-| Sintoma | Onde olhar |
-|---------|------------|
-| 401 em todas as APIs após login | `JWT_SECRET` no gateway vs `jwt.secret` no ms-auth; algoritmo HS512. |
-| 404 no login | URL deve ser `/api/auth/login` no browser; ms-auth com `context-path: /auth` e controller `/login`. |
-| Perfil errado no front | `mapPerfil` em `auth.service.ts` e valor `tipo` vindo do banco (`ADMINISTRADOR`). |
-| Login aceita só `email` no JSON | `JsonAlias("email")` em `LoginRequest.kt`. |
+
+| Sintoma                         | Onde olhar                                                                                          |
+| ------------------------------- | --------------------------------------------------------------------------------------------------- |
+| 401 em todas as APIs após login | `JWT_SECRET` no gateway vs `jwt.secret` no ms-auth; algoritmo HS512.                                |
+| 404 no login                    | URL deve ser `/api/auth/login` no browser; ms-auth com `context-path: /auth` e controller `/login`. |
+| Perfil errado no front          | `mapPerfil` em `auth.service.ts` e valor `tipo` vindo do banco (`ADMINISTRADOR`).                   |
+| Login aceita só `email` no JSON | `JsonAlias("email")` em `LoginRequest.kt`.                                                          |
+
 
 ---
 
 ## 9. Arquivos principais (índice)
 
-| Caminho | Responsabilidade |
-|---------|------------------|
-| `frontend/src/app/app.config.ts` | Registro do `authInterceptor`. |
-| `frontend/src/app/core/services/auth.service.ts` | Login, sessão, mapeamento JWT/usuário. |
-| `frontend/src/app/core/interceptors/auth.interceptor.ts` | Header `Authorization` e tratamento 401. |
-| `frontend/src/app/shared/models/auth/auth.model.ts` | DTOs TypeScript. |
-| `frontend/src/app/features/auth/login/login.component.ts` | UI e submissão do login. |
-| `gateway/src/app.js` | Hook JWT, proxies, inclusão `/api/auth`. |
-| `gateway/src/jwt.js` | Verificação HS512. |
-| `gateway/src/public-routes.js` | Rotas sem Bearer. |
-| `microservices/ms-auth/src/main/resources/application.yaml` | Porta, context-path, `jwt.*`, Mongo. |
-| `microservices/ms-auth/.../AuthController.kt` | Endpoints login/logout. |
-| `microservices/ms-auth/.../AuthService.kt` | Regras de autenticação e montagem de resposta. |
-| `microservices/ms-auth/.../JwtService.kt` | Emissão e parsing do JWT. |
-| `microservices/ms-auth/.../dto/*.kt` | DTOs Kotlin de request/response. |
-| `microservices/ms-auth/.../config/SecurityConfig.kt` | Permit all no Spring Security. |
+
+| Caminho                                                     | Responsabilidade                               |
+| ----------------------------------------------------------- | ---------------------------------------------- |
+| `frontend/src/app/app.config.ts`                            | Registro do `authInterceptor`.                 |
+| `frontend/src/app/core/services/auth.service.ts`            | Login, sessão, mapeamento JWT/usuário.         |
+| `frontend/src/app/core/interceptors/auth.interceptor.ts`    | Header `Authorization` e tratamento 401.       |
+| `frontend/src/app/shared/models/auth/auth.model.ts`         | DTOs TypeScript.                               |
+| `frontend/src/app/features/auth/login/login.component.ts`   | UI e submissão do login.                       |
+| `gateway/src/app.js`                                        | Hook JWT, proxies, inclusão `/api/auth`.       |
+| `gateway/src/jwt.js`                                        | Verificação HS512.                             |
+| `gateway/src/public-routes.js`                              | Rotas sem Bearer.                              |
+| `microservices/ms-auth/src/main/resources/application.yaml` | Porta, context-path, `jwt.`*, Mongo.           |
+| `microservices/ms-auth/.../AuthController.kt`               | Endpoints login/logout.                        |
+| `microservices/ms-auth/.../AuthService.kt`                  | Regras de autenticação e montagem de resposta. |
+| `microservices/ms-auth/.../JwtService.kt`                   | Emissão e parsing do JWT.                      |
+| `microservices/ms-auth/.../dto/*.kt`                        | DTOs Kotlin de request/response.               |
+| `microservices/ms-auth/.../config/SecurityConfig.kt`        | Permit all no Spring Security.                 |
+
 
 ---
 
