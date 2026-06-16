@@ -1,15 +1,7 @@
 import { AbstractControl, ValidationErrors, ValidatorFn, Validators } from '@angular/forms';
-
-/** Alinhado ao ms-auth/ms-cliente: e-mail case-insensitive, formato básico RFC. */
 export const BANTADS_EMAIL_PATTERN = /^[a-z0-9._%+-]+@[a-z0-9.-]+\.[a-z]{2,}$/i;
-
-/** Telefone: 10–20 chars com dígitos e separadores comuns. */
 export const BANTADS_TELEFONE_PATTERN = /^[\d\s()+.-]{10,20}$/;
-
-/** CEP com ou sem hífen (8 dígitos). */
 export const BANTADS_CEP_PATTERN = /^(\d{5}-?\d{3}|\d{8})$/;
-
-/** Sigla UF — 2 letras. */
 export const BANTADS_UF_PATTERN = /^[A-Za-z]{2}$/;
 
 export function normalizeCpf(raw: string): string {

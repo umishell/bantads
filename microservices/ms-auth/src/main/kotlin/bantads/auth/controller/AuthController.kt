@@ -34,10 +34,6 @@ class AuthController(
         return ResponseEntity.ok(authService.logout(token))
     }
 
-    /**
-     * Introspecção de token para consumo interno (gateway/outros MS).
-     * Retorna 200 com claims se o token for válido e não revogado; 401 caso contrário.
-     */
     @GetMapping("/introspect")
     fun introspect(
         @RequestHeader(value = "Authorization", required = false) authorization: String?,

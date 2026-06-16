@@ -41,8 +41,6 @@ export function mapClienteDetalheAndContaToClienteModel(
     situacao,
   };
 }
-
-/** R13/R11 — detalhe API + linha da carteira (conta, saldo, gerente). */
 export function mapClienteConsultaGerente(
   det: ClienteDetalheDto,
   carteira: ClienteCarteiraDto,
@@ -54,8 +52,6 @@ export function mapClienteConsultaGerente(
     decisaoGerenteEm: det.decisaoGerenteEm ?? null,
   };
 }
-
-/** R11 — cliente rejeitado/pendente sem conta: consulta só pelo detalhe da API. */
 export function mapClienteDetalheConsultaGerente(det: ClienteDetalheDto): ClienteCarteiraModel {
   return {
     cpf: det.cpf,
@@ -328,8 +324,6 @@ export function mergeGerentesComDashboard(
     })
     .sort((a, b) => a.nome.localeCompare(b.nome, 'pt-BR'));
 }
-
-/** Número de conta com 4 dígitos (contrato ms-conta / transferência). */
 export function numeroContaQuatroDigitos(raw: string | null | undefined): string {
   const d = (raw ?? '').replace(/\D/g, '');
   if (!d.length) {
@@ -344,8 +338,6 @@ export interface FavorecidoContaMapeado {
   conta: string;
   agencia: string;
 }
-
-/** Contrapartes de transferências no extrato (últimos lançamentos), para atalhos na UI. */
 export function favorecidosFromExtrato(
   minhaContaNumero: string,
   extrato: ExtratoResponseModel,

@@ -1,6 +1,4 @@
 import { HttpErrorResponse } from '@angular/common/http';
-
-/** Extrai mensagem amigável de erro HTTP da API BANTADS. */
 export function mensagemErroHttp(error: unknown, fallback: string): string {
   if (!(error instanceof HttpErrorResponse)) {
     return fallback;

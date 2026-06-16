@@ -22,7 +22,6 @@ class SagaOrchestrator(
     private val sessions = ConcurrentHashMap<String, ApprovalSagaContext>()
     private val locks = ConcurrentHashMap<String, Any>()
 
-    /** Timeout máximo para aguardar respostas de compensação antes de forçar limpeza. */
     private val compensationTimeout = Duration.ofSeconds(30)
 
     private fun lock(sagaId: String): Any = locks.computeIfAbsent(sagaId) { Any() }
@@ -393,7 +392,6 @@ class SagaOrchestrator(
         )
     }
 
-    /** Limpa sessões presas em COMPENSATING que excederam o timeout. */
     @Scheduled(fixedDelay = 15_000)
     fun reapCompensationTimeouts() {
         val agora = Instant.now()

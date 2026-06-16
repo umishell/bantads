@@ -1,13 +1,4 @@
--- =========================================================
--- BANTADS - 02_bantads_logic_triggers.sql
--- Lógica de apoio, rebuild do read model, triggers e funções
--- de operação (depósito, saque e transferência).
--- Execute depois do 01_bantads_schema.sql.
--- =========================================================
 
--- =========================================================
--- FUNÇÕES DE UPDATED_AT
--- =========================================================
 
 CREATE OR REPLACE FUNCTION public.fn_touch_updated_at()
 RETURNS TRIGGER
@@ -33,10 +24,6 @@ CREATE TRIGGER trg_conta_touch_updated_at
 BEFORE UPDATE ON conta_cud.contas
 FOR EACH ROW
 EXECUTE FUNCTION public.fn_touch_updated_at();
-
--- =========================================================
--- LOG DE MOVIMENTAÇÕES
--- =========================================================
 
 CREATE OR REPLACE FUNCTION conta_cud.fn_log_movimentacao()
 RETURNS TRIGGER
@@ -82,10 +69,6 @@ AFTER INSERT OR UPDATE OR DELETE ON conta_cud.movimentacoes
 FOR EACH ROW
 EXECUTE FUNCTION conta_cud.fn_log_movimentacao();
 
--- =========================================================
--- REBUILD DO READ MODEL
--- =========================================================
-
 CREATE OR REPLACE FUNCTION conta_read.rebuild_from_cud()
 RETURNS VOID
 LANGUAGE plpgsql
@@ -95,7 +78,6 @@ BEGIN
     TRUNCATE TABLE conta_read.saldos_diarios;
 
     WITH movimentos_por_conta AS (
-        -- Depósito: entra na conta destino
         SELECT
             m.id AS movimentacao_id,
             cd.numero AS conta_numero,
@@ -118,7 +100,6 @@ BEGIN
 
         UNION ALL
 
-        -- Saque: sai da conta origem
         SELECT
             m.id AS movimentacao_id,
             co.numero AS conta_numero,
@@ -141,7 +122,6 @@ BEGIN
 
         UNION ALL
 
-        -- Transferência: perspectiva de saída
         SELECT
             m.id AS movimentacao_id,
             co.numero AS conta_numero,
@@ -168,7 +148,6 @@ BEGIN
 
         UNION ALL
 
-        -- Transferência: perspectiva de entrada
         SELECT
             m.id AS movimentacao_id,
             cd.numero AS conta_numero,
@@ -367,11 +346,6 @@ BEGIN
 END;
 $$;
 
--- =========================================================
--- TRIGGERS PARA MANTER O READ MODEL SINCRONIZADO
--- (simples e suficiente para o porte acadêmico do projeto)
--- =========================================================
-
 CREATE OR REPLACE FUNCTION conta_read.fn_trigger_rebuild_from_cud()
 RETURNS TRIGGER
 LANGUAGE plpgsql
@@ -396,10 +370,6 @@ CREATE TRIGGER trg_rebuild_read_on_clientes
 AFTER UPDATE OF nome ON cliente.clientes
 FOR EACH STATEMENT
 EXECUTE FUNCTION conta_read.fn_trigger_rebuild_from_cud();
-
--- =========================================================
--- FUNÇÕES DE OPERAÇÃO
--- =========================================================
 
 CREATE OR REPLACE FUNCTION conta_cud.sp_depositar(
     p_conta_numero CHAR(4),

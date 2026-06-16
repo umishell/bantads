@@ -4,8 +4,6 @@ import bantads.cliente.model.StatusCliente
 import java.math.BigDecimal
 import java.time.Instant
 import java.util.UUID
-
-/** Linha do relatório administrativo (alinhado ao front `AdminRelatorioClienteModel`). */
 data class AdminRelatorioClienteResponse(
     val cpfCliente: String,
     val nomeCliente: String,
@@ -17,8 +15,6 @@ data class AdminRelatorioClienteResponse(
     val cpfGerente: String,
     val nomeGerente: String,
 )
-
-/** Detalhe de cliente por CPF (consulta gerente / cliente). */
 data class ClienteDetalheResponse(
     val id: UUID,
     val cpf: String,
@@ -31,17 +27,12 @@ data class ClienteDetalheResponse(
     val endereco: String,
     val cep: String,
     val status: StatusCliente,
-    /** R11 — motivo informado pelo gerente na rejeição (quando aplicável). */
     val motivoRejeicao: String? = null,
-    /** R11 — data/hora da decisão do gerente (aprovação ou rejeição). */
     val decisaoGerenteEm: Instant? = null,
-    /** R4 — gerente responsável (quando cliente aprovado com conta). */
     val gerenteCpf: String? = null,
     val gerenteNome: String? = null,
     val gerenteEmail: String? = null,
 )
-
-/** Carteira do gerente / listagens com conta (alinhado ao front `ClienteCarteiraModel`). */
 data class ClienteCarteiraListItemResponse(
     val cpf: String,
     val nome: String,

@@ -1,8 +1,4 @@
 package bantads.gerente.util
-
-/**
- * Utilitário para normalização e validação de CPF brasileiro (formato e dígitos verificadores).
- */
 object Cpf {
 
     fun normalize(raw: String): String = raw.filter { it.isDigit() }

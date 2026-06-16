@@ -68,7 +68,6 @@ export class ClienteService {
     return this.alterarPerfil(cliente.cpf, cliente);
   }
 
-  /** R1 — `POST /api/clientes` (público no gateway). */
   public solicitarAutocadastro(payload: SolicitarAutocadastroPayload): Observable<AutocadastroResponseDto> {
     const cpf = payload.cpf.replace(/\D/g, '');
     const cepDigits = payload.cep.replace(/\D/g, '');

@@ -33,7 +33,7 @@ export class ViaCepService {
       return of(null);
     }
 
-    return this.http.get<ViaCepResponse>(`https://viacep.com.br/ws/${cep}/json/`).pipe(
+    return this.http.get<ViaCepResponse>(`https:
       map((res) => {
         if (res.erro || !res.localidade || !res.uf) {
           return null;

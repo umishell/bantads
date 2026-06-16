@@ -6,11 +6,6 @@ import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import org.springframework.core.annotation.Order
 import org.springframework.jdbc.core.JdbcTemplate
-
-/**
- * Volumes Postgres antigos podem existir sem índice único de e-mail.
- * Hibernate `ddl-auto: update` nem sempre adiciona UNIQUE em colunas já populadas.
- */
 @Configuration
 class ClienteSchemaPatch {
 

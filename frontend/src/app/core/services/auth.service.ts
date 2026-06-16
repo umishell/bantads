@@ -52,7 +52,6 @@ export class AuthService {
     return this._usuario()?.cpf ?? null;
   }
 
-  /** Rota inicial após login, conforme perfil. */
   public getHomeUrl(perfil?: Perfil | null): string {
     const p = perfil ?? this._usuario()?.perfil ?? null;
     switch (p) {
@@ -78,13 +77,11 @@ export class AuthService {
     );
   }
 
-  /** Grava só o JWT antes do enriquecimento pós-login (interceptor precisa do Bearer). */
   private persistToken(token: string): void {
     sessionStorage.setItem(this.tokenKey, token);
     this._token.set(token);
   }
 
-  /** Após login, CLIENTE: busca cadastro + conta para preencher `numeroConta` e `clienteId`. */
   private enriquecerClienteComConta(lr: LoginResponse): Observable<LoginResponse> {
     if (lr.usuario.perfil !== 'CLIENTE') {
       return of(lr);
@@ -150,7 +147,6 @@ export class AuthService {
     this._usuario.set(usuario);
   }
 
-  /** Limpa sessão local (sem chamar API). */
   public clearSessionLocal(): void {
     sessionStorage.removeItem(this.tokenKey);
     sessionStorage.removeItem(this.userKey);
@@ -158,7 +154,6 @@ export class AuthService {
     this._usuario.set(null);
   }
 
-  /** R2 — revoga token no ms-auth e limpa sessão local. */
   public logout(): Observable<void> {
     const token = this.getToken();
     if (!token) {
@@ -172,12 +167,10 @@ export class AuthService {
     );
   }
 
-  /** Alias semântico para logout com API. */
   public encerrarSessao(): Observable<void> {
     return this.logout();
   }
 
-  /** Logout + navegação para login (uso nos componentes). */
   public sair(router: { navigate: (commands: string[]) => unknown }): void {
     this.logout().subscribe(() => {
       void router.navigate(['/auth/login']);

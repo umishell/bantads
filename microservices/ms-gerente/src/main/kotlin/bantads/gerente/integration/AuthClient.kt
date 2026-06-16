@@ -99,7 +99,6 @@ class AuthClient(
         }
     }
 
-    /** R20 — propaga nova senha ao ms-auth. */
     fun atualizarSenha(email: String, senha: String): Boolean {
         val body = mapOf("email" to email, "senha" to senha)
         val json = objectMapper.writeValueAsString(body)

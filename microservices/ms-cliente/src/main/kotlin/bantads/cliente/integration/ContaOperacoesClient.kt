@@ -7,8 +7,6 @@ import org.springframework.stereotype.Component
 import org.springframework.web.client.RestClient
 import java.math.BigDecimal
 import java.util.UUID
-
-/** Chamadas internas ao ms-conta (R4 — recálculo de limite). */
 @Component
 class ContaOperacoesClient(
     @Value("\${bantads.integration.conta-base-url}") private val contaBaseUrl: String,

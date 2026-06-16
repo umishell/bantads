@@ -108,7 +108,6 @@ export class SaqueComponent implements OnInit {
     }).format(new Date(value));
   }
 
-
   public logout(): void {
     this.authService.sair(this.router);
   }

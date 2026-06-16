@@ -42,11 +42,9 @@ class Movimentacao(
     @Column
     var contaDestinoId: UUID? = null,
 
-    /** Saldo da conta origem após a operação (para SAQUE/TRANSFERENCIA/DEPOSITO na própria conta). */
     @Column(precision = 14, scale = 2)
     var saldoResultanteOrigem: BigDecimal? = null,
 
-    /** Saldo da conta destino após a operação (apenas TRANSFERENCIA e DEPOSITO em conta alvo). */
     @Column(precision = 14, scale = 2)
     var saldoResultanteDestino: BigDecimal? = null,
 )

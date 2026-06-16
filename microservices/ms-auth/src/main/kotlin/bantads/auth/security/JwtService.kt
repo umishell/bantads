@@ -15,22 +15,17 @@ class JwtService(
     private val tokenBlacklist: TokenBlacklist,
 ) {
 
-    // Sênior: Nunca deixe segredos hardcoded. Use o application.properties
     @Value("\${jwt.secret}")
     private lateinit var secret: String
 
     @Value("\${jwt.expiration}")
-    private var expiration: Long = 3600000 // Default 1 hora
+    private var expiration: Long = 3600000 
 
-    /** HS512 exige chave ≥ 512 bits; derivamos com SHA-512 a partir do segredo configurado. */
     private fun signingKey(): SecretKey {
         val digest = MessageDigest.getInstance("SHA-512").digest(secret.toByteArray(StandardCharsets.UTF_8))
         return Keys.hmacShaKeyFor(digest)
     }
 
-    /**
-     * Gera o token com as informações do usuário
-     */
     fun gerarToken(login: String, perfil: String, cpf: String? = null): String {
         val now = System.currentTimeMillis()
         val builder = Jwts.builder()
@@ -45,9 +40,6 @@ class JwtService(
             .compact()
     }
 
-    /**
-     * Extrai todas as informações (Claims) do token
-     */
     fun getClaims(token: String): Claims {
         return Jwts.parser()
             .verifyWith(signingKey())
@@ -56,9 +48,6 @@ class JwtService(
             .payload
     }
 
-    /**
-     * Valida se o token ainda é válido (não expirou e não está revogado).
-     */
     fun isTokenValido(token: String): Boolean {
         if (tokenBlacklist.isRevogado(token)) return false
         return try {

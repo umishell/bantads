@@ -6,11 +6,6 @@ import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import org.springframework.core.annotation.Order
 import org.springframework.jdbc.core.JdbcTemplate
-
-/**
- * Volumes Postgres antigos podem existir sem colunas novas do modelo JPA.
- * Hibernate `ddl-auto: update` nem sempre adiciona coluna NOT NULL em tabelas já populadas.
- */
 @Configuration
 class GerenteSchemaPatch {
 

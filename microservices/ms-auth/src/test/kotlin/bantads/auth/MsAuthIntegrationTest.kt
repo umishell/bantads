@@ -22,10 +22,6 @@ import org.testcontainers.containers.RabbitMQContainer
 import org.testcontainers.junit.jupiter.Container
 import org.testcontainers.junit.jupiter.Testcontainers
 import org.testcontainers.utility.DockerImageName
-
-/**
- * Integração HTTP + MongoDB + RabbitMQ (Testcontainers). Requer Docker.
- */
 @SpringBootTest
 @Testcontainers(disabledWithoutDocker = true)
 @Tag("integration")
@@ -57,7 +53,7 @@ class MsAuthIntegrationTest {
         @DynamicPropertySource
         fun properties(registry: DynamicPropertyRegistry) {
             registry.add("spring.mongodb.uri") {
-                "mongodb://${mongo.host}:${mongo.getMappedPort(27017)}/auth_it"
+                "mongodb:
             }
             registry.add("spring.rabbitmq.host") { rabbit.host }
             registry.add("spring.rabbitmq.port") { rabbit.getMappedPort(5672) }

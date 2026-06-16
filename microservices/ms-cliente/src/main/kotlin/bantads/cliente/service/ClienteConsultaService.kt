@@ -55,7 +55,6 @@ class ClienteConsultaService(
         )
     }
 
-    /** R4 — enriquece detalhe com gerente da conta (chamada interna entre microsserviços). */
     private fun resolverGerenteDoCliente(cliente: Cliente): GerenteUpstreamDto? {
         if (cliente.status != StatusCliente.APROVADO) {
             return null
@@ -212,7 +211,7 @@ class ClienteConsultaService(
         type: ParameterizedTypeReference<T>,
     ): T {
         val root = baseUrl.trimEnd('/')
-        // Spring MVC redireciona coleções sem barra final (302); RestClient não segue redirect por padrão.
+
         val target =
             if (pathSuffix.isBlank()) "$root/" else "$root/${pathSuffix.trimStart('/')}"
         try {

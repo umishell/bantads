@@ -65,7 +65,7 @@ export class AdminService {
       senha: payload.senha.trim(),
       tipo: 'GERENTE',
     };
-    // Barra final evita redirect 302 do Spring (POST viraria GET e retornaria a listagem).
+
     return this.http.post<GerenteResponseDto>(`${API_BASE}/gerentes/`, body).pipe(
       map((g) => ({
         mensagem: 'Gerente cadastrado com sucesso.',
@@ -96,7 +96,6 @@ export class AdminService {
     );
   }
 
-  /** R18 — feedback real da API (sucesso ou erro 422 do último gerente). */
   public removerGerente(cpf: string): Observable<AdminGerenteRemocaoResponse> {
     return this.http.delete<GerenteResponseDto>(`${API_BASE}/gerentes/${cpf}`).pipe(
       map((g) => ({

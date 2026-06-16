@@ -54,12 +54,10 @@ class ContaQueryService(
     fun listarTodas(): List<ContaResponse> =
         contaRepository.findAllByAtivaOrderByNumeroAsc(true).map { it.toResponse() }
 
-    /** R14: top 3 clientes com maiores saldos. */
     @Transactional(readOnly = true)
     fun top3PorSaldo(): List<ContaResponse> =
         contaRepository.findTop3ByAtivaOrderBySaldoDesc(true).map { it.toResponse() }
 
-    /** R15: agregados por gerente (usado pelo dashboard do administrador). */
     @Transactional(readOnly = true)
     fun agregadosPorGerente(): List<AgregadoPorGerenteResponse> =
         contaRepository.agregadoPorGerente().map { p ->

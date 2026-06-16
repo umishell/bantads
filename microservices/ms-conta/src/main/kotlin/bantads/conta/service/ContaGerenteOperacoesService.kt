@@ -7,19 +7,12 @@ import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import java.math.BigDecimal
 import java.util.UUID
-
-/**
- * R17/R18 — regras de atribuição e remanejamento de contas entre gerentes.
- */
 @Service
 class ContaGerenteOperacoesService(
     private val contaRepository: ContaRepository,
 ) {
     private val log = LoggerFactory.getLogger(javaClass)
 
-    /**
-     * R18: todas as contas ativas do gerente removido passam para o gerente com menos clientes.
-     */
     @Transactional
     fun remanejarContasDoGerente(gerenteRemovidoId: UUID, outrosGerentesAtivosIds: List<UUID>): Int {
         if (outrosGerentesAtivosIds.isEmpty()) return 0
@@ -39,10 +32,6 @@ class ContaGerenteOperacoesService(
         return contas.size
     }
 
-    /**
-     * R17: novo gerente recebe uma conta do gerente que possui mais clientes;
-     * em empate de quantidade, do gerente com menor soma de saldos positivos.
-     */
     @Transactional
     fun atribuirUmaContaAoNovoGerente(novoGerenteId: UUID, gerentesAtivosIds: List<UUID>): Boolean {
         val candidatos = gerentesAtivosIds.filter { it != novoGerenteId }

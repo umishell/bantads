@@ -6,11 +6,6 @@ import org.springframework.boot.ApplicationRunner
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import org.springframework.core.annotation.Order
-
-/**
- * Inicia listeners Rabbit após o seed ([ClienteDevSeed]) para não processar
- * `cmd.cliente` enquanto os clientes fixos de dev ainda estão sendo inseridos.
- */
 @Configuration
 class ClienteMessagingStartup {
 

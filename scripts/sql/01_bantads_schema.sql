@@ -1,13 +1,3 @@
--- =========================================================
--- BANTADS - 01_bantads_schema.sql
--- Ordem de execução sugerida:
---   1) 01_bantads_schema.sql
---   2) 02_bantads_logic_triggers.sql
---   3) 03_bantads_mock_data.sql
---
--- Observação: este arquivo cobre a parte relacional em PostgreSQL.
--- O serviço de autenticação fica fora daqui (MongoDB).
--- =========================================================
 
 CREATE EXTENSION IF NOT EXISTS pgcrypto;
 
@@ -54,10 +44,6 @@ CREATE TYPE public.natureza_lancamento AS ENUM (
     'SAIDA'
 );
 
--- =========================================================
--- SCHEMA CLIENTE
--- =========================================================
-
 CREATE TABLE cliente.enderecos (
     id BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
     logradouro VARCHAR(150) NOT NULL,
@@ -96,10 +82,6 @@ CREATE INDEX idx_cliente_nome ON cliente.clientes(nome);
 CREATE INDEX idx_cliente_status ON cliente.clientes(status);
 CREATE INDEX idx_cliente_gerente_resp ON cliente.clientes(gerente_responsavel_cpf);
 
--- =========================================================
--- SCHEMA GERENTE
--- =========================================================
-
 CREATE TABLE gerente.usuarios_internos (
     cpf CHAR(11) PRIMARY KEY,
     nome VARCHAR(120) NOT NULL,
@@ -116,10 +98,6 @@ CREATE TABLE gerente.usuarios_internos (
 CREATE INDEX idx_gerente_nome ON gerente.usuarios_internos(nome);
 CREATE INDEX idx_gerente_tipo ON gerente.usuarios_internos(tipo);
 CREATE INDEX idx_gerente_ativo ON gerente.usuarios_internos(ativo);
-
--- =========================================================
--- SCHEMA CONTA_CUD
--- =========================================================
 
 CREATE TABLE conta_cud.contas (
     numero CHAR(4) PRIMARY KEY,
@@ -147,11 +125,9 @@ CREATE TABLE conta_cud.movimentacoes (
     tipo public.tipo_movimentacao NOT NULL,
     valor NUMERIC(14,2) NOT NULL,
 
-    -- Seguem a apresentação do enunciado / mock
     cliente_origem_cpf CHAR(11),
     cliente_destino_cpf CHAR(11),
 
-    -- Apoio técnico para identificar as contas
     conta_origem_numero CHAR(4),
     conta_destino_numero CHAR(4),
 
@@ -202,10 +178,6 @@ CREATE TABLE conta_cud.log_operacoes (
 
 CREATE INDEX idx_log_operacoes_movimentacao ON conta_cud.log_operacoes(movimentacao_id);
 CREATE INDEX idx_log_operacoes_data ON conta_cud.log_operacoes(executado_em);
-
--- =========================================================
--- SCHEMA CONTA_READ
--- =========================================================
 
 CREATE TABLE conta_read.lancamentos_extrato (
     id BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,

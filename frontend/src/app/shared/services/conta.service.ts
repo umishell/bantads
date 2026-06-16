@@ -119,9 +119,6 @@ export class ContaService {
     return this.consultarExtrato(numeroConta, filtro);
   }
 
-  /**
-   * Contrapartes deduzidas do extrato (transferências), via `GET .../extrato`.
-   */
   public listarFavorecidos(numeroContaOrigem?: string | null): Observable<FavorecidoConta[]> {
     const n = numeroContaOrigem ?? this.authService.getNumeroConta();
     if (!n) {

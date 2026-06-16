@@ -6,6 +6,5 @@ import org.springframework.boot.context.properties.ConfigurationProperties
 data class SagaProperties(
     val exchange: String = "bantads.saga",
     val responseExchange: String = "saga-response-exchange",
-    /** Alinhado a [bantads.cliente.saga.SagaAprovacaoClientePolicy] no ms-cliente. */
     val emailMaxAttempts: Int = 3,
 )

@@ -12,12 +12,6 @@ import java.net.http.HttpRequest
 import java.net.http.HttpResponse
 import java.time.Duration
 import java.util.UUID
-
-/**
- * Cliente HTTP para o ms-conta — consulta read-side (CQRS) para agregações usadas
- * pelo dashboard do administrador (R15) e outras telas administrativas.
- * Em caso de falha, retorna lista vazia para manter o dashboard resiliente.
- */
 @Component
 class ContaClient(
     @Value("\${bantads.conta-service.base-url}") private val baseUrl: String,
@@ -35,7 +29,6 @@ class ContaClient(
         } ?: emptyList()
     }
 
-    /** R18 — remanejamento de contas antes do soft delete do gerente. */
     fun remanejarContasDoGerente(gerenteRemovidoId: UUID, outrosGerentesAtivosIds: List<UUID>): Int {
         val body = mapOf(
             "gerenteRemovidoId" to gerenteRemovidoId.toString(),
@@ -45,7 +38,6 @@ class ContaClient(
         return (resp["contasRemanejadas"] as? Number)?.toInt() ?: 0
     }
 
-    /** R17 — atribui uma conta ao novo gerente conforme regras do enunciado. */
     fun atribuirUmaContaAoNovoGerente(novoGerenteId: UUID, gerentesAtivosIds: List<UUID>): Boolean {
         val body = mapOf(
             "novoGerenteId" to novoGerenteId.toString(),

@@ -23,7 +23,6 @@ class RabbitConfig(private val props: SagaProperties) {
     companion object {
         const val DLX_EXCHANGE = "bantads.dlx"
 
-        /** Cria fila durable com roteamento para DLX padronizado. Use em toda fila de negócio. */
         fun durableWithDlq(name: String): Queue =
             QueueBuilder.durable(name)
                 .withArgument("x-dead-letter-exchange", DLX_EXCHANGE)
@@ -53,7 +52,6 @@ class RabbitConfig(private val props: SagaProperties) {
         return f
     }
 
-    /** JSON bruto como String (evita Map/List genéricos em eventos aninhados). */
     @Bean
     fun rawJsonListenerContainerFactory(connectionFactory: ConnectionFactory): SimpleRabbitListenerContainerFactory {
         val f = SimpleRabbitListenerContainerFactory()
@@ -74,7 +72,6 @@ class RabbitConfig(private val props: SagaProperties) {
     fun bantadsDlxExchange(): TopicExchange =
         TopicExchange(DLX_EXCHANGE, true, false)
 
-    /** Entrada: eventos publicados pelo ms-cliente (somente a saga consome estas chaves). */
     @Bean
     fun sagaClienteEventsQueue(): Queue = durableWithDlq("saga.cliente.events")
 
@@ -85,7 +82,6 @@ class RabbitConfig(private val props: SagaProperties) {
     ): Binding =
         BindingBuilder.bind(sagaClienteEventsQueue).to(bantadsSagaExchange).with("evt.cliente.#")
 
-    /** Respostas assíncronas dos microsserviços. */
     @Bean
     fun sagaInboundResponsesQueue(): Queue = durableWithDlq("saga.inbound.responses")
 
@@ -96,14 +92,12 @@ class RabbitConfig(private val props: SagaProperties) {
     ): Binding =
         BindingBuilder.bind(sagaInboundResponsesQueue).to(sagaResponseExchange).with("resp.#")
 
-    /** Garante que as filas existam antes do orquestrador publicar comandos. */
     @Bean fun cmdGerenteQueue(): Queue = durableWithDlq("cmd.gerente")
     @Bean fun cmdContaQueue(): Queue = durableWithDlq("cmd.conta")
     @Bean fun cmdAuthQueue(): Queue = durableWithDlq("cmd.auth")
     @Bean fun cmdEmailQueue(): Queue = durableWithDlq("cmd.email")
     @Bean fun cmdClienteQueue(): Queue = durableWithDlq("cmd.cliente")
 
-    /** DLQs por origem + bindings para `dlq.<origin>`. */
     @Bean fun dlqSagaClienteEvents(): Queue = dlqQueue("saga.cliente.events")
     @Bean fun dlqSagaInboundResponses(): Queue = dlqQueue("saga.inbound.responses")
     @Bean fun dlqCmdGerente(): Queue = dlqQueue("cmd.gerente")

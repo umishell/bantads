@@ -1,5 +1,4 @@
 export interface SolicitacaoClienteModel {
-  /** ID do cliente (UUID) para aprovar/rejeitar na API. */
   id: string;
   cpf: string;
   nome: string;

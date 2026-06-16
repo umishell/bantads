@@ -15,11 +15,6 @@ interface ContaRepository : JpaRepository<Conta, UUID> {
     fun findAllByAtivaOrderByNumeroAsc(ativa: Boolean): List<Conta>
     fun findTop3ByAtivaOrderBySaldoDesc(ativa: Boolean): List<Conta>
 
-    /**
-     * Projeção para R15 (dashboard do administrador): totais agregados por gerente,
-     * considerando apenas contas ativas.
-     * Retorna tuplas (gerenteId, totalClientes, somaPositivos, somaNegativos).
-     */
     @Query(
         """
         SELECT c.gerenteId AS gerenteId,

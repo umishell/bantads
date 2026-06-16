@@ -27,7 +27,6 @@ class Gerente(
     @Column(nullable = false, length = 20)
     var telefone: String = "",
 
-    /** GERENTE | ADMINISTRADOR */
     @Column(nullable = false, length = 20)
     var tipo: String = "GERENTE",
 

@@ -15,10 +15,6 @@ import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RestController
-
-/**
- * Operações internas entre microserviços (sem exposição pelo gateway público).
- */
 @RestController
 @RequestMapping("/internal")
 class AuthInternalController(
@@ -53,7 +49,6 @@ class AuthInternalController(
         return ResponseEntity.noContent().build()
     }
 
-    /** R20 — atualização síncrona de senha a partir do ms-gerente. */
     @PatchMapping("/usuarios/senha")
     fun alterarSenha(@Valid @RequestBody body: AlterarSenhaInternoRequest): ResponseEntity<Map<String, Boolean>> {
         val ok = authService.atualizarSenhaPorLogin(body.email, body.senha)

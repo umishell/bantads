@@ -7,14 +7,6 @@ import java.nio.charset.StandardCharsets
 import java.security.MessageDigest
 import java.time.Instant
 import java.util.concurrent.ConcurrentHashMap
-
-/**
- * Blacklist in-memory de tokens JWT invalidados via logout.
- *
- * Estratégia: armazena o hash SHA-256 do token com a data de expiração original.
- * Um job periódico remove entradas já expiradas. Para alta disponibilidade,
- * substituir este componente por Redis com TTL = `exp - now`.
- */
 @Component
 class TokenBlacklist {
 

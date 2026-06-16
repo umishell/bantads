@@ -8,8 +8,6 @@ import jakarta.validation.constraints.Pattern
 import java.math.BigDecimal
 import java.time.Instant
 import java.util.UUID
-
-/** R7: resposta de consulta e detalhes. */
 data class ContaResponse(
     val id: UUID,
     val numero: String,
@@ -20,16 +18,12 @@ data class ContaResponse(
     val ativa: Boolean,
     val dataCriacao: Instant,
 )
-
-/** R6: resposta de saldo enxuta. */
 data class SaldoResponse(
     val numero: String,
     val saldo: BigDecimal,
     val limite: BigDecimal,
     val saldoDisponivel: BigDecimal,
 )
-
-/** R3: operações command requests. */
 data class ValorRequest(
     @field:NotNull
     @field:DecimalMin(value = "0.01", inclusive = true, message = "valor deve ser maior que zero")
@@ -44,8 +38,6 @@ data class TransferenciaRequest(
     @field:DecimalMin(value = "0.01", inclusive = true, message = "valor deve ser maior que zero")
     val valor: BigDecimal,
 )
-
-/** R3: resposta após operação command. */
 data class OperacaoResponse(
     val movimentacaoId: UUID,
     val tipo: TipoMovimentacao,
@@ -54,14 +46,10 @@ data class OperacaoResponse(
     val saldoDestino: BigDecimal?,
     val dataHora: Instant,
 )
-
-/** R5/R8: extrato por período com saldo imediatamente anterior ao intervalo consultado. */
 data class ExtratoResponse(
     val saldoInicial: BigDecimal,
     val lancamentos: List<LancamentoExtratoResponse>,
 )
-
-/** R5: item de extrato (um lançamento visto pela conta consultada). */
 data class LancamentoExtratoResponse(
     val movimentacaoId: UUID,
     val dataHora: Instant,
@@ -71,8 +59,6 @@ data class LancamentoExtratoResponse(
     val saldoApos: BigDecimal?,
     val contraparteContaNumero: String?,
 )
-
-/** R8: atualização de limite pelo gerente. */
 data class AtualizarLimiteRequest(
     @field:NotNull
     @field:DecimalMin(value = "0.00", inclusive = true, message = "limite não pode ser negativo")

@@ -1,5 +1,4 @@
 services:
-  # --- INFRAESTRUTURA ---
   rabbitmq:
     image: rabbitmq:3-management
     container_name: rabbitmq
@@ -34,7 +33,6 @@ services:
     networks:
       - bantads-net
 
-  # Bancos PostgreSQL — pin em 16: postgres:latest (18+) mudou layout de volume e quebra ./data montado em /var/lib/postgresql/data
   db-cliente:
     image: postgres:16
     ports:
@@ -92,13 +90,11 @@ services:
     networks:
       - bantads-net
 
-  # --- BACKEND MICROSSERVIÇOS ---
   ms-auth:
     build: ./microservices/ms-auth
     ports:
       - "8081:8081"
     environment:
-      # Spring Boot 4: usar spring.mongodb.uri → SPRING_MONGODB_URI (spring.data.mongodb.uri é ignorado)
       SPRING_MONGODB_URI: mongodb://mongo-auth:27017/auth_db
       SPRING_RABBITMQ_HOST: rabbitmq
       SPRING_RABBITMQ_PORT: 5672
@@ -232,7 +228,6 @@ services:
     networks:
       - bantads-net
 
-  # --- FRONTEND E GATEWAY (Node + Fastify: JWT nas rotas /api protegidas) ---
   frontend:
     build: ./frontend
     ports:

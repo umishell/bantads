@@ -121,7 +121,6 @@ class EmailCommandListener(
         )
     }
 
-    /** R1: falha em processo interno após aprovação do gerente — solicitação não efetivada; cliente volta à fila pendente. */
     private fun sendFalhaAprovacaoSaga(
         root: com.fasterxml.jackson.databind.JsonNode,
         correlationId: String,

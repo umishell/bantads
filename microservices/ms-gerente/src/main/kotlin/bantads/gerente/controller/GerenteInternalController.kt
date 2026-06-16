@@ -6,8 +6,6 @@ import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RestController
-
-/** Operações internas entre microserviços (sem exposição pelo gateway público). */
 @RestController
 @RequestMapping("/internal")
 class GerenteInternalController(

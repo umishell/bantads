@@ -88,7 +88,6 @@ class ContaCommandService(
         )
     }
 
-    /** Passo 1 da saga R7 — apenas débito na origem. */
     @Transactional
     fun sagaTransferDebito(sagaId: String, numeroContaOrigem: String, numeroDestino: String, valor: BigDecimal) {
         if (numeroContaOrigem == numeroDestino) {
@@ -116,7 +115,6 @@ class ContaCommandService(
         )
     }
 
-    /** Passo 2 da saga R7 — crédito no destino e movimentação. */
     @Transactional
     fun sagaTransferCredito(sagaId: String): OperacaoResponse {
         val pendente = transferenciaPendenteStore.remove(sagaId)
@@ -146,7 +144,6 @@ class ContaCommandService(
         )
     }
 
-    /** Compensação — estorna débito se o crédito falhar. */
     @Transactional
     fun sagaTransferCompensarDebito(sagaId: String) {
         val pendente = transferenciaPendenteStore.remove(sagaId) ?: return

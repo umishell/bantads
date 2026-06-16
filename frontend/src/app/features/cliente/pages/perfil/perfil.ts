@@ -37,7 +37,6 @@ export class PerfilComponent implements OnInit {
   public securityErrorMessage = '';
   public securitySuccessMessage = '';
   public clienteResumo: ClientePerfil | null = null;
-  /** Troca de senha pelo cliente ainda não exposta na API. */
   public readonly trocaSenhaDisponivel = false;
 
   private readonly agenciaPadrao = '0001';

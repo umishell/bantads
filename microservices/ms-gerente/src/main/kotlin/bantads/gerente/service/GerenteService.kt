@@ -30,13 +30,11 @@ class GerenteService(
 
     private val log = LoggerFactory.getLogger(javaClass)
 
-    /** R19: listagem ordenada por nome ascendente (somente GERENTE ativos). */
     @Transactional(readOnly = true)
     fun listar(): List<GerenteResponse> =
         repository.findAllByAtivoTrueAndTipoOrderByNomeAsc("GERENTE")
             .map { it.toResponse() }
 
-    /** Consulta por CPF (R13 — análogo ao consultar pessoa). */
     @Transactional(readOnly = true)
     fun obterPorCpf(cpf: String): GerenteResponse {
         val g = repository.findByCpf(Cpf.normalize(cpf))
@@ -44,7 +42,6 @@ class GerenteService(
         return g.toResponse()
     }
 
-    /** R17: inserção de gerente; atribui uma conta via ms-conta (regra do enunciado). */
     @Transactional
     fun inserir(req: InserirGerenteRequest): GerenteResponse {
         val cpf = Cpf.require(req.cpf)
@@ -73,7 +70,6 @@ class GerenteService(
         return saved.toResponse()
     }
 
-    /** R20: alteração de nome, e-mail e/ou senha. A senha é tratada no ms-auth via saga. */
     @Transactional
     fun alterar(cpf: String, req: AlterarGerenteRequest): GerenteResponse {
         val g = repository.findByCpf(Cpf.normalize(cpf))
@@ -102,7 +98,6 @@ class GerenteService(
         return saved.toResponse()
     }
 
-    /** R18: remoção (soft delete); remaneja contas para o gerente com menos clientes. */
     @Transactional
     fun remover(cpf: String): GerenteResponse {
         val g = repository.findByCpf(Cpf.normalize(cpf))
@@ -125,10 +120,6 @@ class GerenteService(
         return saved.toResponse()
     }
 
-    /**
-     * R15: dashboard do administrador. Para cada gerente ativo, monta a linha com:
-     * total de clientes, soma de saldos positivos e soma de saldos negativos. Ordena desc por saldos positivos.
-     */
     @Transactional(readOnly = true)
     fun dashboard(): List<DashboardGerenteItem> {
         val gerentes = repository.findAllByAtivoTrueAndTipoOrderByNomeAsc("GERENTE")
@@ -163,10 +154,6 @@ class GerenteService(
         }
     }
 
-    /**
-     * Garante usuário no ms-auth para login. Em inserção falha a transação se o auth recusar.
-     * Em alteração recria credenciais quando o e-mail muda ou quando o login ainda não existe.
-     */
     private fun sincronizarCredenciaisAuth(emailAnterior: String?, gerente: Gerente, senha: String) {
         val emailMudou = emailAnterior != null && emailAnterior != gerente.email
         if (emailMudou) {

@@ -6,8 +6,6 @@ import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RestController
-
-/** Reset de dados para testes de integração (Docker / pytest). */
 @RestController
 @RequestMapping("/integration")
 class IntegrationRebootController(

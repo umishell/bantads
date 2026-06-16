@@ -1,7 +1,3 @@
-/**
- * R5/R6/R7 — cliente só opera na própria conta (número no path).
- * R4 — cliente só altera o próprio CPF no PUT /api/clientes/{cpf}.
- */
 
 const CONTA_OP = /^\/api\/contas\/(\d{4})\/(depositar|sacar|transferir)$/i
 const CLIENTE_PUT = /^\/api\/clientes\/(\d{11})$/i
@@ -23,10 +19,6 @@ export function isClienteContaMutation(method, pathname) {
 export function isClientePerfilPut(method, pathname) {
   return method === 'PUT' && CLIENTE_PUT.test(pathname.replace(/\/$/, '') || '/')
 }
-
-/**
- * @returns {Promise<boolean|null>} true se dono; false se não; null se deixar upstream decidir (conta não encontrada)
- */
 export async function clientePossuiConta(upstreams, cpf, numero) {
   if (!cpf || !numero) return false
   const contaRes = await fetch(`${upstreams.conta}/contas/${numero}`)

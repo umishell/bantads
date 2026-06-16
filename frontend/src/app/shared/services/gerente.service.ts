@@ -103,7 +103,6 @@ export class GerenteService {
     );
   }
 
-  /** R13 — consulta por CPF via API + merge com dados da carteira. */
   public consultarClientePorCpf(cpfCliente: string): Observable<ClienteCarteiraModel> {
     const cpf = cpfCliente.replace(/\D/g, '');
     return forkJoin({
@@ -141,7 +140,6 @@ export class GerenteService {
     );
   }
 
-  /** R14 — top 3 global por saldo (sem filtrar pela carteira do gerente). */
   public listarMelhoresClientes(_gerenteCpf: string): Observable<ClienteCarteiraModel[]> {
     return this.http
       .get<ClienteCarteiraDto[]>(`${API_BASE}/clientes?filtro=melhores_clientes`)

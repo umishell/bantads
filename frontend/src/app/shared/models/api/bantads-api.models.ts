@@ -1,4 +1,3 @@
-/** DTOs alinhados ao JSON dos microsserviços (Spring / Jackson, camelCase). */
 
 export interface ClienteDetalheDto {
   id: string;
@@ -12,11 +11,8 @@ export interface ClienteDetalheDto {
   endereco: string;
   cep: string;
   status: string;
-  /** R11 — motivo da rejeição (quando aplicável). */
   motivoRejeicao?: string | null;
-  /** R11 — data/hora da decisão do gerente. */
   decisaoGerenteEm?: string | null;
-  /** R4 — gerente responsável (quando aprovado). */
   gerenteCpf?: string | null;
   gerenteNome?: string | null;
   gerenteEmail?: string | null;
@@ -144,8 +140,6 @@ export interface AlterarGerenteRequestDto {
   email?: string | null;
   senha?: string | null;
 }
-
-/** Corpo `POST /api/clientes` (R1 autocadastro, ms-cliente). `CEP` espelha `@JsonProperty` no backend. */
 export interface AutocadastroRequestDto {
   cpf: string;
   email: string;

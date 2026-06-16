@@ -2,11 +2,6 @@ package bantads.saga.engine
 
 import com.fasterxml.jackson.databind.JsonNode
 import java.time.Instant
-
-/**
- * Estado volátil da saga de aprovação (memória do orquestrador).
- * Não persistir [plainPassword]; não logar.
- */
 internal data class ApprovalSagaContext(
     val sagaId: String,
     val clienteId: String,
@@ -20,7 +15,6 @@ internal data class ApprovalSagaContext(
     val cidade: String,
     val estado: String,
     var step: ApprovalStep,
-    /** Resposta bruta do ms-gerente até o passo de contagem. */
     var gerentesNode: JsonNode? = null,
     var gerenteId: String? = null,
     var contaId: String? = null,
@@ -31,7 +25,6 @@ internal data class ApprovalSagaContext(
     var contaCriada: Boolean = false,
     var usuarioCriado: Boolean = false,
     val idempotencyKeys: MutableSet<String> = mutableSetOf(),
-    /** Correlação -> descrição do passo de compensação ainda pendente. */
     val pendingCompensations: MutableMap<String, String> = mutableMapOf(),
     var compensationStartedAt: Instant? = null,
 )

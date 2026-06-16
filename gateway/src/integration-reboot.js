@@ -1,6 +1,3 @@
-/**
- * Reboot completo para testes de integração: PostgreSQL (cliente, gerente, conta) + Mongo (auth).
- */
 export async function integrationReboot (upstreams, profile = 'full') {
   const q = profile === 'full' ? '' : `?profile=${encodeURIComponent(profile)}`
   const steps = [

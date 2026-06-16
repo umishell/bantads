@@ -7,6 +7,9 @@ yarn-error.log*
 
 # --- Gradle / Kotlin / JVM (microsserviços) ---
 .gradle/
+bin/
+!**/src/main/**/bin/
+!**/src/test/**/bin/
 build/
 !**/src/main/**/build/
 !**/src/test/**/build/
@@ -14,14 +17,11 @@ build/
 !**/gradle/wrapper/gradle-wrapper.jar
 .kotlin/
 
-# --- Dados locais (PostgreSQL/Mongo em bind mount via Docker; nunca versionar) ---
+# --- Dados locais (PostgreSQL/Mongo em bind mount via Docker) ---
 data/
 
 # --- Docs (local, raiz do repositório) ---
 /docs/
-
-# --- Prompts (local, raiz do repositório) ---
-/prompts/
 
 # --- Ambiente e segredos ---
 .env
@@ -34,9 +34,8 @@ data/
 *.swp
 *~
 
-# --- IDEs (subprojetos podem ter .gitignore próprio, ex.: frontend) ---
-.cursor/
-.claude/
+# --- IDEs ---
+
 .idea/
 *.iml
 *.ipr
@@ -70,7 +69,3 @@ testReports/**
 !testReports/issues/.gitkeep
 !testReports/working/.gitkeep
 
-# --- GitNexus / agentes (gerados localmente; regeneram com `gitnexus analyze`) ---
-AGENTS.md
-CLAUDE.md
-.gitnexus/

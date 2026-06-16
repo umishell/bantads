@@ -15,6 +15,5 @@ data class User(
     val salt: String,
     val nome: String,
     val cpf: String,
-    /** CLIENTE | GERENTE | ADMINISTRADOR */
     val perfil: String,
 )

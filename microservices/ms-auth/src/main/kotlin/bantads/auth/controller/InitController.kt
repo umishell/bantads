@@ -10,7 +10,6 @@ class InitController(
     private val authSeedService: AuthSeedService,
 ) {
 
-    /** Swagger: inicializa o banco com os dados da especificação. */
     @GetMapping("/reboot")
     fun reboot(): ResponseEntity<Map<String, String>> {
         authSeedService.seed()

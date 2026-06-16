@@ -7,11 +7,6 @@ import com.fasterxml.jackson.module.kotlin.kotlinModule
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import java.util.TimeZone
-
-/**
- * Configuração de Jackson para respostas JSON com datas ISO-8601 em UTC.
- * O frontend converte para -03:00 quando necessário; o armazenamento é sempre UTC.
- */
 @Configuration
 class JacksonConfig {
     @Bean

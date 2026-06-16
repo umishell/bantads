@@ -11,10 +11,6 @@ class AuthSeedService(
     private val passwordHasher: Sha256SaltPasswordHasher,
 ) {
 
-    /**
-     * Dados pré-cadastrados do trabalho BANTADS (clientes + gerentes + administrador).
-     * Senha de todos: "tads"
-     */
     fun seed() {
         userRepository.deleteAll()
 

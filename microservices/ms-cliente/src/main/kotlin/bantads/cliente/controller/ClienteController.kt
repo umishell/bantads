@@ -32,22 +32,18 @@ class ClienteController(
     private val clienteConsultaService: ClienteConsultaService,
 ) {
 
-    /** R1 — autocadastro público (gateway: POST /api/clientes). */
     @PostMapping(consumes = [MediaType.APPLICATION_JSON_VALUE], produces = [MediaType.APPLICATION_JSON_VALUE])
     @ResponseStatus(HttpStatus.CREATED)
     fun autocadastro(@Valid @RequestBody body: AutocadastroRequest): AutocadastroResponse =
         clienteService.autocadastro(body)
 
-    /** Lista autocadastros pendentes — gateway exige JWT GERENTE. */
     @GetMapping("/pendentes", produces = [MediaType.APPLICATION_JSON_VALUE])
     fun pendentes(): List<ClientePendenteListItemResponse> = clienteService.listarPendentes()
 
-    /** R16 — relatório administrativo (gateway: GET /api/clientes/report). */
     @GetMapping("/report", produces = [MediaType.APPLICATION_JSON_VALUE])
     fun relatorioAdmin(@RequestHeader(HttpHeaders.AUTHORIZATION) authorization: String) =
         clienteConsultaService.relatorioAdministrador(authorization)
 
-    /** R12/R13 — consulta por CPF (11 dígitos). Gateway: GET /api/clientes/{cpf}. */
     @GetMapping("/{cpf:\\d{11}}", produces = [MediaType.APPLICATION_JSON_VALUE])
     fun porCpf(@PathVariable cpf: String) = clienteConsultaService.obterPorCpf(cpf)
 
@@ -60,10 +56,6 @@ class ClienteController(
         return clienteConsultaService.obterPorCpf(cpf)
     }
 
-    /**
-     * Listagens com `filtro` (OpenAPI): `para_aprovar`, `melhores_clientes`, `adm_relatorio_clientes`;
-     * sem parâmetro: carteira (clientes aprovados com conta). Gateway aplica perfil.
-     */
     @GetMapping(produces = [MediaType.APPLICATION_JSON_VALUE])
     fun listarComFiltro(
         @RequestParam(required = false) filtro: String?,

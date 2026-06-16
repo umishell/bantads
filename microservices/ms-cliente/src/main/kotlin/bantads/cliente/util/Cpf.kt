@@ -1,14 +1,4 @@
 package bantads.cliente.util
-
-/**
- * Utilitário para normalização e validação de CPF brasileiro (formato e dígitos verificadores).
- *
- * Regras:
- *  - Remove caracteres não numéricos.
- *  - Deve resultar em exatamente 11 dígitos.
- *  - Rejeita sequências repetidas (000..., 111..., ..., 999...).
- *  - Valida os 2 dígitos verificadores conforme algoritmo oficial (módulo 11).
- */
 object Cpf {
 
     fun normalize(raw: String): String = raw.filter { it.isDigit() }

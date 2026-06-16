@@ -30,10 +30,6 @@ class AuthService(
     fun gerarSenhaAleatoria(tamanho: Int = 12): String =
         (1..tamanho).map { senhaChars.random() }.joinToString("")
 
-    /**
-     * Cria usuário CLIENTE para a saga; idempotente por [sagaId] armazenado em mensagem —
-     * aqui usamos login único: se já existir, retorna falha para a saga compensar conta.
-     */
     fun criarClienteParaSaga(email: String, nome: String, cpf: String): ResultadoCriacaoSaga {
         val login = email.trim().lowercase()
         if (userRepository.existsByLogin(login)) {
@@ -63,7 +59,6 @@ class AuthService(
         logger.info("Remoção por login {} registros={}", login, n)
     }
 
-    /** R17/R20 — criação síncrona de GERENTE ou ADMINISTRADOR a partir do ms-gerente. */
     fun criarUsuarioBackoffice(
         email: String,
         nome: String,
@@ -90,7 +85,6 @@ class AuthService(
         return true
     }
 
-    /** R20 — troca de senha de usuário backoffice (gerente/admin). */
     fun atualizarSenhaPorLogin(email: String, senhaNova: String): Boolean {
         val login = email.trim().lowercase()
         val user = userRepository.findByLogin(login) ?: run {

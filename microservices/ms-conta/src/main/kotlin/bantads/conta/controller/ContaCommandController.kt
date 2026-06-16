@@ -15,11 +15,6 @@ import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
-
-/**
- * Lado COMMAND do CQRS em ms-conta. Muta saldo, limite e estado de contas.
- * R3: operações de conta (depositar/sacar/transferir). R8: inativação/limite pelo gerente.
- */
 @RestController
 @RequestMapping
 class ContaCommandController(
@@ -27,7 +22,6 @@ class ContaCommandController(
     private val transferenciaSaga: TransferenciaSagaCoordinator,
 ) {
 
-    /** R3: Depositar em uma conta. */
     @PostMapping("/{numero}/depositar")
     fun depositar(
         @PathVariable numero: String,
@@ -35,7 +29,6 @@ class ContaCommandController(
     ): ResponseEntity<OperacaoResponse> =
         ResponseEntity.ok(commandService.depositar(numero, body))
 
-    /** R3: Sacar de uma conta (respeitando saldo + limite). */
     @PostMapping("/{numero}/sacar")
     fun sacar(
         @PathVariable numero: String,
@@ -43,7 +36,6 @@ class ContaCommandController(
     ): ResponseEntity<OperacaoResponse> =
         ResponseEntity.ok(commandService.sacar(numero, body))
 
-    /** R3/R7: Transferir entre contas (saga débito → crédito via `cmd.conta`). */
     @PostMapping("/{numero}/transferir")
     fun transferir(
         @PathVariable numero: String,
@@ -51,7 +43,6 @@ class ContaCommandController(
     ): ResponseEntity<OperacaoResponse> =
         ResponseEntity.ok(transferenciaSaga.transferir(numero, body))
 
-    /** R8: Gerente atualiza limite da conta. */
     @PatchMapping("/{numero}/limite")
     fun atualizarLimite(
         @PathVariable numero: String,
@@ -61,7 +52,6 @@ class ContaCommandController(
         return ResponseEntity.noContent().build()
     }
 
-    /** R8: Gerente encerra/inativa a conta (soft delete, preservando auditoria). */
     @DeleteMapping("/{numero}")
     fun encerrar(@PathVariable numero: String): ResponseEntity<Void> {
         commandService.encerrar(numero)

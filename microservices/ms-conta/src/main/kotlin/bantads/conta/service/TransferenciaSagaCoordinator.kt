@@ -13,11 +13,6 @@ import com.fasterxml.jackson.databind.JsonNode
 import org.springframework.stereotype.Service
 import java.time.Instant
 import java.util.UUID
-
-/**
- * R7 — transferência em dois passos (débito → crédito) via fila `cmd.conta`,
- * com compensação do débito se o crédito falhar.
- */
 @Service
 class TransferenciaSagaCoordinator(
     private val commands: ContaSagaCommandPublisher,
@@ -81,7 +76,6 @@ class TransferenciaSagaCoordinator(
             dataHora = Instant.parse(node.path("dataHora").asText()),
         )
 
-    /** MissingNode.decimalValue() vira ZERO — tratar como null para o front não confundir com saldo real. */
     private fun jsonDecimalOrNull(node: JsonNode, field: String): java.math.BigDecimal? {
         val value = node.path(field)
         if (value.isMissingNode || value.isNull) return null

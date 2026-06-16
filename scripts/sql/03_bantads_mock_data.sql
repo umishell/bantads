@@ -1,14 +1,4 @@
--- =========================================================
--- BANTADS - 03_bantads_mock_data.sql
--- Dados mock alinhados com o enunciado discutido.
--- Execute depois de:
---   1) 01_bantads_schema.sql
---   2) 02_bantads_logic_triggers.sql
--- =========================================================
 
--- =========================================================
--- GERENTES / ADMINISTRADOR
--- =========================================================
 
 INSERT INTO gerente.usuarios_internos (
     cpf, nome, email, telefone, tipo, ativo, criado_em, atualizado_em
@@ -18,10 +8,6 @@ INSERT INTO gerente.usuarios_internos (
     ('23862179060', 'Gyândula',   'ger3@bantads.com.br', '(41) 99991-0003', 'GERENTE',       TRUE, NOW(), NOW()),
     ('40501740066', 'Adamântio',  'adm1@bantads.com.br', '(41) 99991-0004', 'ADMINISTRADOR', TRUE, NOW(), NOW());
 
--- =========================================================
--- ENDEREÇOS (o enunciado permite escolher)
--- =========================================================
-
 INSERT INTO cliente.enderecos (
     logradouro, numero, complemento, cep, cidade, estado
 ) VALUES
@@ -30,10 +16,6 @@ INSERT INTO cliente.enderecos (
     ('Rua das Flores',     '303', NULL,      '80000003', 'Curitiba', 'PR'),
     ('Travessa do Sol',    '404', 'Fundos',  '80000004', 'Curitiba', 'PR'),
     ('Alameda da Serra',   '505', 'Bloco B', '80000005', 'Curitiba', 'PR');
-
--- =========================================================
--- CLIENTES
--- =========================================================
 
 INSERT INTO cliente.clientes (
     cpf, nome, email, telefone, salario, endereco_id, status,
@@ -45,10 +27,6 @@ INSERT INTO cliente.clientes (
     ('58872160006', 'Cutardo',    'cli4@bantads.com.br', '(41) 99999-1004',   500.00, 4, 'APROVADO', '98574307084', '2022-02-22 00:00:00', '2022-02-22 00:00:00', NULL, NOW()),
     ('76179646090', 'Coândrya',   'cli5@bantads.com.br', '(41) 99999-1005',  1500.00, 5, 'APROVADO', '64065268052', '2025-01-01 00:00:00', '2025-01-01 00:00:00', NULL, NOW());
 
--- =========================================================
--- CONTAS
--- =========================================================
-
 INSERT INTO conta_cud.contas (
     numero, cliente_cpf, gerente_cpf, saldo, limite, status, data_criacao, atualizado_em
 ) VALUES
@@ -57,10 +35,6 @@ INSERT INTO conta_cud.contas (
     ('8573', '85733854057', '23862179060',  -1000.00,  1500.00, 'ATIVA', '2012-12-12 00:00:00', NOW()),
     ('5887', '58872160006', '98574307084', 150000.00,     0.00, 'ATIVA', '2022-02-22 00:00:00', NOW()),
     ('7617', '76179646090', '64065268052',   1500.00,     0.00, 'ATIVA', '2025-01-01 00:00:00', NOW());
-
--- =========================================================
--- MOVIMENTAÇÕES
--- =========================================================
 
 INSERT INTO conta_cud.movimentacoes (
     id, data_hora, tipo, valor,
@@ -84,5 +58,4 @@ INSERT INTO conta_cud.movimentacoes (
     ('11111111-1111-1111-1111-111111111124', '2025-06-01 10:00:00', 'DEPOSITO',    150000.00, '58872160006', NULL, NULL,   '5887', NULL, NULL),
     ('11111111-1111-1111-1111-111111111125', '2025-07-01 10:00:00', 'DEPOSITO',      1500.00, '76179646090', NULL, NULL,   '7617', NULL, NULL);
 
--- Garante que o read model ficará coerente com a carga inicial.
 SELECT conta_read.rebuild_from_cud();

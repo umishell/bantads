@@ -253,7 +253,6 @@ export class ExtratoComponent implements OnInit {
       .replaceAll('>', '&gt;');
   }
 
-
   public logout(): void {
     this.authService.sair(this.router);
   }

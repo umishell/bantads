@@ -4,11 +4,6 @@ import org.springframework.stereotype.Component
 import java.nio.charset.StandardCharsets
 import java.security.MessageDigest
 import java.security.SecureRandom
-
-/**
- * Senhas conforme especificação DAC: SHA-256 com salt aleatório por usuário.
- * Armazena-se o salt em texto hex junto ao hash hex de 256 bits.
- */
 @Component
 class Sha256SaltPasswordHasher {
 
