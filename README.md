@@ -988,6 +988,124 @@ Esse comando deve subir:
 
 ---
 
+# Boas Práticas e Padrões Arquiteturais Utilizados
+
+Durante o desenvolvimento do BANTADS foram adotadas diversas práticas voltadas para organização, manutenção e escalabilidade do sistema.
+
+## Separação de Responsabilidades
+
+O projeto segue o princípio de responsabilidade única (Single Responsibility Principle), onde cada camada possui uma função específica.
+
+### Frontend
+
+No frontend Angular, as responsabilidades foram divididas entre:
+
+- Components
+- Services
+- Guards
+- Interceptors
+- Models
+- Validators
+
+Essa organização reduz o acoplamento entre funcionalidades e facilita futuras manutenções.
+
+### Gateway
+
+O Gateway atua exclusivamente como ponto de entrada da aplicação.
+
+Entre suas responsabilidades estão:
+
+- Receber requisições do frontend;
+- Validar autenticação;
+- Verificar permissões de acesso;
+- Encaminhar chamadas para os microsserviços corretos.
+
+As regras de negócio não devem ficar concentradas no Gateway.
+
+### Microsserviços
+
+Cada microsserviço possui um domínio específico.
+
+Exemplos:
+
+- ms-auth → autenticação;
+- ms-cliente → clientes;
+- ms-conta → contas bancárias;
+- ms-gerente → gerentes;
+- ms-email → envio de e-mails.
+
+Essa divisão reduz dependências e melhora a escalabilidade do sistema.
+
+---
+
+## Uso de DTOs
+
+Os microsserviços utilizam DTOs (Data Transfer Objects) para entrada e saída de dados.
+
+Benefícios:
+
+- Evita exposição direta das entidades do banco;
+- Facilita validações;
+- Melhora a segurança da API;
+- Permite evolução independente dos modelos internos.
+
+---
+
+## Arquitetura Baseada em Eventos
+
+Operações que envolvem múltiplos serviços utilizam comunicação assíncrona através do RabbitMQ.
+
+Essa abordagem oferece:
+
+- Menor acoplamento;
+- Maior escalabilidade;
+- Melhor tolerância a falhas;
+- Processamento distribuído.
+
+---
+
+## Padrão Saga
+
+O microsserviço ms-saga-orchestrator implementa o padrão Saga para coordenação de transações distribuídas.
+
+Esse padrão permite:
+
+- Executar processos complexos envolvendo vários serviços;
+- Detectar falhas durante a execução;
+- Realizar compensações quando necessário;
+- Garantir consistência entre os dados.
+
+---
+
+## Segurança
+
+A autenticação do sistema é baseada em JWT (JSON Web Token).
+
+Os tokens são utilizados para:
+
+- Identificação do usuário;
+- Controle de sessão;
+- Controle de acesso por perfil;
+- Proteção de rotas privadas.
+
+Além disso, Guards e Interceptors são utilizados no frontend para reforçar a segurança da navegação.
+
+---
+
+## Escalabilidade
+
+A arquitetura baseada em microsserviços permite que cada componente seja escalado de forma independente.
+
+Por exemplo:
+
+- Aumento de instâncias do ms-conta em períodos de alta movimentação;
+- Escalabilidade do ms-email para envio massivo de notificações;
+- Expansão do Gateway sem alterar os demais serviços.
+
+Essa característica facilita a evolução futura do sistema.
+
+---
+
 # Autores
 
 Gabriela Harres Rodrigues - GRR20246215 - gabrielahrodrigus101@gmail.com
