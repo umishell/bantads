@@ -2,6 +2,7 @@ package bantads.conta.service
 
 import bantads.conta.dto.AgregadoPorGerenteResponse
 import bantads.conta.dto.ContaResponse
+import bantads.conta.dto.ExtratoMovimentacaoDacResponse
 import bantads.conta.dto.ExtratoResponse
 import bantads.conta.dto.LancamentoExtratoResponse
 import bantads.conta.dto.SaldoResponse
@@ -14,6 +15,7 @@ import bantads.conta.repository.MovimentacaoRepository
 import org.springframework.data.domain.PageRequest
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
+import bantads.conta.util.DacJsonCompat
 import java.math.BigDecimal
 import java.time.Instant
 import java.util.UUID
@@ -42,6 +44,7 @@ class ContaQueryService(
             saldo = c.saldo,
             limite = c.limite,
             saldoDisponivel = c.saldo + c.limite,
+            clienteCpf = c.clienteCpf,
         )
     }
 
@@ -78,9 +81,13 @@ class ContaQueryService(
             .findUltimaAntesDe(contaId, inicio, PageRequest.of(0, 1))
             .firstOrNull()
         val saldoInicial = ultimaAntes?.saldoAposParaConta(contaId) ?: BigDecimal.ZERO
+        val lancamentos = movs.map { m -> m.toLancamento(contaId) }
         return ExtratoResponse(
             saldoInicial = saldoInicial,
-            lancamentos = movs.map { m -> m.toLancamento(contaId) },
+            lancamentos = lancamentos,
+            contaNumero = conta.numero,
+            saldoFinal = conta.saldo,
+            movimentacoesDac = movs.map { m -> m.toDacMovimentacao(conta.numero, contaId) },
         )
     }
 
@@ -123,5 +130,31 @@ class ContaQueryService(
                 contaRepository.findById(cid).orElse(null)?.numero
             },
         )
+    }
+
+    private fun Movimentacao.toDacMovimentacao(contaNumero: String, contaId: UUID): ExtratoMovimentacaoDacResponse {
+        val ehDestino = contaDestinoId == contaId
+        val ehOrigem = contaOrigemId == contaId
+        val (origem, destino) = when (tipo) {
+            TipoMovimentacao.DEPOSITO -> contaNumero to ""
+            TipoMovimentacao.SAQUE -> contaNumero to ""
+            TipoMovimentacao.TRANSFERENCIA -> {
+                val origNum = if (ehOrigem) contaNumero else numeroConta(contaOrigemId)
+                val destNum = if (ehDestino) contaNumero else numeroConta(contaDestinoId)
+                origNum to destNum
+            }
+        }
+        return ExtratoMovimentacaoDacResponse(
+            tipo = DacJsonCompat.tipoLabel(tipo),
+            origem = origem,
+            destino = destino,
+            valor = valor,
+            data = DacJsonCompat.formatData(dataHora),
+        )
+    }
+
+    private fun numeroConta(contaUuid: UUID?): String {
+        if (contaUuid == null) return ""
+        return contaRepository.findById(contaUuid).orElse(null)?.numero ?: ""
     }
 }

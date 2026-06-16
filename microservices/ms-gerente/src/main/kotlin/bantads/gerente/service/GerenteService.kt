@@ -1,6 +1,9 @@
 package bantads.gerente.service
 
 import bantads.gerente.dto.AlterarGerenteRequest
+import bantads.gerente.dto.DacDashboardClienteRef
+import bantads.gerente.dto.DacDashboardGerenteRef
+import bantads.gerente.dto.DacDashboardItem
 import bantads.gerente.dto.DashboardGerenteItem
 import bantads.gerente.dto.GerenteResponse
 import bantads.gerente.dto.InserirGerenteRequest
@@ -39,6 +42,9 @@ class GerenteService(
     fun obterPorCpf(cpf: String): GerenteResponse {
         val g = repository.findByCpf(Cpf.normalize(cpf))
             ?: throw GerenteNaoEncontradoException()
+        if (!g.ativo) {
+            throw GerenteNaoEncontradoException()
+        }
         return g.toResponse()
     }
 
@@ -52,7 +58,7 @@ class GerenteService(
             cpf = cpf,
             nome = req.nome.trim(),
             email = emailNorm,
-            telefone = req.telefone.trim(),
+            telefone = req.telefone?.trim()?.takeIf { it.isNotEmpty() } ?: "(41) 0000-0000",
             tipo = (req.tipo ?: "GERENTE").uppercase(),
         )
         val saved = repository.save(g)
@@ -140,6 +146,29 @@ class GerenteService(
             .sortedWith(
                 compareByDescending<DashboardGerenteItem> { it.somaSaldosPositivos }
                     .thenBy { it.nome },
+            )
+    }
+
+    @Transactional(readOnly = true)
+    fun dashboardDac(): List<DacDashboardItem> {
+        val gerentes = repository.findAllByAtivoTrueAndTipoOrderByNomeAsc("GERENTE")
+        val agregados = contaClient.agregadosPorGerente().associateBy { it.gerenteId }
+        return gerentes
+            .map { g ->
+                val contas = contaClient.listarContasPorGerente(g.id!!)
+                val clientes = clienteClient.resumoPorIds(contas.map { it.clienteId })
+                    .sortedWith(compareBy({ it.nome }, { it.cpf }))
+                val a = agregados[g.id]
+                DacDashboardItem(
+                    gerente = DacDashboardGerenteRef(cpf = g.cpf, nome = g.nome),
+                    clientes = clientes.map { DacDashboardClienteRef(cpf = it.cpf, nome = it.nome) },
+                    saldoPositivo = a?.somaSaldosPositivos ?: BigDecimal.ZERO,
+                    saldoNegativo = a?.somaSaldosNegativos ?: BigDecimal.ZERO,
+                )
+            }
+            .sortedWith(
+                compareByDescending<DacDashboardItem> { it.saldoPositivo }
+                    .thenBy { it.gerente.nome },
             )
     }
 

@@ -17,6 +17,15 @@ interface ContaRepository : JpaRepository<Conta, UUID> {
 
     @Query(
         """
+        SELECT COALESCE(SUM(CASE WHEN c.saldo > 0 THEN c.saldo ELSE 0 END), 0)
+        FROM Conta c
+        WHERE c.ativa = true AND c.gerenteId = :gerenteId
+        """,
+    )
+    fun sumSaldoPositivoByGerenteId(gerenteId: UUID): java.math.BigDecimal
+
+    @Query(
+        """
         SELECT c.gerenteId AS gerenteId,
                COUNT(c) AS totalClientes,
                COALESCE(SUM(CASE WHEN c.saldo > 0 THEN c.saldo ELSE 0 END), 0) AS somaPositivos,

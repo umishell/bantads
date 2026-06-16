@@ -85,6 +85,7 @@ class ClienteService(
             ),
             clienteId = id,
             cpf = cpf,
+            email = saved.email,
         )
     }
 

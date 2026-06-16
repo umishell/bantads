@@ -44,14 +44,17 @@ class RestExceptionHandler {
         val fields = e.bindingResult.fieldErrors.associate { fe ->
             fe.field to (fe.defaultMessage ?: "inválido")
         }
+        val isLoginEndpoint = e.parameter?.declaringClass?.simpleName == "AuthController" &&
+            e.parameter?.method?.name == "login"
+        val status = if (isLoginEndpoint) HttpStatus.UNAUTHORIZED else HttpStatus.BAD_REQUEST
         val error = ErrorResponse(
             timestamp = LocalDateTime.now(),
-            status = HttpStatus.BAD_REQUEST.value(),
-            error = "Bad Request",
-            message = "Dados de entrada inválidos",
-            fieldErrors = fields,
+            status = status.value(),
+            error = if (isLoginEndpoint) "Unauthorized" else "Bad Request",
+            message = if (isLoginEndpoint) "Usuário ou senha inválidos" else "Dados de entrada inválidos",
+            fieldErrors = if (isLoginEndpoint) null else fields,
         )
-        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(error)
+        return ResponseEntity.status(status).body(error)
     }
 
     @ExceptionHandler(IllegalArgumentException::class, IllegalStateException::class)

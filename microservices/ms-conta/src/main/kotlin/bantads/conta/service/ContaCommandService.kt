@@ -45,13 +45,11 @@ class ContaCommandService(
             ),
         )
         log.info("Depósito conta={} valor={} novoSaldo={}", numeroConta, valor, conta.saldo)
-        return OperacaoResponse(
-            movimentacaoId = mov.id!!,
-            tipo = mov.tipo,
-            valor = mov.valor,
-            saldoOrigem = null,
+        return operacaoCompat(
+            mov = mov,
+            contaNumero = numeroConta,
             saldoDestino = conta.saldo,
-            dataHora = mov.dataHora,
+            saldoCompat = conta.saldo,
         )
     }
 
@@ -78,13 +76,11 @@ class ContaCommandService(
             ),
         )
         log.info("Saque conta={} valor={} novoSaldo={}", numeroConta, valor, conta.saldo)
-        return OperacaoResponse(
-            movimentacaoId = mov.id!!,
-            tipo = mov.tipo,
-            valor = mov.valor,
+        return operacaoCompat(
+            mov = mov,
+            contaNumero = numeroConta,
             saldoOrigem = conta.saldo,
-            saldoDestino = null,
-            dataHora = mov.dataHora,
+            saldoCompat = conta.saldo,
         )
     }
 
@@ -155,11 +151,11 @@ class ContaCommandService(
 
     @Transactional
     fun transferir(numeroContaOrigem: String, req: TransferenciaRequest): OperacaoResponse {
-        if (numeroContaOrigem == req.numeroContaDestino) {
+        if (numeroContaOrigem == req.resolveNumeroContaDestino()) {
             throw OperacaoInvalidaException("Conta de origem e destino são iguais")
         }
         val origem = exigirContaAtiva(numeroContaOrigem)
-        val destino = exigirContaAtiva(req.numeroContaDestino)
+        val destino = exigirContaAtiva(req.resolveNumeroContaDestino())
         val valor = req.valor.normalizar()
         val disponivel = origem.saldo + origem.limite
         if (valor > disponivel) {
@@ -187,13 +183,14 @@ class ContaCommandService(
             "Transferência origem={} destino={} valor={} saldoOrigem={} saldoDestino={}",
             origem.numero, destino.numero, valor, origem.saldo, destino.saldo,
         )
-        return OperacaoResponse(
-            movimentacaoId = mov.id!!,
-            tipo = mov.tipo,
-            valor = mov.valor,
+        val saldoGerentePos = contaRepository.sumSaldoPositivoByGerenteId(origem.gerenteId)
+        return operacaoCompat(
+            mov = mov,
+            contaNumero = origem.numero,
+            destinoNumero = destino.numero,
             saldoOrigem = origem.saldo,
             saldoDestino = destino.saldo,
-            dataHora = mov.dataHora,
+            saldoCompat = saldoGerentePos,
         )
     }
 
@@ -222,4 +219,23 @@ class ContaCommandService(
     }
 
     private fun BigDecimal.normalizar(): BigDecimal = this.setScale(2)
+
+    private fun operacaoCompat(
+        mov: Movimentacao,
+        contaNumero: String,
+        destinoNumero: String? = null,
+        saldoOrigem: BigDecimal? = null,
+        saldoDestino: BigDecimal? = null,
+        saldoCompat: BigDecimal,
+    ): OperacaoResponse = OperacaoResponse(
+        movimentacaoId = mov.id!!,
+        tipo = mov.tipo,
+        valor = mov.valor,
+        saldoOrigem = saldoOrigem,
+        saldoDestino = saldoDestino,
+        dataHora = mov.dataHora,
+        contaNumero = contaNumero,
+        destinoNumero = destinoNumero,
+        saldoCompat = saldoCompat,
+    )
 }

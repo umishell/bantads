@@ -29,6 +29,12 @@ class ContaClient(
         } ?: emptyList()
     }
 
+    fun listarContasPorGerente(gerenteId: UUID): List<ContaResumoDto> {
+        return tryGet("$baseUrl/?gerenteId=$gerenteId") { body ->
+            objectMapper.readValue(body, Array<ContaResumoDto>::class.java).toList()
+        } ?: emptyList()
+    }
+
     fun remanejarContasDoGerente(gerenteRemovidoId: UUID, outrosGerentesAtivosIds: List<UUID>): Int {
         val body = mapOf(
             "gerenteRemovidoId" to gerenteRemovidoId.toString(),
@@ -92,6 +98,11 @@ class ContaClient(
         }
     }
 }
+
+@JsonIgnoreProperties(ignoreUnknown = true)
+data class ContaResumoDto(
+    val clienteId: UUID,
+)
 
 @JsonIgnoreProperties(ignoreUnknown = true)
 data class AgregadoGerenteDto(

@@ -1,9 +1,11 @@
 package bantads.gerente.controller
 
 import bantads.gerente.dto.AlterarGerenteRequest
+import bantads.gerente.dto.DacDashboardItem
 import bantads.gerente.dto.DashboardGerenteItem
 import bantads.gerente.dto.GerenteResponse
 import bantads.gerente.dto.InserirGerenteRequest
+import org.springframework.web.bind.annotation.RequestParam
 import bantads.gerente.service.GerenteService
 import jakarta.validation.Valid
 import org.springframework.http.HttpStatus
@@ -24,8 +26,12 @@ class GerenteController(
 ) {
 
     @GetMapping
-    fun listar(): ResponseEntity<List<GerenteResponse>> =
-        ResponseEntity.ok(service.listar())
+    fun listar(@RequestParam(required = false) filtro: String?): ResponseEntity<Any> =
+        if (filtro?.trim()?.equals("dashboard", ignoreCase = true) == true) {
+            ResponseEntity.ok(service.dashboardDac())
+        } else {
+            ResponseEntity.ok(service.listar())
+        }
 
     @GetMapping("/stats")
     fun dashboard(): ResponseEntity<List<DashboardGerenteItem>> =

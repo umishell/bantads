@@ -5,7 +5,6 @@ import bantads.conta.dto.OperacaoResponse
 import bantads.conta.dto.TransferenciaRequest
 import bantads.conta.dto.ValorRequest
 import bantads.conta.service.ContaCommandService
-import bantads.conta.service.TransferenciaSagaCoordinator
 import jakarta.validation.Valid
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.DeleteMapping
@@ -19,7 +18,6 @@ import org.springframework.web.bind.annotation.RestController
 @RequestMapping
 class ContaCommandController(
     private val commandService: ContaCommandService,
-    private val transferenciaSaga: TransferenciaSagaCoordinator,
 ) {
 
     @PostMapping("/{numero}/depositar")
@@ -41,7 +39,7 @@ class ContaCommandController(
         @PathVariable numero: String,
         @Valid @RequestBody body: TransferenciaRequest,
     ): ResponseEntity<OperacaoResponse> =
-        ResponseEntity.ok(transferenciaSaga.transferir(numero, body))
+        ResponseEntity.ok(commandService.transferir(numero, body))
 
     @PatchMapping("/{numero}/limite")
     fun atualizarLimite(

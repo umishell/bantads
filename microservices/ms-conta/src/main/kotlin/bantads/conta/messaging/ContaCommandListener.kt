@@ -108,11 +108,18 @@ class ContaCommandListener(
         val salario = BigDecimal(root.path("salario").asText())
         val limite = ContaLimiteCalculator.calcularLimitePorSalario(salario, BigDecimal.ZERO)
         val numero = gerarNumeroConta4Digitos()
+        val cpfNode = root.get("cpf")
+        val clienteCpf = if (cpfNode == null || cpfNode.isNull) {
+            null
+        } else {
+            cpfNode.asText().takeIf { it.isNotBlank() }
+        }
         val conta = Conta(
             numero = numero,
             saldo = BigDecimal.ZERO,
             limite = limite,
             clienteId = UUID.fromString(root.path("clienteId").asText()),
+            clienteCpf = clienteCpf,
             gerenteId = UUID.fromString(root.path("gerenteId").asText()),
             sagaId = sagaUuid,
             ativa = true,

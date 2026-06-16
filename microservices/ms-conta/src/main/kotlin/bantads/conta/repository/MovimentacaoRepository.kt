@@ -15,7 +15,7 @@ interface MovimentacaoRepository : JpaRepository<Movimentacao, UUID> {
         SELECT m FROM Movimentacao m
         WHERE (m.contaOrigemId = :contaId OR m.contaDestinoId = :contaId)
           AND m.dataHora BETWEEN :inicio AND :fim
-        ORDER BY m.dataHora DESC
+        ORDER BY m.dataHora ASC, m.id ASC
         """,
     )
     fun findExtrato(

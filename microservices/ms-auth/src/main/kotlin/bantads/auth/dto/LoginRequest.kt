@@ -9,6 +9,5 @@ data class LoginRequest(
     val login: String,
 
     @field:NotBlank(message = "A senha é obrigatória")
-    @field:Size(min = 4, message = "A senha deve ter no mínimo 4 caracteres")
     val senha: String
 )

@@ -29,6 +29,9 @@ class Conta(
     @Column(nullable = false)
     var clienteId: UUID,
 
+    @Column(length = 11)
+    var clienteCpf: String? = null,
+
     @Column(nullable = false)
     var gerenteId: UUID,
 

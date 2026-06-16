@@ -29,7 +29,7 @@ class TransferenciaSagaCoordinator(
                 "correlationId" to corrDebito,
                 "sagaId" to sagaId,
                 "numeroOrigem" to numeroContaOrigem,
-                "numeroDestino" to req.numeroContaDestino,
+                "numeroDestino" to req.resolveNumeroContaDestino(),
                 "valor" to req.valor.toPlainString(),
             ),
         )

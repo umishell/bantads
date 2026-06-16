@@ -63,7 +63,7 @@ class ClienteController(
     ) = clienteConsultaService.listarPorFiltroQuery(filtro, authorization)
 
     @PostMapping("/{id}/aprovar", consumes = [MediaType.APPLICATION_JSON_VALUE])
-    @ResponseStatus(HttpStatus.ACCEPTED)
+    @ResponseStatus(HttpStatus.OK)
     fun aprovar(
         @PathVariable id: UUID,
         @RequestBody(required = false) body: AprovarClienteRequest?,

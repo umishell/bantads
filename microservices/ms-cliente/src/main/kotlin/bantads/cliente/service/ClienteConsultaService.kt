@@ -4,6 +4,7 @@ import bantads.cliente.dto.AdminRelatorioClienteResponse
 import bantads.cliente.dto.ClienteCarteiraListItemResponse
 import bantads.cliente.dto.ClienteDetalheResponse
 import bantads.cliente.dto.ClientePendenteListItemResponse
+import bantads.cliente.integration.AuthClient
 import bantads.cliente.integration.ContaUpstreamDto
 import bantads.cliente.integration.GerenteUpstreamDto
 import bantads.cliente.model.Cliente
@@ -18,13 +19,17 @@ import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import org.springframework.web.client.RestClient
 import org.springframework.web.server.ResponseStatusException
+import java.math.BigDecimal
+import java.math.RoundingMode
 import java.util.UUID
 
 @Service
 class ClienteConsultaService(
     private val repository: ClienteRepository,
+    private val authClient: AuthClient,
     @Value("\${bantads.integration.conta-base-url}") private val contaBaseUrl: String,
     @Value("\${bantads.integration.gerente-base-url}") private val gerenteBaseUrl: String,
+    @Value("\${bantads.consulta.aprovacao-wait-ms:120000}") private val aprovacaoWaitMs: Long,
 ) {
 
     private val listContaType = object : ParameterizedTypeReference<List<ContaUpstreamDto>>() {}
@@ -34,7 +39,49 @@ class ClienteConsultaService(
     fun obterPorCpf(cpfRaw: String): ClienteDetalheResponse {
         val cpf = Cpf.require(cpfRaw)
         val c = repository.findByCpf(cpf) ?: throw ResponseStatusException(HttpStatus.NOT_FOUND, "Cliente não encontrado")
-        val gerente = resolverGerenteDoCliente(c)
+        if (c.status == StatusCliente.REJEITADO) {
+            throw ResponseStatusException(HttpStatus.NOT_FOUND, "Cliente não encontrado")
+        }
+        if (c.status == StatusCliente.PROCESSANDO_APROVACAO) {
+            aguardarAprovacao(c.id!!)
+            val atualizado = repository.findByCpf(cpf)
+                ?: throw ResponseStatusException(HttpStatus.NOT_FOUND, "Cliente não encontrado")
+            return montarDetalhe(atualizado)
+        }
+        return montarDetalhe(c)
+    }
+
+    private fun aguardarAprovacao(clienteId: UUID) {
+        val deadline = System.currentTimeMillis() + aprovacaoWaitMs
+        while (System.currentTimeMillis() < deadline) {
+            val atual = repository.findById(clienteId).orElse(null) ?: break
+            when (atual.status) {
+                StatusCliente.APROVADO -> {
+                    if (fetchContaPorClienteId(clienteId) != null) return
+                    Thread.sleep(500)
+                }
+                StatusCliente.REJEITADO ->
+                    throw ResponseStatusException(HttpStatus.NOT_FOUND, "Cliente não encontrado")
+                else -> Thread.sleep(500)
+            }
+        }
+    }
+
+    private fun calcularLimiteEsperado(c: Cliente): BigDecimal? {
+        if (c.status !in setOf(StatusCliente.APROVADO, StatusCliente.PROCESSANDO_APROVACAO)) {
+            return null
+        }
+        if (c.salario <= BigDecimal.ZERO) {
+            return BigDecimal.ZERO.setScale(2)
+        }
+        return c.salario.divide(BigDecimal("2"), 2, RoundingMode.HALF_UP)
+    }
+
+    private fun montarDetalhe(c: Cliente): ClienteDetalheResponse {
+        val aguardandoConta = c.status == StatusCliente.APROVADO ||
+            c.status == StatusCliente.PROCESSANDO_APROVACAO
+        val conta = if (aguardandoConta) fetchContaPorClienteId(c.id!!) else null
+        val gerente = if (c.status == StatusCliente.APROVADO) resolverGerenteDoCliente(c) else null
         return ClienteDetalheResponse(
             id = c.id!!,
             cpf = c.cpf,
@@ -52,6 +99,9 @@ class ClienteConsultaService(
             gerenteCpf = gerente?.cpf,
             gerenteNome = gerente?.nome,
             gerenteEmail = gerente?.email,
+            conta = conta?.numero,
+            limite = conta?.limite ?: calcularLimiteEsperado(c),
+            saldo = conta?.saldo ?: if (aguardandoConta) BigDecimal.ZERO.setScale(2) else null,
         )
     }
 
@@ -115,6 +165,9 @@ class ClienteConsultaService(
 
     @Transactional(readOnly = true)
     fun listarCarteiraComConta(authorization: String): List<ClienteCarteiraListItemResponse> {
+        val principal = authClient.introspect(authorization)
+            ?: throw ResponseStatusException(HttpStatus.UNAUTHORIZED, "Token inválido ou expirado")
+        val gerenteCpf = principal.cpf?.takeIf { principal.perfil == "GERENTE" }
         val contas = fetchContas(authorization).filter { it.ativa }
         val gerentesPorId = fetchGerentesPorId(authorization)
         return contas.mapNotNull { conta ->
@@ -123,6 +176,9 @@ class ClienteConsultaService(
                 return@mapNotNull null
             }
             val ger = gerentesPorId[conta.gerenteId] ?: return@mapNotNull null
+            if (gerenteCpf != null && ger.cpf != gerenteCpf) {
+                return@mapNotNull null
+            }
             toCarteiraItem(cliente, conta, ger)
         }.sortedWith(compareBy({ it.nome }, { it.cpf }))
     }

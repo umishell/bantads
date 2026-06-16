@@ -44,4 +44,34 @@ class AuthClient(
             false
         }
     }
+
+    fun introspect(authorization: String): AuthIntrospectDto? {
+        val req = HttpRequest.newBuilder()
+            .uri(URI.create("$baseUrl/introspect"))
+            .timeout(Duration.ofSeconds(5))
+            .header("Accept", "application/json")
+            .header("Authorization", authorization)
+            .GET()
+            .build()
+        return try {
+            val resp = httpClient.send(req, HttpResponse.BodyHandlers.ofString())
+            if (resp.statusCode() != 200) {
+                log.warn("ms-auth GET introspect status={}", resp.statusCode())
+                return null
+            }
+            val tree = objectMapper.readTree(resp.body())
+            AuthIntrospectDto(
+                cpf = tree.get("cpf")?.takeIf { !it.isNull }?.asText()?.takeIf { it.isNotBlank() },
+                perfil = tree.get("perfil")?.takeIf { !it.isNull }?.asText()?.takeIf { it.isNotBlank() },
+            )
+        } catch (ex: Exception) {
+            log.warn("ms-auth indisponível no introspect: {}", ex.message)
+            null
+        }
+    }
 }
+
+data class AuthIntrospectDto(
+    val cpf: String?,
+    val perfil: String?,
+)

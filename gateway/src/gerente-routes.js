@@ -6,7 +6,7 @@ export function requiresGerenteProfile(method, pathname, query) {
 
   if (method === 'GET' && p === '/api/clientes/pendentes') return true
 
-  if (method === 'POST' && /^\/api\/clientes\/[0-9a-f-]{36}\/(aprovar|rejeitar)$/i.test(p)) return true
+  if (method === 'POST' && /^\/api\/clientes\/(\d{11}|[0-9a-f-]{36})\/(aprovar|rejeitar)$/i.test(p)) return true
 
   if (method === 'GET' && /^\/api\/clientes\/\d{11}$/.test(p)) return true
 

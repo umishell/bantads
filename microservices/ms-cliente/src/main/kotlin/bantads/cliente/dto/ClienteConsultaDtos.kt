@@ -14,7 +14,14 @@ data class AdminRelatorioClienteResponse(
     val limite: BigDecimal,
     val cpfGerente: String,
     val nomeGerente: String,
-)
+) {
+    /** Alias esperado pelo testador oficial DAC (`cli["cpf"]`). */
+    val cpf: String get() = cpfCliente
+
+    /** Alias esperado pelo testador oficial DAC (`cli["nome"]`). */
+    val nome: String get() = nomeCliente
+}
+
 data class ClienteDetalheResponse(
     val id: UUID,
     val cpf: String,
@@ -32,7 +39,13 @@ data class ClienteDetalheResponse(
     val gerenteCpf: String? = null,
     val gerenteNome: String? = null,
     val gerenteEmail: String? = null,
-)
+    val conta: String? = null,
+    val limite: BigDecimal? = null,
+    val saldo: BigDecimal? = null,
+) {
+    /** Alias DAC (`r["gerente"]`). */
+    val gerente: String? get() = gerenteCpf
+}
 data class ClienteCarteiraListItemResponse(
     val cpf: String,
     val nome: String,

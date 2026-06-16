@@ -7,4 +7,5 @@ data class AutocadastroResponse(
     val avisos: List<String>,
     val clienteId: UUID,
     val cpf: String,
+    val email: String,
 )
